@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI ist die gemeinsame Livewire + DaisyUI UI-Grundlage fuer moderne
+evo-ui ist die gemeinsame Livewire + DaisyUI UI-Grundlage fuer moderne
 Evolution-CMS-Manager-Module.
 
 Das Paket wird bereits von `sArticles` und `dIssues` genutzt und ist fuer die
@@ -44,5 +44,5 @@ spaetere Migration von `sLang`, `sSeo` und weiteren Extras vorgesehen.
 
 ## Regel
 
-evoUI enthaelt nur den gemeinsamen UI-Runtime. Fachlogik und Integrationen
+evo-ui enthaelt nur den gemeinsamen UI-Runtime. Fachlogik und Integrationen
 bleiben im jeweiligen Modul.

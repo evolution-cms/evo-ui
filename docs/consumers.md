@@ -1,12 +1,12 @@
-# evoUI Consumers
+# evo-ui Consumers
 
-This page documents the two real consumers that shape the first evoUI release.
+This page documents the two real consumers that shape the first evo-ui release.
 
 ## sArticles
 
-`sArticles` uses evoUI as the main manager UI runtime:
+`sArticles` uses evo-ui as the main manager UI runtime:
 
-- module tabs rendered inside an evoUI-owned iframe;
+- module tabs rendered inside an evo-ui-owned iframe;
 - config-driven tables for publications, authors, tags, comments, polls,
   categories, features, TV parameters, and settings dictionaries;
 - modal create/edit forms with inline choices, image fields, rich text fields,
@@ -18,12 +18,12 @@ This page documents the two real consumers that shape the first evoUI release.
 - integration surfaces for `sSeo` and `sLang`.
 
 The sArticles rule is important for future modules: module-specific hooks stay
-in the module. evoUI receives only normalized config, provider methods and
+in the module. evo-ui receives only normalized config, provider methods and
 generic UI behavior.
 
 ## dIssues
 
-`dIssues` uses evoUI as a second independent consumer:
+`dIssues` uses evo-ui as a second independent consumer:
 
 - issue table with filters, search, list/table views and modal editing;
 - settings forms and dictionary tables;
@@ -34,11 +34,11 @@ generic UI behavior.
 - session-persistent workspace state for display, filters, search and selected
   issue.
 
-This proves evoUI is not only an article UI helper. It is a reusable manager
+This proves evo-ui is not only an article UI helper. It is a reusable manager
 surface package for data-heavy modules and workflow modules.
 
 ## Release Implication
 
-Before tagging evoUI, both consumers should pass their smoke checks. A change in
-evoUI must be considered unsafe if it only works for `sArticles` but regresses
+Before tagging evo-ui, both consumers should pass their smoke checks. A change in
+evo-ui must be considered unsafe if it only works for `sArticles` but regresses
 `dIssues`, or the reverse.

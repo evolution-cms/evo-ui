@@ -372,7 +372,7 @@ Delete action:
 ```
 
 `type => delete` is intercepted by `evo-ui.js` and shown through the shared
-evoUI confirmation modal before opening `data-href`.
+evo-ui confirmation modal before opening `data-href`.
 
 State-driven action:
 
@@ -430,7 +430,7 @@ methods such as `duplicate()` or `togglePublished()`.
 
 ## Modal Forms
 
-Module tables can open create/edit forms in the shared evoUI modal:
+Module tables can open create/edit forms in the shared evo-ui modal:
 
 ```php
 'actions' => [

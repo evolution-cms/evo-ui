@@ -1,9 +1,9 @@
-# evoUI Base Roadmap
+# evo-ui Base Roadmap
 
 This is the small base backlog before migrating `sLang`, `sSeo`, and more
-manager extras onto evoUI.
+manager extras onto evo-ui.
 
-## Keep In evoUI
+## Keep In evo-ui
 
 - Generic manager shell, theme sync and Livewire bridge.
 - Tables, lists, filters, sorting, pagination, state persistence and row actions.
@@ -38,21 +38,21 @@ manager extras onto evoUI.
 
 ## External UI Notes
 
-- Livewire 4 supports URL-bound state and session-bound state. evoUI currently
+- Livewire 4 supports URL-bound state and session-bound state. evo-ui currently
   combines URL attributes for shareable table query state with explicit
   server-side session persistence for manager convenience.
-- DaisyUI's current component catalogue covers the same broad primitives evoUI
+- DaisyUI's current component catalogue covers the same broad primitives evo-ui
   keeps internally: buttons, dropdowns, modals, tabs, pagination, alerts,
-  skeletons, toast, tooltip, inputs, selects and textareas. The missing evoUI
+  skeletons, toast, tooltip, inputs, selects and textareas. The missing evo-ui
   primitives worth adding next are toast/alert, skeleton and drawer.
 - Mary UI choices are a good API reference for `single`, `clearable`,
-  `searchable`, custom option labels and server-side search. evoUI should keep
+  `searchable`, custom option labels and server-side search. evo-ui should keep
   that direction while preserving Evolution manager styling and Livewire
   provider contracts.
 
 ## Design Direction
 
-evoUI should stay quiet, dense and operational. It should borrow the useful API
+evo-ui should stay quiet, dense and operational. It should borrow the useful API
 ideas from DaisyUI, Mary UI and Livewire, but keep Evolution CMS manager behavior
 first: iframe-safe assets, manager theme sync, manager auth/session rules and
 module-owned domain logic.

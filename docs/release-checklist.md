@@ -1,6 +1,6 @@
-# evoUI First Release Checklist
+# evo-ui First Release Checklist
 
-Use this checklist before tagging the first evoUI release.
+Use this checklist before tagging the first evo-ui release.
 
 ## Runtime
 
@@ -31,21 +31,15 @@ Use this checklist before tagging the first evoUI release.
 
 ## Consumers
 
-- `sArticles` works with evoUI tables, settings, article modal, content builder,
+- `sArticles` works with evo-ui tables, settings, article modal, content builder,
   sSeo and sLang surfaces.
-- `dIssues` works with evoUI tables, settings and issue workspace.
+- `dIssues` works with evo-ui tables, settings and issue workspace.
 
 ## Verification
 
 ```bash
 composer test
 find src config lang tests -name '*.php' -print0 | xargs -0 -n1 php -l
-```
-
-Recommended consumer checks:
-
-```bash
-php -S 127.0.0.1:8788 -t /Users/dmi3yy/PhpstormProjects/Extras/sArticles/demo
 ```
 
 Then verify in the manager:

@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI to wspolna baza UI Livewire + DaisyUI dla nowoczesnych modulow managera
+evo-ui to wspolna baza UI Livewire + DaisyUI dla nowoczesnych modulow managera
 Evolution CMS.
 
 Pakiet jest juz uzywany przez `sArticles` i `dIssues`, a nastepnie ma posluzyc
@@ -43,5 +43,5 @@ do migracji `sLang`, `sSeo` i kolejnych extras.
 
 ## Zasada
 
-evoUI przechowuje wspolny UI runtime. Logika domenowa, hooki i integracje zostaja
-w module, ktory korzysta z evoUI.
+evo-ui przechowuje wspolny UI runtime. Logika domenowa, hooki i integracje zostaja
+w module, ktory korzysta z evo-ui.

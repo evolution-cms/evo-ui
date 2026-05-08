@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'module_title' => 'evoUI',
+    'module_title' => 'evo-ui',
     'module_description' => 'Evo-native UI foundation for Evolution CMS manager modules.',
     'module_icon' => 'tabler-brush',
     'table' => 'Table',
@@ -17,6 +17,7 @@ return [
     'action_delete' => 'Delete',
     'delete_confirm_title' => 'Delete item',
     'delete_confirm_message' => 'Are you sure you want to delete ":name"?',
+    'delete_guard_message' => 'This item cannot be deleted because it is in use.',
     'action_browse' => 'Browse',
     'action_save' => 'Save',
     'action_save_continue' => 'Save + Continue',
@@ -72,7 +73,7 @@ return [
     'form_site_content' => 'Resource editor',
     'form_site_content_description' => 'Config-driven editor for a site_content resource.',
     'form_settings' => 'System configuration',
-    'form_settings_description' => 'Config-backed evoUI table and form settings.',
+    'form_settings_description' => 'Config-backed evo-ui table and form settings.',
     'settings_tab_module' => 'Module',
     'settings_tab_table' => 'Table',
     'settings_tab_form' => 'Form',

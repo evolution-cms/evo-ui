@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'module_title' => 'evoUI',
+    'module_title' => 'evo-ui',
     'module_description' => 'Evo-native UI foundation для модулів Evolution CMS Manager.',
     'module_icon' => 'tabler-brush',
     'table' => 'Таблиця',
@@ -17,6 +17,7 @@ return [
     'action_delete' => 'Видалити',
     'delete_confirm_title' => 'Видалити запис',
     'delete_confirm_message' => 'Ви дійсно хочете видалити ":name"?',
+    'delete_guard_message' => 'Запис не можна видалити, бо він використовується.',
     'action_browse' => 'Обрати',
     'action_save' => 'Зберегти',
     'action_save_continue' => 'Зберегти + Продовжити',
@@ -72,7 +73,7 @@ return [
     'form_site_content' => 'Редактор ресурсу',
     'form_site_content_description' => 'Config-driven редактор ресурсу site_content.',
     'form_settings' => 'Системна конфігурація',
-    'form_settings_description' => 'Config-backed налаштування таблиці та форми evoUI.',
+    'form_settings_description' => 'Config-backed налаштування таблиці та форми evo-ui.',
     'settings_tab_module' => 'Модуль',
     'settings_tab_table' => 'Таблиця',
     'settings_tab_form' => 'Форма',

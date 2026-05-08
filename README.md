@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI is the Livewire + DaisyUI foundation for modern Evolution CMS manager
+evo-ui is the Livewire + DaisyUI foundation for modern Evolution CMS manager
 modules. It is a technical package, not a standalone manager module.
 
 The package lets modules such as `sArticles` and `dIssues` render modern manager
@@ -41,7 +41,7 @@ screens without pulling legacy manager CSS, jQuery, Bootstrap, `main.js`,
 }
 ```
 
-Render an evoUI-owned manager document:
+Render an evo-ui-owned manager document:
 
 ```blade
 <x-evo::layout :title="$pageTitle">
@@ -64,7 +64,7 @@ Start from [`docs/`](docs/README.md).
   list, filters, modal and provider contracts.
 - [`docs/components.md`](docs/components.md): component catalogue and usage.
 - [`docs/consumers.md`](docs/consumers.md): how `sArticles` and `dIssues`
-  currently consume evoUI.
+  currently consume evo-ui.
 - [`docs/release-checklist.md`](docs/release-checklist.md): first-release
   readiness checklist.
 - [`docs/roadmap.md`](docs/roadmap.md): useful base components to add before
@@ -97,7 +97,7 @@ find src config lang tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
 This package is release-ready when:
 
-- all consumer modules use evoUI-owned iframe documents;
-- no new screen mixes evoUI with legacy manager UI bundles;
+- all consumer modules use evo-ui-owned iframe documents;
+- no new screen mixes evo-ui with legacy manager UI bundles;
 - session state persistence works for table/workspace filters and views;
 - docs, translations, assets and smoke tests are updated together.

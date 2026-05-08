@@ -3,6 +3,7 @@
     "license": "MIT",
     "type": "library",
     "description": "A Livewire and DaisyUI powered UI foundation for modern Evolution CMS manager modules.",
+    "homepage": "https://github.com/evolution-cms/evo-ui",
     "keywords": [
         "evolution-cms",
         "evocms",
@@ -18,8 +19,12 @@
     ],
     "require": {
         "php": "^8.3",
-        "evolution-cms/evolution": "^3.5.6",
+        "evolution-cms/evolution": "^3.5.7",
         "livewire/livewire": "^4.0"
+    },
+    "support": {
+        "issues": "https://github.com/evolution-cms/evo-ui/issues",
+        "source": "https://github.com/evolution-cms/evo-ui"
     },
     "autoload": {
         "files": [

@@ -12,7 +12,7 @@ All Blade components use the `evo::` namespace.
 </x-evo::layout>
 ```
 
-Use it for full evoUI screens. It applies theme classes and includes local CSS,
+Use it for full evo-ui screens. It applies theme classes and includes local CSS,
 JS, and Livewire assets.
 
 ## Icons
@@ -201,7 +201,7 @@ Supported behavior:
 - clicking an already selected option toggles it off when the field allows it.
 
 This follows the useful API direction from Mary UI choices while keeping the
-rendering and state handling inside evoUI.
+rendering and state handling inside evo-ui.
 
 ## Modals
 
@@ -268,7 +268,7 @@ contained tools. Do not nest cards inside cards.
 
 ## Styling Tokens
 
-Use existing evoUI classes and tokens before adding module CSS:
+Use existing evo-ui classes and tokens before adding module CSS:
 
 - `evo-ui-btn`
 - `evo-ui-row-action`
@@ -283,5 +283,5 @@ Use existing evoUI classes and tokens before adding module CSS:
 - `evo-ui-choice`
 - `evo-ui-issue-workspace`
 
-Avoid one-off colors in module views. Add reusable tokens/classes to evoUI when
+Avoid one-off colors in module views. Add reusable tokens/classes to evo-ui when
 a pattern is shared by more than one module.

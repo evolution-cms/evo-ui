@@ -44,6 +44,7 @@ class ModuleTable extends Component
     public bool $deleteModalOpen = false;
     public ?int $deleteRecordId = null;
     public string $deleteRecordName = '';
+    public string $deleteErrorMessage = '';
 
     public function mount(string $preset, array $context = []): void
     {
@@ -213,6 +214,7 @@ class ModuleTable extends Component
         $this->selectedId = $id;
         $this->deleteRecordId = $id;
         $this->deleteRecordName = $this->providerDeleteName($id);
+        $this->deleteErrorMessage = '';
         $this->deleteModalOpen = true;
     }
 
@@ -221,6 +223,7 @@ class ModuleTable extends Component
         $this->deleteModalOpen = false;
         $this->deleteRecordId = null;
         $this->deleteRecordName = '';
+        $this->deleteErrorMessage = '';
     }
 
     public function deleteConfirmed(): void
@@ -233,7 +236,12 @@ class ModuleTable extends Component
         $method = (string) $this->tableConfig('delete_provider', 'deleteRow');
 
         if (method_exists($provider, $method)) {
-            $this->callProvider($method, $this->deleteRecordId);
+            $result = $this->callProvider($method, $this->deleteRecordId);
+
+            if ($result === false || (is_string($result) && trim($result) !== '')) {
+                $this->deleteErrorMessage = is_string($result) ? trim($result) : __('evo::global.delete_guard_message');
+                return;
+            }
         }
 
         $this->selectedId = null;
@@ -1245,7 +1253,7 @@ class ModuleTable extends Component
         $class = $this->tableConfig('provider');
 
         if (!is_string($class) || $class === '') {
-            throw new \RuntimeException('evoUI module table provider is not configured.');
+            throw new \RuntimeException('evo-ui module table provider is not configured.');
         }
 
         return app()->makeWith($class, [

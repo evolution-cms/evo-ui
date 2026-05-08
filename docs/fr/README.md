@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI est la base UI commune Livewire + DaisyUI pour les modules manager
+evo-ui est la base UI commune Livewire + DaisyUI pour les modules manager
 modernes d'Evolution CMS.
 
 Le package est deja utilise par `sArticles` et `dIssues`, et servira de base aux
@@ -43,5 +43,5 @@ migrations de `sLang`, `sSeo` et d'autres extras.
 
 ## Regle
 
-evoUI contient le runtime UI partage. La logique metier, les hooks de domaine et
+evo-ui contient le runtime UI partage. La logique metier, les hooks de domaine et
 les integrations restent dans le module consommateur.

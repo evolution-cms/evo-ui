@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI is the shared Livewire + DaisyUI UI foundation for Evolution CMS manager
+evo-ui is the shared Livewire + DaisyUI UI foundation for Evolution CMS manager
 modules.
 
 It is used by `sArticles` and `dIssues` and is designed for future migrations of
@@ -43,5 +43,5 @@ It is used by `sArticles` and `dIssues` and is designed for future migrations of
 
 ## Rule Of Thumb
 
-Put shared UI runtime into evoUI. Keep module-specific business logic in the
+Put shared UI runtime into evo-ui. Keep module-specific business logic in the
 module provider.

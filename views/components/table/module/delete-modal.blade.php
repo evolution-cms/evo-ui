@@ -25,6 +25,11 @@
                 <p class="evo-ui-confirm__message">
                     @lang('evo::global.delete_confirm_message', ['name' => $controller->deleteRecordName])
                 </p>
+                @if($controller->deleteErrorMessage !== '')
+                    <p class="evo-ui-alert evo-ui-alert--danger">
+                        {{ $controller->deleteErrorMessage }}
+                    </p>
+                @endif
             </div>
 
             <footer class="evo-ui-modal__footer evo-ui-confirm__footer">

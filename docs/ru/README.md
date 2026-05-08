@@ -1,6 +1,6 @@
-# evoUI
+# evo-ui
 
-evoUI - общая Livewire + DaisyUI основа для современных manager-модулей
+evo-ui - общая Livewire + DaisyUI основа для современных manager-модулей
 Evolution CMS.
 
 Пакет уже используется в `sArticles` и `dIssues`, а дальше должен стать базой
@@ -43,5 +43,5 @@ Evolution CMS.
 
 ## Правило
 
-В evoUI живет общий UI runtime. Бизнес-логика, доменные хуки и интеграции должны
+В evo-ui живет общий UI runtime. Бизнес-логика, доменные хуки и интеграции должны
 оставаться в конкретном модуле.

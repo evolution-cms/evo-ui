@@ -32,7 +32,7 @@ evo_ui_test('composer package is a technical library', function () use ($root): 
     $composer = json_decode((string) file_get_contents($root . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
 
     evo_ui_assert(($composer['name'] ?? null) === 'evolution-cms/evo-ui', 'Composer package name must be evolution-cms/evo-ui.');
-    evo_ui_assert(($composer['type'] ?? null) === 'library', 'evoUI must not register as an Evolution CMS module package.');
+    evo_ui_assert(($composer['type'] ?? null) === 'library', 'evo-ui must not register as an Evolution CMS module package.');
     evo_ui_assert(in_array('src/Livewire/Foundation/bootstrap.php', $composer['autoload']['files'] ?? [], true), 'Livewire foundation bootstrap must be autoloaded.');
     evo_ui_assert(isset($composer['autoload']['psr-4']['EvoUI\\']), 'EvoUI namespace must be registered.');
 });
@@ -40,8 +40,8 @@ evo_ui_test('composer package is a technical library', function () use ($root): 
 evo_ui_test('service provider does not register a manager module', function () use ($root): void {
     $provider = (string) file_get_contents($root . '/src/EvoUIServiceProvider.php');
 
-    evo_ui_assert(!str_contains($provider, 'registerRoutingModule'), 'evoUI must not register a routing module.');
-    evo_ui_assert(!str_contains($provider, 'registerModule('), 'evoUI must not register a manager module.');
+    evo_ui_assert(!str_contains($provider, 'registerRoutingModule'), 'evo-ui must not register a routing module.');
+    evo_ui_assert(!str_contains($provider, 'registerModule('), 'evo-ui must not register a manager module.');
     evo_ui_assert(str_contains($provider, "Livewire::component('evo-ui.table'"), 'Table Livewire component must be registered.');
     evo_ui_assert(str_contains($provider, "Livewire::component('evo-ui.form'"), 'Form Livewire component must be registered.');
     evo_ui_assert(str_contains($provider, "Livewire::component('evo-ui.module-table'"), 'Module table Livewire component must be registered.');

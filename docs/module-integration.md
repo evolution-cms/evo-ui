@@ -1,6 +1,6 @@
 # Module Integration
 
-This guide shows how a module should consume evoUI.
+This guide shows how a module should consume evo-ui.
 
 ## Composer
 
@@ -43,7 +43,7 @@ Use `x-evo::layout` as the outer document wrapper for new manager screens.
 ```
 
 The iframe should not include manager `styles.min.css`, Bootstrap, jQuery,
-`main.js`, `tabpane.js`, Roboto, or CDN UI libraries. evoUI assets are local and
+`main.js`, `tabpane.js`, Roboto, or CDN UI libraries. evo-ui assets are local and
 theme-aware.
 
 ## Assets
