@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Livewire\Mechanisms\FrontendAssets\FrontendAssets;
 use Livewire\Livewire;
+use Livewire\LivewireServiceProvider;
 
 class EvoUIServiceProvider extends ServiceProvider
 {
@@ -51,6 +52,7 @@ class EvoUIServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->registerLivewireProvider();
         $this->registerLivewireBridge();
 
         $this->app->singleton(EvoUI::class);
@@ -65,6 +67,20 @@ class EvoUIServiceProvider extends ServiceProvider
         $this->app->singleton(\EvoUI\Support\ResourceLayoutResolver::class);
         $this->app->singleton(\EvoUI\Support\TvValueRepository::class);
 
+    }
+
+    /**
+     * Ensure Livewire services exist before EvoUI wires manager routes and components.
+     *
+     * Evolution package discovery only reads first-level package providers, while EvoUI depends
+     * on Livewire as an internal runtime. Registering Livewire here keeps `php artisan` safe even
+     * when no generated `LivewireServiceProvider.php` file exists in `core/custom/config/app`.
+     *
+     * @since 1.0.1
+     */
+    protected function registerLivewireProvider(): void
+    {
+        $this->app->register(LivewireServiceProvider::class);
     }
 
     protected function registerBladeComponentNamespace(): void

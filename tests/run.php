@@ -100,6 +100,9 @@ evo_ui_group('package', function () use ($root): void {
 
         evo_ui_assert_not_contains('registerRoutingModule', $provider, 'evo-ui must not register a routing module.');
         evo_ui_assert_not_contains('registerModule(', $provider, 'evo-ui must not register a manager module.');
+        evo_ui_assert_contains('use Livewire\\LivewireServiceProvider;', $provider, 'Livewire provider must be imported.');
+        evo_ui_assert_contains('$this->registerLivewireProvider();', $provider, 'Livewire provider must be registered before EvoUI bridges Livewire.');
+        evo_ui_assert_contains('$this->app->register(LivewireServiceProvider::class);', $provider, 'EvoUI must register Livewire as its runtime dependency.');
         evo_ui_assert_contains("Livewire::component('evo-ui.table'", $provider, 'Table Livewire component must be registered.');
         evo_ui_assert_contains("Livewire::component('evo-ui.form'", $provider, 'Form Livewire component must be registered.');
         evo_ui_assert_contains("Livewire::component('evo-ui.module-table'", $provider, 'Module table Livewire component must be registered.');
