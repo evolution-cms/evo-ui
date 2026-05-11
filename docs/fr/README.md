@@ -55,6 +55,9 @@ et les workflows specifiques restent dans le package consommateur.
 
 ## Documentation
 
+- [Guide utilisateur](user-guide.md)
+- [Guide developpeur](developer-guide.md)
+- [Frontend Guide](frontend-guide.md)
 - [Module Integration](../module-integration.md)
 - [Components](../components.md)
 - [Form And Field Catalogue](../forms.md)

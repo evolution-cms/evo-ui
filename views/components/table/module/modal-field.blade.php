@@ -86,6 +86,7 @@
             <div @class([
                 'evo-ui-repeater',
                 'evo-ui-repeater--compact' => $repeaterLayout === 'compact',
+                'evo-ui-repeater--status-phases' => $repeaterLayout === 'status-phases',
             ])>
                 <div class="evo-ui-repeater__toolbar">
                     <button type="button" class="evo-ui-btn evo-ui-btn--icon evo-ui-btn--success" title="{{ $addLabel }}" aria-label="{{ $addLabel }}" wire:click="addModalItem('{{ $name }}')">
@@ -121,62 +122,73 @@
                                         $itemValue = data_get($item, $itemName, '');
                                         $itemErrorKey = 'modalData.' . $name . '.' . $index . '.' . $itemName;
                                     @endphp
-                                    <label @class([
-                                        'evo-ui-repeater__field',
-                                        'evo-ui-repeater__field--grow' => $itemSpan === 'grow',
-                                        'evo-ui-repeater__field--compact' => $itemSpan === 'compact',
-                                        'evo-ui-repeater__field--hide-label' => $hideItemLabel,
-                                    ])>
-                                        <span @class([
-                                            'evo-ui-repeater__label',
-                                            'evo-ui-sr-only' => $hideItemLabel,
-                                        ])>{{ $itemLabel }}</span>
-                                        @if(in_array($itemType, ['static', 'badge'], true))
-                                            <span class="{{ $itemType === 'badge' ? 'evo-ui-badge' : 'evo-ui-repeater__static' }}">{{ $itemValue }}</span>
-                                        @elseif(in_array($itemType, ['color', 'color-picker'], true))
-                                            @php
-                                                $itemRawColor = (string) data_get($item, $itemName, '');
-                                                $itemColorFallback = (string) ($itemField['default'] ?? '#64748B');
-                                                $itemColorFallback = preg_match('/^#[0-9a-f]{6}$/i', $itemColorFallback) ? strtoupper($itemColorFallback) : '#64748B';
-                                                $itemHexColor = preg_match('/^#[0-9a-f]{6}$/i', $itemRawColor) ? strtoupper($itemRawColor) : $itemColorFallback;
-                                            @endphp
-                                            <span class="evo-ui-color-field">
-                                                <input
-                                                    class="evo-ui-color-field__picker"
-                                                    type="color"
-                                                    value="{{ $itemHexColor }}"
-                                                    wire:model.live="{{ $itemModel }}"
-                                                    aria-label="{{ $itemLabel }}"
-                                                >
-                                                <input
-                                                    class="evo-ui-input evo-ui-color-field__input"
-                                                    type="text"
-                                                    value="{{ $itemRawColor !== '' ? $itemRawColor : $itemHexColor }}"
-                                                    wire:model.blur="{{ $itemModel }}"
-                                                    maxlength="7"
-                                                    pattern="#[0-9A-Fa-f]{6}"
-                                                    placeholder="#64748B"
-                                                    autocomplete="off"
-                                                >
-                                                <span class="evo-ui-color-field__swatch" style="--evo-ui-color-field-value: {{ $itemHexColor }};" aria-hidden="true"></span>
-                                            </span>
-                                        @elseif($itemType === 'textarea')
-                                            <textarea class="evo-ui-textarea" rows="{{ (int) ($itemField['rows'] ?? 2) }}" wire:model.blur="{{ $itemModel }}" placeholder="{{ $itemPlaceholder }}"></textarea>
-                                        @else
-                                            @if($itemIcon !== '')
-                                                <span class="evo-ui-input-icon">
-                                                    <x-evo::icon :name="$itemIcon" />
-                                                    <input type="{{ $itemType === 'number' ? 'number' : 'text' }}" class="evo-ui-input evo-ui-input--with-icon" wire:model.blur="{{ $itemModel }}" autocomplete="off" placeholder="{{ $itemPlaceholder }}" @if($itemType === 'number') min="{{ (int) ($itemField['min'] ?? 0) }}" @endif>
+                                    @if($itemType === 'hidden')
+                                        <input type="hidden" wire:model.live="{{ $itemModel }}">
+                                    @else
+                                        <label @class([
+                                            'evo-ui-repeater__field',
+                                            'evo-ui-repeater__field--grow' => $itemSpan === 'grow',
+                                            'evo-ui-repeater__field--wide' => $itemSpan === 'wide',
+                                            'evo-ui-repeater__field--full' => $itemSpan === 'full',
+                                            'evo-ui-repeater__field--compact' => $itemSpan === 'compact',
+                                            'evo-ui-repeater__field--hide-label' => $hideItemLabel,
+                                            'evo-ui-repeater__field--type-' . preg_replace('/[^a-z0-9_-]/i', '-', $itemType),
+                                        ])>
+                                            <span @class([
+                                                'evo-ui-repeater__label',
+                                                'evo-ui-sr-only' => $hideItemLabel,
+                                            ])>{{ $itemLabel }}</span>
+                                            @if(in_array($itemType, ['static', 'badge'], true))
+                                                <span class="{{ $itemType === 'badge' ? 'evo-ui-badge' : 'evo-ui-repeater__static' }}">{{ $itemValue }}</span>
+                                            @elseif($itemType === 'checkbox')
+                                                <span class="evo-ui-checkbox">
+                                                    <input type="checkbox" wire:model.live="{{ $itemModel }}">
                                                 </span>
+                                            @elseif(in_array($itemType, ['color', 'color-picker'], true))
+                                                @php
+                                                    $itemRawColor = (string) data_get($item, $itemName, '');
+                                                    $itemColorFallback = (string) ($itemField['default'] ?? '#64748B');
+                                                    $itemColorFallback = preg_match('/^#[0-9a-f]{6}$/i', $itemColorFallback) ? strtoupper($itemColorFallback) : '#64748B';
+                                                    $itemHexColor = preg_match('/^#[0-9a-f]{6}$/i', $itemRawColor) ? strtoupper($itemRawColor) : $itemColorFallback;
+                                                @endphp
+                                                <span class="evo-ui-color-field">
+                                                    <input
+                                                        class="evo-ui-color-field__picker"
+                                                        type="color"
+                                                        value="{{ $itemHexColor }}"
+                                                        wire:model.live="{{ $itemModel }}"
+                                                        aria-label="{{ $itemLabel }}"
+                                                    >
+                                                    <input
+                                                        class="evo-ui-input evo-ui-color-field__input"
+                                                        type="text"
+                                                        value="{{ $itemRawColor !== '' ? $itemRawColor : $itemHexColor }}"
+                                                        wire:model.blur="{{ $itemModel }}"
+                                                        maxlength="7"
+                                                        pattern="#[0-9A-Fa-f]{6}"
+                                                        placeholder="#64748B"
+                                                        autocomplete="off"
+                                                    >
+                                                    <span class="evo-ui-color-field__swatch" style="--evo-ui-color-field-value: {{ $itemHexColor }};" aria-hidden="true"></span>
+                                                </span>
+                                            @elseif($itemType === 'textarea')
+                                                <textarea class="evo-ui-textarea" rows="{{ (int) ($itemField['rows'] ?? 2) }}" wire:model.blur="{{ $itemModel }}" placeholder="{{ $itemPlaceholder }}"></textarea>
                                             @else
-                                                <input type="{{ $itemType === 'number' ? 'number' : 'text' }}" class="evo-ui-input" wire:model.blur="{{ $itemModel }}" autocomplete="off" placeholder="{{ $itemPlaceholder }}" @if($itemType === 'number') min="{{ (int) ($itemField['min'] ?? 0) }}" @endif>
+                                                @if($itemIcon !== '')
+                                                    <span class="evo-ui-input-icon">
+                                                        <x-evo::icon :name="$itemIcon" />
+                                                        <input type="{{ $itemType === 'number' ? 'number' : 'text' }}" class="evo-ui-input evo-ui-input--with-icon" wire:model.blur="{{ $itemModel }}" autocomplete="off" placeholder="{{ $itemPlaceholder }}" @if($itemType === 'number') min="{{ (int) ($itemField['min'] ?? 0) }}" @endif>
+                                                    </span>
+                                                @else
+                                                    <input type="{{ $itemType === 'number' ? 'number' : 'text' }}" class="evo-ui-input" wire:model.blur="{{ $itemModel }}" autocomplete="off" placeholder="{{ $itemPlaceholder }}" @if($itemType === 'number') min="{{ (int) ($itemField['min'] ?? 0) }}" @endif>
+                                                @endif
                                             @endif
-                                        @endif
 
-                                        @if($errors->has($itemErrorKey))
-                                            <span class="evo-ui-field__error">{{ $errors->first($itemErrorKey) }}</span>
-                                        @endif
-                                    </label>
+                                            @if($errors->has($itemErrorKey))
+                                                <span class="evo-ui-field__error">{{ $errors->first($itemErrorKey) }}</span>
+                                            @endif
+                                        </label>
+                                    @endif
                                 @endforeach
                             </div>
 

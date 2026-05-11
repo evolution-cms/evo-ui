@@ -33,6 +33,7 @@
     $colspan = count($columns) + (!empty($rowActions) ? 1 : 0);
     $opensModal = !empty($config['modal']['enabled']) && (($config['modal']['row_dblclick'] ?? true) !== false);
     $reorderEnabled = method_exists($controller, 'reorderEnabled') && $controller->reorderEnabled();
+    $titleInTableHeader = ($config['title_placement'] ?? null) === 'table_header';
 @endphp
 
 <section
@@ -41,19 +42,21 @@
     wire:loading.class="is-loading"
     wire:target="{{ $wireTarget }}"
 >
-    <x-evo::table.module.toolbar
-        :controller="$controller"
-        :config="$config"
-        :filters="$filters"
-        :filter-options="$filterOptions"
-        :filter-labels="$filterLabels"
-        :search-state="$searchState"
-        :search-width="$searchWidth"
-        :view-mode="$viewMode"
-        :sort="$sort"
-        :direction="$direction"
-        :selected-id="$selectedId"
-    />
+    @if(!$titleInTableHeader || $viewMode === 'list')
+        <x-evo::table.module.toolbar
+            :controller="$controller"
+            :config="$config"
+            :filters="$filters"
+            :filter-options="$filterOptions"
+            :filter-labels="$filterLabels"
+            :search-state="$searchState"
+            :search-width="$searchWidth"
+            :view-mode="$viewMode"
+            :sort="$sort"
+            :direction="$direction"
+            :selected-id="$selectedId"
+        />
+    @endif
 
     @if($viewMode === 'list')
         <x-evo::table.module.list
@@ -63,7 +66,24 @@
             :selected-id="$selectedId"
         />
     @else
-        <div class="evo-ui-table-wrap evo-ui-table-wrap--module">
+        <div @class(['evo-ui-table-wrap', 'evo-ui-table-wrap--module', 'evo-ui-table-wrap--with-toolbar' => $titleInTableHeader])>
+            @if($titleInTableHeader)
+                <x-evo::table.module.toolbar
+                    :controller="$controller"
+                    :config="$config"
+                    :filters="$filters"
+                    :filter-options="$filterOptions"
+                    :filter-labels="$filterLabels"
+                    :search-state="$searchState"
+                    :search-width="$searchWidth"
+                    :view-mode="$viewMode"
+                    :sort="$sort"
+                    :direction="$direction"
+                    :selected-id="$selectedId"
+                    table-header
+                />
+            @endif
+
             <table class="evo-ui-table evo-ui-table--module">
                 <thead>
                     <tr>

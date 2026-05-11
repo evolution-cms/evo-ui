@@ -66,18 +66,19 @@ screens:
 
 ```blade
 <x-evo::layout :title="$pageTitle">
-    <x-evo::module-tabs
-        :items="$tabs"
-        :active="$activeTab"
-    />
-
-    <livewire:evo-ui.module-table
-        preset="vendor.module.items"
-        :context="[
-            'moduleUrl' => $moduleUrl,
-            'type' => $type,
-        ]"
-    />
+    <x-evo::module-tab-shell :tabs="$tabs" model="activeTab">
+        @if($activeTab === 'items')
+            <livewire:evo-ui.module-table
+                preset="vendor.module.items"
+                :context="[
+                    'moduleUrl' => $moduleUrl,
+                    'type' => $type,
+                ]"
+            />
+        @elseif($activeTab === 'settings')
+            <livewire:evo-ui.form preset="vendor.module.settings" />
+        @endif
+    </x-evo::module-tab-shell>
 </x-evo::layout>
 ```
 
@@ -142,10 +143,16 @@ $tabs = [
 ```
 
 Dirty-state behavior is shared: form surfaces dispatch `evo-ui:form.saved`,
-`evo-ui:form.saving` and `evo-ui:form.reset` events; module panels should wait
-for a clean form before switching tabs or should show an unsaved-changes prompt.
-The module may decide which tab becomes active, but the dirty-state mechanism
-should remain the evo-ui pattern.
+`evo-ui:form.saving` and `evo-ui:form.reset` events. Use
+`x-evo::module-tab-shell` for the canonical tab switcher with a shared
+unsaved-changes prompt, Save/Discard actions and `EvoUI.form.waitForClean`
+navigation bridge.
+
+The consuming module may decide which tab keys exist and what each tab renders,
+but it should not duplicate `pendingTab`, `showUnsavedPrompt`, `saveAndSwitch`
+or unsaved modal markup. dDocs is the documented exception: its documentation
+workspace uses a sidebar/tree viewer UX and should not be forced into upper
+module tabs.
 
 ## Module Table Preset
 

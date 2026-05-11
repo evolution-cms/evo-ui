@@ -54,6 +54,9 @@ resource-like editor, issue workspace або спільних візуальни
 
 ## Документи для розробника
 
+- [Гід користувача](user-guide.md)
+- [Гід розробника](developer-guide.md)
+- [Frontend Guide](frontend-guide.md)
 - [Інтеграція модуля](../module-integration.md)
 - [Компоненти](../components.md)
 - [Каталог форм і полів](../forms.md)

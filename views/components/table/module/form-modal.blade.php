@@ -9,6 +9,7 @@
     $modalSize = $modal['size'] ?? 'md';
     $modalIcon = $modal['icon'] ?? 'edit';
     $modalLayout = (string) ($modal['layout'] ?? '');
+    $modalNoticesPosition = (string) ($modal['notices_position'] ?? 'before_fields');
     $modalHeaderMeta = method_exists($controller, 'modalHeaderMeta') ? $controller->modalHeaderMeta() : [];
     $cancelLabel = __((string) ($modal['cancel_label'] ?? 'evo::global.action_cancel'));
     $modalActions = $controller->modalActions();
@@ -27,6 +28,7 @@
     :icon="$modalIcon"
     :meta="$modalHeaderMeta"
     :size="$modalSize"
+    class="evo-ui-modal--form"
 >
     <form class="evo-ui-modal__form" x-on:submit.prevent="EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())">
         <div class="evo-ui-modal__body" x-data="{ selectedModalTab: @js($defaultModalTab) }">
@@ -53,7 +55,7 @@
                 </nav>
             @endif
 
-            @if($modalNotices->isNotEmpty())
+            @if($modalNotices->isNotEmpty() && $modalNoticesPosition !== 'after_fields')
                 <div class="evo-ui-modal__notices">
                     @foreach($modalNotices as $notice)
                         @php
@@ -152,11 +154,61 @@
                         @endif
                     @endforeach
                 @else
-                    @foreach($fields as $field)
+                    @foreach($hiddenModalFields as $field)
                         @include('evo::components.table.module.modal-field', ['field' => $field])
+                    @endforeach
+
+                    @foreach(($modalTabs->isNotEmpty() ? $modalTabs->pluck('name') : collect([$defaultModalTab])) as $tabName)
+                        @php
+                            $tabName = (string) $tabName;
+                            $tabFields = $modalTabs->isNotEmpty()
+                                ? $visibleModalFields->filter(fn ($field) => (string) ($field['tab'] ?? $defaultModalTab) === $tabName)->values()
+                                : $visibleModalFields;
+                        @endphp
+
+                        @if($tabFields->isNotEmpty())
+                            <div
+                                class="evo-ui-modal__tab-panel"
+                                @if($modalTabs->isNotEmpty() && $tabName !== '')
+                                    x-show="selectedModalTab === @js($tabName)"
+                                    x-cloak
+                                @endif
+                            >
+                                @foreach($tabFields as $field)
+                                    @include('evo::components.table.module.modal-field', ['field' => $field])
+                                @endforeach
+                            </div>
+                        @endif
                     @endforeach
                 @endif
             </div>
+
+            @if($modalNotices->isNotEmpty() && $modalNoticesPosition === 'after_fields')
+                <div class="evo-ui-modal__notices evo-ui-modal__notices--after-fields">
+                    @foreach($modalNotices as $notice)
+                        @php
+                            $tone = (string) ($notice['tone'] ?? 'info');
+                            $tone = in_array($tone, ['info', 'success', 'warning', 'danger'], true) ? $tone : 'info';
+                            $noticeIcon = (string) ($notice['icon'] ?? 'info-circle');
+                            $noticeTitle = !empty($notice['title']) ? __((string) $notice['title']) : '';
+                            $noticeBody = !empty($notice['body']) ? __((string) $notice['body']) : '';
+                        @endphp
+                        <div class="evo-ui-alert evo-ui-alert--{{ $tone }}">
+                            @if($noticeIcon !== '')
+                                <x-evo::icon :name="$noticeIcon" />
+                            @endif
+                            <span>
+                                @if($noticeTitle !== '')
+                                    <strong>{{ $noticeTitle }}</strong>
+                                @endif
+                                @if($noticeBody !== '')
+                                    <span>{!! $noticeBody !!}</span>
+                                @endif
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <footer class="evo-ui-modal__footer">

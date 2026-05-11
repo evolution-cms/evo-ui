@@ -23,6 +23,26 @@ Run PHP syntax checks before release or when PHP files changed:
 find src config lang tests -name '*.php' -print0 | xargs -0 -n1 php -l
 ```
 
+Run the consumer drift report when changing shared UI contracts:
+
+```bash
+composer drift
+```
+
+Run the four-module release gate before releasing `evo-ui`, `sSeo`, `sLang` or
+`sSettings`:
+
+```bash
+composer release-gate
+```
+
+Use strict mode only after known consumer drift has been cleaned or explicitly
+allowlisted:
+
+```bash
+php tests/consumer-drift.php --strict
+```
+
 Package tests should cover:
 
 - composer identity and package type;
@@ -34,7 +54,8 @@ Package tests should cover:
 - module table config/rendering contracts;
 - form and field contracts;
 - issue workspace provider/UI contracts;
-- CSS token and JavaScript public API markers.
+- CSS token and JavaScript public API markers;
+- existence of consumer CSS/JS drift guard tooling.
 
 ## Consumer Tests
 
@@ -119,6 +140,17 @@ Use smoke checks when a task touches runtime UI or release readiness.
 | dIssues Kanban drag/drop | dIssues | provider persistence smoke |
 | sLang inline save | sLang | regression/unit or browser smoke |
 | sSeo resource SEO save | sSeo | resource form smoke |
+
+## Four-Module Release Gate
+
+The release gate is documented in
+[Four-Module Release Gate](four-module-release-gate.md). It treats `sSeo` as
+green when only documented site-content/editor adapters remain. It treats
+`sLang` as green only when module inline UI is gone and the resource bridge has
+exact allowlist reasons. For the first `sSettings` release, visually accepted
+manager config and dirty-field modal bridge code may remain only with exact
+allowlist reasons and follow-up cleanup tasks; new module-local manager drift
+still blocks release.
 
 ## Blocking Rules
 

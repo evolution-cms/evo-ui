@@ -91,6 +91,8 @@ evo_ui_group('package', function () use ($root): void {
 
         evo_ui_assert_same('evolution-cms/evo-ui', $composer['name'] ?? null, 'Composer package name must be evolution-cms/evo-ui.');
         evo_ui_assert_same('library', $composer['type'] ?? null, 'evo-ui must not register as an Evolution CMS module package.');
+        evo_ui_assert_same('php tests/consumer-drift.php', $composer['scripts']['drift'] ?? null, 'Composer drift script must run the consumer drift checker.');
+        evo_ui_assert_same('php tests/consumer-drift.php --release-gate', $composer['scripts']['release-gate'] ?? null, 'Composer release-gate script must run the four-module drift gate.');
         evo_ui_assert(in_array('src/Livewire/Foundation/bootstrap.php', $composer['autoload']['files'] ?? [], true), 'Livewire foundation bootstrap must be autoloaded.');
         evo_ui_assert(isset($composer['autoload']['psr-4']['EvoUI\\']), 'EvoUI namespace must be registered.');
     });
@@ -104,6 +106,230 @@ evo_ui_group('package', function () use ($root): void {
         evo_ui_assert_contains("Livewire::component('evo-ui.form'", $provider, 'Form Livewire component must be registered.');
         evo_ui_assert_contains("Livewire::component('evo-ui.module-table'", $provider, 'Module table Livewire component must be registered.');
         evo_ui_assert_contains("Livewire::component('evo-ui.issue-workspace'", $provider, 'Issue workspace Livewire component must be registered.');
+    });
+});
+
+evo_ui_group('documentation', function (): void {
+    evo_ui_test('localized dDocs guides follow the package documentation contract', function (): void {
+        $readme = evo_ui_read('docs/README.md');
+
+        foreach (['en', 'uk', 'ua', 'de', 'fr', 'pl'] as $language) {
+            foreach (['README.md', 'user-guide.md', 'developer-guide.md', 'frontend-guide.md'] as $file) {
+                evo_ui_assert(is_file(evo_ui_path('docs/' . $language . '/' . $file)), 'dDocs localized guide missing: ' . $language . '/' . $file);
+            }
+
+            $localized = evo_ui_read('docs/' . $language . '/README.md');
+            foreach (['user-guide.md', 'developer-guide.md', 'frontend-guide.md'] as $guide) {
+                evo_ui_assert_contains('(' . $guide . ')', $localized, 'Localized README must link to ' . $guide . ' for ' . $language . '.');
+            }
+        }
+
+        foreach (['README.md', 'user-guide.md', 'developer-guide.md', 'frontend-guide.md'] as $file) {
+            evo_ui_assert_contains('`' . $file . '`', $readme, 'Root README must describe dDocs file: ' . $file);
+        }
+
+        $developer = evo_ui_read('docs/en/developer-guide.md');
+        $frontend = evo_ui_read('docs/en/frontend-guide.md');
+        evo_ui_assert_contains('```blade', $developer, 'Developer guide must use fenced Blade examples.');
+        evo_ui_assert_contains('```php', $developer, 'Developer guide must use fenced PHP examples.');
+        evo_ui_assert_contains('```bash', $developer, 'Developer guide must use fenced Bash examples.');
+        evo_ui_assert_contains('```css', $frontend, 'Frontend guide must use fenced CSS examples.');
+        evo_ui_assert_contains('dDocs intentionally uses a documentation workspace', evo_ui_read('docs/en/user-guide.md'), 'User guide must document the dDocs no-top-tabs exception.');
+    });
+
+    evo_ui_test('component catalogue freezes WebUI layer ownership and primitive rules', function (): void {
+        $docs = evo_ui_read('docs/components.md');
+        $audit = evo_ui_read('docs/component-completion-audit.md');
+        $readme = evo_ui_read('docs/README.md');
+        $dnd = evo_ui_read('docs/dnd-reorder-contract.md');
+        $dndGuide = evo_ui_read('docs/dnd-implementation-guide.md');
+
+        foreach ([
+            '# Components And UI Kit' => 'Component catalogue must be the canonical UI-kit guide.',
+            '## Layer Ownership' => 'Layer ownership rules must be documented.',
+            '`evo-ui` owns:' => 'evo-ui ownership must be explicit.',
+            'The consuming module owns:' => 'Consumer ownership must be explicit.',
+            '## Component Inventory' => 'Component inventory must exist.',
+            '## Buttons' => 'Button contract must be documented.',
+            'A Save button should look the' => 'Save button standard must be explicit.',
+            '## Row Actions' => 'Row action contract must be documented.',
+            '## DnD And Reorder' => 'DnD/reorder contract must be documented.',
+            'dnd-reorder-contract.md' => 'Component catalogue must link to the detailed DnD contract.',
+            'dnd-implementation-guide.md' => 'Component catalogue must link to the DnD implementation guide.',
+            '## Module Tabs' => 'Module tab contract must be documented.',
+            'x-evo::module-tab-shell' => 'Guarded module tab shell must be documented.',
+            'pendingTab' => 'Consumers must be warned not to duplicate tab dirty-state internals.',
+            'dDocs is a documented exception' => 'dDocs no-top-tabs exception must be documented.',
+            '## Forms' => 'Form contract must be documented.',
+            'x-evo::settings-row' => 'Compact settings row primitive must be documented.',
+            '`density`' => 'Compact form density must be documented.',
+            '## Fields' => 'Field contract must be documented.',
+            '## Tables And Lists' => 'Table/list contract must be documented.',
+            '## Modals' => 'Modal contract must be documented.',
+            '## Dashboard Cards' => 'Dashboard card primitive must be documented.',
+            'x-evo::dashboard-card' => 'Dashboard card component must be documented.',
+            'span="6"' => 'Dashboard half-width span must be documented.',
+            '## Builders And Reorder' => 'Builder/reorder contract must be documented.',
+            'x-evo::builder' => 'Builder primitive must be documented.',
+            '## Editor And Media Helpers' => 'Runtime helper contract must be documented.',
+            '## Embedded Resource Screens' => 'Embedded resource boundary must be documented.',
+            '## Anti-Drift Rules' => 'Anti-drift rules must be documented.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $docs, $message);
+        }
+
+        foreach ([
+            'Bootstrap/CDN/jQuery/legacy manager assets',
+            'duplicated Save button markup',
+            'temporary scoped bridge code with a visible follow-up task',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $docs, 'Anti-drift guide missing marker: ' . $marker);
+        }
+
+        evo_ui_assert_contains('[Components And UI Kit](components.md)', $readme, 'Docs README must link to the canonical UI-kit guide.');
+        evo_ui_assert_contains('[DnD And Reorder Contract](dnd-reorder-contract.md)', $readme, 'Docs README must link to the DnD reorder contract.');
+        evo_ui_assert_contains('[DnD Implementation Guide](dnd-implementation-guide.md)', $readme, 'Docs README must link to the DnD implementation guide.');
+        evo_ui_assert_contains('[Embedded Resource Contract](embedded-resource-contract.md)', $readme, 'Docs README must link to the embedded resource contract.');
+        evo_ui_assert_contains('[Editor Media Adapter Contract](editor-media-adapter-contract.md)', $readme, 'Docs README must link to the editor/media adapter contract.');
+        evo_ui_assert_contains('[Consumer Drift Guards](consumer-drift-guards.md)', $readme, 'Docs README must link to consumer drift guards.');
+        evo_ui_assert_contains('[Component Completion Audit](component-completion-audit.md)', $readme, 'Docs README must link to the component completion audit.');
+        evo_ui_assert_contains('## Remaining Drift From Consumers', $audit, 'Component audit must summarize consumer drift.');
+        evo_ui_assert_contains('dDocs remains a documented UX exception', $audit, 'Component audit must keep the dDocs no-top-tabs exception explicit.');
+
+        foreach ([
+            'sSettings Configure donor implementation' => 'DnD docs must name the donor implementation.',
+            'data-evo-dnd' => 'DnD docs must define the shared root marker.',
+            'data-evo-dnd-group' => 'DnD docs must define group markers.',
+            'data-evo-dnd-item' => 'DnD docs must define item markers.',
+            'data-evo-dnd-option-list' => 'DnD docs must define modal option-list markers.',
+            'sortTabByUid(string $groupUid, int $position): void' => 'DnD docs must define group Livewire method shape.',
+            'sortFieldByUid(string $itemUid, int $position, string $targetGroupUid): void' => 'DnD docs must define nested item Livewire method shape.',
+            'real row for `setDragImage`' => 'DnD docs must require real-row drag previews.',
+            'physical placeholder' => 'DnD docs must require physical placeholders.',
+            'structural dirty event' => 'DnD docs must define dirty-state integration.',
+            'must stay within their current panel width on mobile' => 'DnD docs must document mobile overflow constraints.',
+            'Table rows that support provider reorder hooks' => 'DnD docs must cover table reorder standard.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $dnd, $message);
+        }
+
+        foreach ([
+            '# DnD Implementation Guide' => 'DnD guide must exist.',
+            '## Decision Table' => 'DnD guide must include a decision table.',
+            '## Nested Groups' => 'DnD guide must document nested groups.',
+            'sortTabByUid' => 'DnD guide must document group method mapping.',
+            'sortFieldByUid' => 'DnD guide must document item method mapping.',
+            'x-evo::dnd-option-list' => 'DnD guide must document modal option-list primitive.',
+            'x-evo::dnd-option-row' => 'DnD guide must document modal option-row primitive.',
+            'ModuleTable renders the shared table rail' => 'DnD guide must document table reorder adoption.',
+            'evo-ui:form.dirty' => 'DnD guide must document dirty-state integration.',
+            'Do not create module-local CSS or JavaScript' => 'DnD guide must include anti-drift rules.',
+            'Adoption Checklist' => 'DnD guide must include an adoption checklist.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $dndGuide, $message);
+        }
+    });
+
+    evo_ui_test('module integration docs prescribe guarded tab shell', function (): void {
+        $docs = evo_ui_read('docs/module-integration.md');
+
+        foreach ([
+            '<x-evo::module-tab-shell :tabs="$tabs" model="activeTab">' => 'Manager shell example must use the guarded module tab shell.',
+            'EvoUI.form.waitForClean' => 'Module integration docs must bind tab changes to the form clean-state bridge.',
+            'should not duplicate `pendingTab`, `showUnsavedPrompt`, `saveAndSwitch`' => 'Consumers must not duplicate guarded tab internals.',
+            'dDocs is the documented exception' => 'dDocs no-top-tabs exception must stay explicit.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $docs, $message);
+        }
+    });
+
+    evo_ui_test('embedded resource contract freezes resource-tab exception', function (): void {
+        $docs = evo_ui_read('docs/embedded-resource-contract.md');
+        $components = evo_ui_read('docs/components.md');
+
+        foreach ([
+            '# Embedded Resource Contract' => 'Embedded resource contract must exist.',
+            '`sLang` multilingual resource tabs' => 'Contract must name the sLang resource-tab consumer.',
+            '`sSeo` resource/module SEO fields' => 'Contract must name the sSeo resource-tab consumer.',
+            '`documentDirty`' => 'Contract must document the legacy dirty-state bridge.',
+            '`tinymce`, `CodeMirror` and `myCodeMirrors`' => 'Contract must document legacy editor globals.',
+            '## Allowed' => 'Contract must include an allowlist.',
+            '## Forbidden' => 'Contract must include a denylist.',
+            'must not:' => 'Contract must state forbidden behavior clearly.',
+            'render `x-evo::layout`' => 'Embedded resource tabs must not render the full evo-ui layout.',
+            'include `evo::partials.assets` as a full manager shell' => 'Embedded resource tabs must not include full shell assets.',
+            'expose `data-evo-ui-root`' => 'Embedded resource tabs must not expose the full root marker.',
+            'data-evo-resource-embedded' => 'Contract must define the explicit embedded resource marker.',
+            'scoped bridge JavaScript' => 'Contract must keep resource bridge JS scoped.',
+            'same payload names as before' => 'Contract must preserve resource submit payloads.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $docs, $message);
+        }
+
+        foreach ([
+            '[Embedded Resource Contract](embedded-resource-contract.md)',
+            'data-evo-resource-embedded',
+            'data-evo-ui-root',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $components, 'Components docs missing embedded resource marker: ' . $marker);
+        }
+    });
+
+    evo_ui_test('editor media adapter contract freezes shared editor lifecycle', function (): void {
+        $docs = evo_ui_read('docs/editor-media-adapter-contract.md');
+        $components = evo_ui_read('docs/components.md');
+
+        foreach ([
+            '# Editor Media Adapter Contract' => 'Editor/media contract must exist.',
+            'window.EvoUI.initRichEditorField(root)' => 'Contract must document rich editor init.',
+            'window.EvoUI.syncRichEditors(form, wire)' => 'Contract must document rich editor sync.',
+            'window.EvoUI.clearRichEditors(form)' => 'Contract must document rich editor clearing.',
+            'window.EvoUI.browseMediaField(inputId, mode)' => 'Contract must document media picker bridge.',
+            'window.EvoUI.browseImageField(inputId)' => 'Contract must document image picker bridge.',
+            'EvoUI\\Support\\RichTextEditor::html' => 'Contract must document server-side editor helper.',
+            'data-evo-rich-editor' => 'Contract must document rich editor marker.',
+            'data-evo-rich-editor-model' => 'Contract must document Livewire model marker.',
+            'data-evo-media-bridge' => 'Contract must document media bridge marker.',
+            '`dTuiEditor`' => 'Contract must name dTui editor support.',
+            'Evolution/TinyMCE adapters' => 'Contract must name TinyMCE adapter support.',
+            'CodeMirror and `window.myCodeMirrors`' => 'Contract must name CodeMirror boundary.',
+            '`sSeo` Robots' => 'Contract must name the sSeo specialized code editor.',
+            '`dDocs` owns its Markdown viewer/editor workspace' => 'Contract must name the dDocs workspace boundary.',
+            'Do not bypass `EvoUI.syncRichEditors`' => 'Contract must forbid unsynced editor saves.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $docs, $message);
+        }
+
+        evo_ui_assert_contains('[Editor Media Adapter Contract](editor-media-adapter-contract.md)', $components, 'Components docs must link to the editor/media contract.');
+    });
+
+    evo_ui_test('consumer drift guard docs describe report, strict and allowlist workflow', function (): void {
+        $docs = evo_ui_read('docs/consumer-drift-guards.md');
+        $testing = evo_ui_read('docs/testing.md');
+        $release = evo_ui_read('docs/release-checklist.md');
+
+        foreach ([
+            '# Consumer Drift Guards' => 'Consumer drift guard docs must exist.',
+            'composer drift' => 'Docs must expose the report command.',
+            'composer release-gate' => 'Docs must expose the four-module release gate command.',
+            'php tests/consumer-drift.php --strict' => 'Docs must expose strict mode.',
+            'php tests/consumer-drift.php --release-gate' => 'Docs must expose release gate mode.',
+            'php tests/consumer-drift.php --json' => 'Docs must expose JSON output.',
+            'tests/consumer-drift-allowlist.php' => 'Docs must explain the allowlist.',
+            'inline `<style>` blocks' => 'Docs must flag inline style drift.',
+            'inline `<script>` blocks' => 'Docs must flag inline script drift.',
+            'remote CDN asset markers' => 'Docs must flag CDN drift.',
+            'legacy manager asset markers' => 'Docs must flag legacy asset drift.',
+            'Embedded Resource Contract' => 'Docs must reference embedded resource exceptions.',
+            'Editor Media Adapter Contract' => 'Docs must reference editor/media exceptions.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $docs, $message);
+        }
+
+        evo_ui_assert_contains('composer drift', $testing, 'Testing matrix must include drift report command.');
+        evo_ui_assert_contains('composer release-gate', $testing, 'Testing matrix must include release gate command.');
+        evo_ui_assert_contains('composer drift', $release, 'Release checklist must include drift report review.');
+        evo_ui_assert_contains('composer release-gate', $release, 'Release checklist must include release gate command.');
     });
 });
 
@@ -153,6 +379,8 @@ evo_ui_group('assets', function (): void {
             'window.EvoUI.form = {',
             'window.EvoUI.multiFilter = multiFilter',
             'window.EvoUI.dateRangeFilter = dateRangeFilter',
+            'window.EvoUI.initBuilder = initBuilder',
+            'window.EvoUI.builderPayload = evoBuilderPayload',
             'window.EvoUI.initIssueKanban = initIssueKanban',
             'window.EvoUI.syncRichEditors = syncRichEditors',
             'window.EvoUI.browseMediaField = browseMediaField',
@@ -160,6 +388,35 @@ evo_ui_group('assets', function (): void {
         ] as $marker) {
             evo_ui_assert_contains($marker, $js, 'Missing public EvoUI JS marker: ' . $marker);
         }
+    });
+});
+
+evo_ui_group('drift-guards', function (): void {
+    evo_ui_test('consumer drift checker exposes report, strict and allowlist controls', function (): void {
+        $script = evo_ui_read('tests/consumer-drift.php');
+        $allowlist = evo_ui_read('tests/consumer-drift-allowlist.php');
+
+        foreach ([
+            "\$consumers = ['sArticles', 'dIssues', 'sLang', 'sSeo', 'sSettings', 'dDocs'];" => 'Drift checker must scan the known Extras consumers.',
+            "\$strict = in_array('--strict', \$argv, true);" => 'Drift checker must support strict mode.',
+            "\$json = in_array('--json', \$argv, true);" => 'Drift checker must support JSON output.',
+            "\$releaseGate = in_array('--release-gate', \$argv, true);" => 'Drift checker must support release gate mode.',
+            'Four-module release gate: evo-ui, sSeo, sLang, sSettings' => 'Drift checker must print a release summary.',
+            "'inline-style'" => 'Drift checker must flag inline style blocks.',
+            "'inline-script'" => 'Drift checker must flag inline script blocks.',
+            "'cdn-asset'" => 'Drift checker must flag CDN assets.',
+            "'legacy-manager-asset'" => 'Drift checker must flag legacy manager assets.',
+            "'local-evo-ui-style'" => 'Drift checker must flag consumer styling of evo-ui atoms.',
+            'consumer-drift-allowlist.php' => 'Drift checker must load the allowlist.',
+            'Report mode only. Use --strict after consumer cleanup or allowlisting.' => 'Drift checker must explain report-mode behavior.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $script, $message);
+        }
+
+        evo_ui_assert_contains('return [', $allowlist, 'Allowlist must be a PHP array.');
+        evo_ui_assert_contains("'_releaseGate'", $allowlist, 'Allowlist must define release gate metadata.');
+        evo_ui_assert_contains("'modules' => ['evo-ui', 'sSeo', 'sLang', 'sSettings']", $allowlist, 'Allowlist must name the four release modules.');
+        evo_ui_assert_contains('task-owned', $allowlist, 'Allowlist must document task ownership.');
     });
 });
 
@@ -257,7 +514,191 @@ evo_ui_group('design-tokens', function (): void {
     });
 });
 
+evo_ui_group('builder', function (): void {
+    evo_ui_test('builder primitives expose reorder, drag and Livewire markers', function (): void {
+        $builder = evo_ui_read('views/components/builder.blade.php');
+        $row = evo_ui_read('views/components/builder-row.blade.php');
+        $rail = evo_ui_read('views/components/reorder-rail.blade.php');
+        $js = evo_ui_read('resources/js/evo-ui.js');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        foreach ([
+            'data-evo-builder' => 'Builder root must expose a stable runtime marker.',
+            'data-evo-builder-type' => 'Builder root must expose type metadata.',
+            'data-evo-builder-reorder-method' => 'Builder root must expose Livewire reorder method metadata.',
+            'window.EvoUI?.initBuilder?.($el)' => 'Builder root must initialize the shared runtime.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $builder, $message);
+        }
+
+        foreach ([
+            'data-evo-builder-row' => 'Builder row must expose a stable row marker.',
+            'data-evo-builder-id' => 'Builder row must expose id metadata.',
+            'data-evo-builder-row-type' => 'Builder row must expose type metadata.',
+            'draggable' => 'Builder row must opt into native drag/drop.',
+            'evo-ui-builder-summary' => 'Builder row must render the shared summary atom.',
+            'evo-ui-builder-chip' => 'Builder row must render the shared chip atom.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $row, $message);
+        }
+
+        foreach ([
+            'data-evo-reorder-rail' => 'Reorder rail must expose a stable marker.',
+            'data-evo-drag-handle' => 'Reorder rail must expose the shared drag handle marker.',
+            'data-evo-dnd-handle' => 'Reorder rail must expose the generic DnD handle marker.',
+            'wire:click="{{ $moveUp }}"' => 'Reorder rail must support fallback move-up actions.',
+            'wire:click="{{ $moveDown }}"' => 'Reorder rail must support fallback move-down actions.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $rail, $message);
+        }
+
+        foreach ([
+            'function initBuilder(rootElement)' => 'Runtime must expose a generic builder initializer.',
+            'function evoBuilderPayload(rootElement)' => 'Runtime must expose a normalized payload helper.',
+            "target.querySelectorAll('[data-evo-builder]').forEach(initBuilder)" => 'Runtime init must discover builder roots.',
+            "component.call(method, evoBuilderPayload(rootElement))" => 'Runtime must call the configured Livewire reorder method.',
+            'data-evo-builder-placeholder' => 'Runtime must create a shared placeholder marker.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $js, $message);
+        }
+
+        foreach ([
+            '.evo-ui-builder',
+            '.evo-ui-builder-list',
+            '.evo-ui-builder-row',
+            '.evo-ui-builder-row.is-dragging',
+            '.evo-ui-builder-placeholder',
+            '.evo-ui-reorder-rail',
+            '.evo-ui-drag-handle',
+            '.evo-ui-dnd',
+            '.evo-ui-dnd-list',
+            '.evo-ui-dnd-row',
+            '.evo-ui-dnd-group-row',
+            '.evo-ui-dnd-option-row',
+            '.evo-ui-dnd-placeholder',
+            '[data-evo-dnd-placeholder]',
+            '.evo-ui-dnd-handle',
+            '.evo-ui-dnd-actions',
+            '.evo-ui-row-actions--compact',
+            '.evo-ui-dnd-key',
+            '.evo-ui-dnd-badge',
+            '.evo-ui-builder-summary',
+            '.evo-ui-builder-chip',
+            '.evo-ui-builder-modal',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $css, 'Missing builder CSS marker: ' . $marker);
+        }
+    });
+
+    evo_ui_test('native dnd runtime exposes nested reorder contract', function (): void {
+        $js = evo_ui_read('resources/js/evo-ui.js');
+
+        foreach ([
+            'function initDnd(rootElement)' => 'Runtime must expose a generic DnD initializer.',
+            "target.querySelectorAll('[data-evo-dnd]').forEach(initDnd)" => 'Runtime init must discover DnD roots.',
+            'window.EvoUI.initDnd = initDnd' => 'Runtime must expose initDnd for morph/manual reinit.',
+            "group: dndSelector(rootElement, 'group', '[data-evo-dnd-group]')" => 'Runtime must define group markers.',
+            "item: dndSelector(rootElement, 'item', '[data-evo-dnd-item]')" => 'Runtime must define item markers.',
+            "list: dndSelector(rootElement, 'list', '[data-evo-dnd-list]')" => 'Runtime must define item list markers.',
+            "optionList: dndSelector(rootElement, 'option-list', '[data-evo-dnd-option-list]')" => 'Runtime must define modal option-list markers.',
+            "optionRow: dndSelector(rootElement, 'option-row', '[data-evo-dnd-option-row]')" => 'Runtime must define modal option row markers.',
+            "handle: dndSelector(rootElement, 'handle', '[data-evo-dnd-handle]')" => 'Runtime must require shared handle markers.',
+            'application/x-evo-dnd' => 'Runtime must use the shared dataTransfer payload type.',
+            'event.dataTransfer.setDragImage' => 'Runtime must use the real row as native drag preview.',
+            'data-evo-dnd-placeholder' => 'Runtime must create a physical placeholder marker.',
+            'sortGroupByUid' => 'Runtime must default to the group reorder method contract.',
+            'sortItemByUid' => 'Runtime must default to the item reorder method contract.',
+            'markDndDirty(rootElement' => 'Runtime must mark structural changes as dirty.',
+            "dispatch('dnd.changed'" => 'Runtime must emit a shared DnD change event.',
+            "dispatch('dnd.option.changed'" => 'Runtime must emit option-list changes when no Livewire option method is configured.',
+            'data-evo-form-dirty' => 'Runtime must integrate with guarded form dirty-state markers.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $js, $message);
+        }
+
+        foreach (['ssettings', 'sSettingsNativeDnd', '__sSettingsOptionDrag'] as $marker) {
+            evo_ui_assert_not_contains($marker, $js, 'Generic DnD runtime must not depend on sSettings markers: ' . $marker);
+        }
+    });
+
+    evo_ui_test('modal option-list dnd primitive exposes reusable Blade contract', function (): void {
+        $list = evo_ui_read('views/components/dnd-option-list.blade.php');
+        $row = evo_ui_read('views/components/dnd-option-row.blade.php');
+        $docs = evo_ui_read('docs/dnd-reorder-contract.md');
+        $components = evo_ui_read('docs/components.md');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        foreach ([
+            'data-evo-dnd' => 'Option list must initialize the shared DnD runtime.',
+            'data-evo-dnd-option-list' => 'Option list must expose the shared option-list marker.',
+            'data-evo-dnd-option-method' => 'Option list must expose the optional Livewire sort method.',
+            'window.EvoUI?.initDnd?.($el)' => 'Option list must reinitialize through the public DnD API.',
+            'evo-ui-dnd-option-list__header' => 'Option list must render an optional compact header.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $list, $message);
+        }
+
+        foreach ([
+            'data-evo-dnd-option-row' => 'Option row must expose the shared row marker.',
+            'data-evo-dnd-uid' => 'Option row must expose stable local UID metadata.',
+            'draggable' => 'Option row must opt into native drag/drop.',
+            'x-evo::reorder-rail' => 'Option row must use the shared reorder rail.',
+            'wire:model.live="{{ $valueName }}"' => 'Option row must render a value input binding.',
+            'wire:model.live="{{ $labelName }}"' => 'Option row must render a label input binding.',
+            'data-evo-dnd-option-value' => 'Option row must expose value field marker.',
+            'data-evo-dnd-option-label' => 'Option row must expose label field marker.',
+            'wire:click="{{ $addAfter }}"' => 'Option row must support add-after actions.',
+            'wire:click="{{ $delete }}"' => 'Option row must support delete actions.',
+            'evo-ui-dnd-actions evo-ui-row-actions--compact' => 'Option row must use compact shared actions.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $row, $message);
+        }
+
+        foreach ([
+            'x-evo::dnd-option-list',
+            'x-evo::dnd-option-row',
+            'value/label inputs',
+            'add-after action',
+            'delete action',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $docs . $components, 'Option-list docs missing marker: ' . $marker);
+        }
+
+        foreach ([
+            '.evo-ui-dnd-option-list__header',
+            '.evo-ui-dnd-option-list__label',
+            '.evo-ui-dnd-option-list__hint',
+            '.evo-ui-dnd-option-row__fields',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $css, 'Missing option-list CSS marker: ' . $marker);
+        }
+    });
+});
+
 evo_ui_group('state', function (): void {
+    evo_ui_test('guarded module tab shell owns dirty navigation prompt', function (): void {
+        $shell = evo_ui_read('views/components/module-tab-shell.blade.php');
+
+        foreach ([
+            'data-evo-module-tab-shell' => 'Module tab shell must expose a stable root marker.',
+            'data-evo-module-tab-model' => 'Module tab shell must expose the bound Livewire model marker.',
+            '$wire.entangle(@js($model)).live' => 'Module tab shell must entangle the active tab with Livewire.',
+            'requestModuleTab(tab)' => 'Module tab shell must centralize tab change requests.',
+            'pendingTab' => 'Module tab shell must track deferred navigation.',
+            'showUnsavedPrompt' => 'Module tab shell must own the unsaved prompt state.',
+            'window.EvoUI.form.isDirty()' => 'Module tab shell must use the shared dirty-state detector.',
+            "document.querySelector('[data-evo-form]')?.requestSubmit();" => 'Module tab shell must submit the active evo-ui form before switching.',
+            'window.EvoUI.form.waitForClean' => 'Module tab shell must wait for the shared clean-state bridge.',
+            'x-on:evo-ui:form.saved.window="afterSaved()"' => 'Module tab shell must listen for saved events.',
+            'data-evo-module-tab-unsaved' => 'Module tab shell must expose the shared unsaved modal marker.',
+            "evo::global.unsaved_changes_title" => 'Module tab shell must use shared translations for prompt title.',
+            "evo::global.action_discard" => 'Module tab shell must use shared translations for discard.',
+            "evo::global.action_save" => 'Module tab shell must use shared translations for save.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $shell, $message);
+        }
+    });
+
     evo_ui_test('table and issue workspace persist state in manager session', function (): void {
         $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
         $issueWorkspace = evo_ui_read('src/Livewire/IssueWorkspace.php');
@@ -289,17 +730,52 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_not_contains(".evo-ui-table-header {\n    display: inline-flex;\n    align-items: center;\n    gap: 6px;\n    width: max-content;", $css, 'Header action groups must not rely on custom max-content sizing.');
     });
 
-    evo_ui_test('module table exposes filtering, sorting, pagination and view state methods', function (): void {
+    evo_ui_test('module table supports provider toolbar actions in the controls lane', function (): void {
         $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
         $toolbar = evo_ui_read('views/components/table/module/toolbar.blade.php');
+
+        evo_ui_assert_contains('public function runTableAction', $moduleTable, 'ModuleTable must expose a Livewire toolbar action handler.');
+        evo_ui_assert_contains("\$this->tableConfig('actions', [])", $moduleTable, 'ModuleTable toolbar actions must be validated against configured actions.');
+        evo_ui_assert_contains("\$action['provider']", $moduleTable, 'ModuleTable toolbar actions must call configured provider methods.');
+        evo_ui_assert_contains('runTableAction(@js($action[\'key\'] ?? \'\'))', $toolbar, 'Provider toolbar actions must call runTableAction without iframe reload.');
+        evo_ui_assert_contains("\$controlActions", $toolbar, 'Module toolbar must support actions placed in the controls lane.');
+        evo_ui_assert_contains("(string) (\$action['placement'] ?? '') === 'controls'", $toolbar, 'Module toolbar must route controls-placement actions next to search controls.');
+    });
+
+    evo_ui_test('module table exposes filtering, sorting, pagination and view state methods', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
+        $genericTable = evo_ui_read('views/components/table.blade.php');
+        $toolbar = evo_ui_read('views/components/table/module/toolbar.blade.php');
+        $genericToolbar = evo_ui_read('views/components/table/toolbar.blade.php');
         $pagination = evo_ui_read('views/components/table/pagination.blade.php');
         $header = evo_ui_read('views/components/table/header-cell.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
 
         foreach (['applyMultiFilter', 'applySelectFilter', 'applyDateRangeFilter', 'setSort', 'switchView'] as $method) {
             evo_ui_assert_contains('function ' . $method, $moduleTable, 'ModuleTable must expose method: ' . $method);
         }
 
         evo_ui_assert_contains('wire:model.live="perPage"', $pagination, 'Pagination must bind per-page state.');
+        evo_ui_assert_contains("\$title = isset(\$config['title'])", $toolbar, 'Module table toolbar must support a config title.');
+        evo_ui_assert_contains('evo-ui-table-title', $toolbar, 'Module table toolbar must render the table title atom.');
+        evo_ui_assert_contains('title_icon', $toolbar, 'Module table toolbar must support an optional title icon.');
+        evo_ui_assert_contains("\$titleInTableHeader = (\$config['title_placement'] ?? null) === 'table_header'", $moduleTableView, 'Module table must support placing the title toolbar inside the table header surface.');
+        evo_ui_assert_contains('evo-ui-table-wrap--with-toolbar', $moduleTableView, 'Module table must expose an attached toolbar wrapper state.');
+        evo_ui_assert_contains('table-header', $moduleTableView, 'Module table must pass the table-header toolbar variant.');
+        evo_ui_assert_contains("'tableHeader' => false", $toolbar, 'Module table toolbar must accept the table header variant.');
+        evo_ui_assert_contains("\$title = isset(\$config['title'])", $genericToolbar, 'Generic table toolbar must support a config title.');
+        evo_ui_assert_contains('evo-ui-table-title', $genericToolbar, 'Generic table toolbar must render the table title atom.');
+        evo_ui_assert_contains("\$titleInTableHeader = (\$config['title_placement'] ?? null) === 'table_header'", $genericTable, 'Generic table must support placing the title toolbar inside the table header surface.');
+        evo_ui_assert_contains('evo-ui-table-wrap--with-toolbar', $genericTable, 'Generic table must expose an attached toolbar wrapper state.');
+        evo_ui_assert_contains('table-header', $genericTable, 'Generic table must pass the table-header toolbar variant.');
+        evo_ui_assert_contains("'tableHeader' => false", $genericToolbar, 'Generic table toolbar must accept the table header variant.');
+        evo_ui_assert_contains('.evo-ui-table-title', $css, 'Table title must have a shared evo-ui style.');
+        evo_ui_assert_contains('.evo-ui-table-toolbar--table-header', $css, 'Attached table title toolbar must have shared evo-ui CSS.');
+        evo_ui_assert_contains('.evo-ui-table-wrap--with-toolbar', $css, 'Attached table title toolbar must reuse the table surface frame.');
+        evo_ui_assert_contains(".evo-ui .tab-content {\n    box-sizing: border-box;", $css, 'Module tab content must keep stable padding and sizing.');
+        evo_ui_assert_contains(".evo-ui .evo-ui-tabs {\n    width: 100%;\n    min-height: 0;", $css, 'Module tab wrapper must not force viewport height and create false scrollbars.');
+        evo_ui_assert_contains("min-height: 0;\n    padding: 18px 20px;", $css, 'Module tab content must not force viewport height and create false scrollbars.');
         evo_ui_assert_contains("wire:click=\"switchView('table')\"", $toolbar, 'Toolbar must expose table view switching.');
         evo_ui_assert_contains("wire:click=\"switchView('list')\"", $toolbar, 'Toolbar must expose list view switching.');
         evo_ui_assert_contains('wire:click="setSort', $header, 'Header cells must expose sorting.');
@@ -318,6 +794,8 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('evo-ui-list-item', $list, 'List view must render evo-ui list items.');
         evo_ui_assert_contains('evo-ui-table-link', $list, 'List view must reuse table link atoms.');
         evo_ui_assert_contains('evo-ui-position-control', $list, 'List view must support position controls.');
+        evo_ui_assert_contains('evo-ui-position-control--rail', $list, 'List view position controls must use the shared rail variant.');
+        evo_ui_assert_contains('evo-ui-reorder-rail--table', $list, 'List view position controls must use the shared table rail.');
     });
 
     evo_ui_test('module table supports inline editing and provider hooks', function (): void {
@@ -349,7 +827,11 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains("in_array(\$type, ['color', 'color-picker'], true)", $modalField, 'Modal fields must support color picker fields.');
         evo_ui_assert_contains('$type === \'choices\'', $modalField, 'Modal fields must support choices fields.');
         evo_ui_assert_contains('$type === \'builder\'', $modalField, 'Modal fields must support builder fields.');
-        evo_ui_assert_contains('wire:click.stop="moveRow', $cell, 'Position cells must expose moveRow controls.');
+        evo_ui_assert_contains('x-evo::reorder-rail', $cell, 'Position cells must use the shared reorder rail.');
+        evo_ui_assert_contains('move-up="moveRow', $cell, 'Position cells must expose moveRow up controls.');
+        evo_ui_assert_contains('move-down="moveRow', $cell, 'Position cells must expose moveRow down controls.');
+        evo_ui_assert_contains('evo-ui-reorder-rail--table', $cell, 'Position cells must use the table rail visual modifier.');
+        evo_ui_assert_contains('evo-ui-position-control__value evo-ui-dnd-badge', $cell, 'Position cells must render the value beside the shared rail.');
     });
 });
 
@@ -430,6 +912,21 @@ evo_ui_group('issue-workspace', function (): void {
         evo_ui_assert_contains('issueKanbanLanePayload', $js, 'Runtime must build provider sorting payload.');
     });
 
+    evo_ui_test('issue workspace lets active filter badges bleed above icon buttons', function (): void {
+        $view = evo_ui_read('views/livewire/issue-workspace.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        evo_ui_assert_contains('evo-ui-filter-badge', $view, 'Workspace filter buttons must render active count badges.');
+
+        foreach ([
+            ".evo-ui-issue-workspace > .evo-ui-table-toolbar {\n    padding-top: 6px;\n    overflow: visible;\n}" => 'Workspace toolbar must reserve visible bleed space for filter badges.',
+            ".evo-ui-filter-badge {\n    position: absolute;\n    top: -5px;\n    right: -5px;" => 'Filter badges must float above the icon button corner.',
+            'box-shadow: 0 0 0 1px var(--evo-ui-border);' => 'Filter badges must keep the existing outlined bubble treatment.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $css, $message);
+        }
+    });
+
     evo_ui_test('issue workspace supports comments, replies and issue body editor sync', function (): void {
         $workspace = evo_ui_read('src/Livewire/IssueWorkspace.php');
         $view = evo_ui_read('views/livewire/issue-workspace.blade.php');
@@ -505,6 +1002,102 @@ evo_ui_group('issue-workspace', function (): void {
 });
 
 evo_ui_group('forms', function (): void {
+    evo_ui_test('dashboard card primitives expose responsive span and table spacing contracts', function (): void {
+        $dashboard = evo_ui_read('views/components/dashboard.blade.php');
+        $card = evo_ui_read('views/components/dashboard-card.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        foreach ([
+            'data-evo-dashboard' => 'Dashboard root must expose a stable marker.',
+            'evo-ui-dashboard__cards--divided' => 'Dashboard card groups must expose the standard divided spacing variant.',
+            '<x-evo::dashboard-card' => 'Dashboard must render declarative card configs through the shared card component.',
+            'data-evo-dashboard-body' => 'Dashboard must expose a body lane for following tables.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $dashboard, $message);
+        }
+
+        foreach ([
+            'evo-ui-dashboard-card--span-' => 'Dashboard card must expose span classes.',
+            'data-evo-dashboard-card-span' => 'Dashboard card must expose the selected span marker.',
+            '$allowedSpans = [3, 4, 6, 8, 12]' => 'Dashboard card must clamp supported spans.',
+            'evo-ui-dashboard-card__stats' => 'Dashboard card must render standard stat rows.',
+            '<x-evo::badge :value="$badge" />' => 'Dashboard card must reuse shared badge rendering.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $card, $message);
+        }
+
+        foreach ([
+            '.evo-ui-dashboard__cards {' => 'Dashboard card group CSS must exist.',
+            '.evo-ui-dashboard__cards--divided {' => 'Dashboard divided spacing CSS must exist.',
+            'padding-block-end: var(--evo-ui-space-4, 1rem);' => 'Dashboard card group must reserve standard spacing before body content.',
+            '.evo-ui-dashboard-card--span-6 {' => 'Dashboard half-width span CSS must exist.',
+            'flex: 0 1 calc(50% - (var(--evo-ui-dashboard-gap) * 0.5));' => 'Dashboard span-6 must be half width minus gap.',
+            '.evo-ui-dashboard-card--span-3,' . PHP_EOL . '    .evo-ui-dashboard-card--span-4,' => 'Dashboard spans must collapse together on narrow screens.',
+            'flex-basis: 100%;' => 'Dashboard spans must fall back to full width on narrow screens.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $css, $message);
+        }
+
+        evo_ui_assert_not_contains('border-block-end: 1px solid var(--evo-ui-border);', $css, 'Dashboard card divider must not add a redundant visible border.');
+    });
+
+    evo_ui_test('compact forms and settings rows expose shared visual primitives', function (): void {
+        $form = evo_ui_read('views/components/form.blade.php');
+        $row = evo_ui_read('views/components/settings-row.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+        $docs = evo_ui_read('docs/forms.md');
+
+        foreach ([
+            "'evo-ui-form-surface--density-' . \$density" => 'Form surface must expose a density class.',
+            'evo-ui-form-surface--layout-' => 'Form surface must expose a layout class.',
+            "'evo-ui-form-surface--heading-hidden'" => 'Form surface must expose hidden-heading state.',
+            ":icon=\"\$action['icon'] ?? 'check'\"" => 'Default Save icon must be check.',
+            ":tone=\"\$action['tone'] ?? 'primary'\"" => 'Default Save tone must be primary.',
+            ":variant=\"\$action['variant'] ?? 'filled'\"" => 'Default Save variant must be filled.',
+            ":icon-only=\"(bool) (\$action['icon_only'] ?? false)\"" => 'Default Save button must show its text label.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $form, $message);
+        }
+
+        foreach ([
+            'data-evo-settings-row' => 'Settings row must expose a stable row marker.',
+            'data-evo-settings-divider' => 'Settings row must expose a stable divider marker.',
+            'evo-ui-settings-row__usage' => 'Settings row must render usage code.',
+            'evo-ui-settings-row__description' => 'Settings row must render descriptions.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $row, $message);
+        }
+
+        foreach ([
+            '.evo-ui-form-surface--density-compact' => 'CSS must style compact form density.',
+            '.evo-ui-form-surface--layout-settings' => 'CSS must style shared settings form layout.',
+            'grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr)' => 'Settings layout must expose compact label/control columns.',
+            '.evo-ui-code-editor-field .CodeMirror' => 'CSS must style shared CodeMirror editor fields.',
+            '--evo-ui-code-editor-min-height, 520px' => 'Code editor field must expose a standard useful height.',
+            '.evo-ui-settings-values' => 'CSS must style settings values wrapper.',
+            '.evo-ui-settings-row' => 'CSS must style settings rows.',
+            '.evo-ui-settings-row__meta' => 'CSS must style settings row metadata.',
+            '.evo-ui-settings-row__usage' => 'CSS must style settings usage code.',
+            '.evo-ui-settings-divider' => 'CSS must style divider rows.',
+            '.evo-ui-option-stack' => 'CSS must style shared option stacks.',
+            '.evo-ui-media-field' => 'CSS must style media/file rows.',
+            '.evo-ui-image-preview' => 'CSS must style image previews.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $css, $message);
+        }
+
+        foreach ([
+            "'density' => 'compact'",
+            "'layout' => 'settings'",
+            'evo-ui-code-editor-field',
+            'x-evo::settings-row',
+            'right-aligned desktop labels',
+            'mobile single-column fallback',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $docs, 'Forms docs missing compact settings marker: ' . $marker);
+        }
+    });
+
     evo_ui_test('config forms support csv list fields', function (): void {
         $form = evo_ui_read('src/Livewire/Form.php');
 
@@ -517,6 +1110,17 @@ evo_ui_group('forms', function (): void {
         $service = evo_ui_read('src/Support/ConfigFormService.php');
 
         evo_ui_assert_contains("(\$field['save'] ?? true) === false", $service, 'Config forms must skip save=false fields before writing config files.');
+    });
+
+    evo_ui_test('horizontal form labels align toward their controls', function (): void {
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        evo_ui_assert_contains('justify-content: flex-end;', $css, 'Form labels must align toward the field on horizontal layouts.');
+        evo_ui_assert_contains('text-align: right;', $css, 'Form labels must right-align on horizontal layouts.');
+        evo_ui_assert_contains('.evo-ui-field__label > span', $css, 'Nested label text must have its own alignment hook.');
+        evo_ui_assert_contains('justify-items: end;', $css, 'Nested label text must align toward the field.');
+        evo_ui_assert_contains('.evo-ui-field__label,' . PHP_EOL . '    .evo-ui-field--modal .evo-ui-field__label', $css, 'Stacked responsive labels must reset together.');
+        evo_ui_assert_contains('justify-content: flex-start;' . PHP_EOL . '        text-align: left;', $css, 'Stacked responsive labels must return to natural left alignment.');
     });
 
     evo_ui_test('forms expose dirty-state and resource-parent events', function (): void {
@@ -532,7 +1136,19 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains("dispatch('evo-ui:form.reset'", $form, 'Form component must dispatch reset events.');
         evo_ui_assert_contains("dispatch('evo-ui:resource-parent.rejected'", $form, 'Resource parent loop guards must dispatch rejected events.');
         evo_ui_assert_contains("dispatch('evo-ui:resource-parent.selected'", $form, 'Resource parent selections must dispatch selected events.');
+        $formView = evo_ui_read('views/components/form.blade.php');
+        $sectionView = evo_ui_read('views/components/form/section.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+        evo_ui_assert_contains('showSavedToast', $formView, 'Form saves must use compact auto-dismiss toast state.');
+        evo_ui_assert_contains('evo-ui-save-toast', $formView, 'Form saved feedback must render through shared toast markup.');
+        evo_ui_assert_not_contains('evo-ui-alert evo-ui-alert--success" role="status"', $formView, 'Form saved feedback must not render as a wide inline alert.');
+        evo_ui_assert_contains('section_columns', $formView, 'Form component must support independent section columns.');
+        evo_ui_assert_contains('evo-ui-form-column-layout', $formView, 'Form component must render a column layout wrapper.');
+        evo_ui_assert_contains('evo-ui-form-section--span-', $sectionView, 'Shared form section partial must preserve span classes.');
+        evo_ui_assert_contains('.evo-ui-save-toast', $css, 'Shared save toast CSS must exist.');
+        evo_ui_assert_contains('.evo-ui-form-column-layout', $css, 'Shared form column layout CSS must exist.');
         evo_ui_assert_contains('data-evo-form-dirty', $js, 'Runtime must expose a dirty-state marker for forms.');
+        evo_ui_assert_contains('[data-evo-form-dirty="true"]:not([data-evo-form-saved="true"])', $js, 'Runtime dirty guard must ignore forms marked clean after a successful save.');
         evo_ui_assert_contains('data-evo-resource-parent', $field, 'Resource parent fields must render a shared picker root marker.');
         evo_ui_assert_contains('data-evo-resource-parent-input', $field, 'Resource parent fields must expose the hidden value input marker.');
         evo_ui_assert_contains('data-evo-resource-parent-trigger', $field, 'Resource parent fields must expose the picker trigger marker.');

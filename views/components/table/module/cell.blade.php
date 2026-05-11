@@ -58,9 +58,15 @@
                     <?php
                         $chipLabel = is_array($item) ? (string) ($item['label'] ?? '') : (string) $item;
                         $chipBadge = is_array($item) && array_key_exists('badge', $item) ? $item['badge'] : null;
+                        $chipIcon = is_array($item) ? (string) ($item['icon'] ?? '') : '';
+                        $chipColor = is_array($item) ? (string) ($item['color'] ?? '') : '';
+                        $chipStyle = preg_match('/^#[0-9a-f]{6}$/i', $chipColor) ? '--evo-ui-meta-chip-color: ' . strtoupper($chipColor) . ';' : '';
                     ?>
                     <?php if ($chipLabel !== ''): ?>
-                        <span class="evo-ui-meta-chip">
+                        <span class="evo-ui-meta-chip" <?php if ($chipStyle !== ''): ?>style="{{ $chipStyle }}"<?php endif; ?>>
+                            <?php if ($chipIcon !== ''): ?>
+                                <x-evo::icon :name="$chipIcon" />
+                            <?php endif; ?>
                             <span>{{ $chipLabel }}</span>
                             <?php if ($chipBadge !== null): ?>
                                 <span class="evo-ui-meta-chip__badge">{{ $chipBadge }}</span>
@@ -74,20 +80,14 @@
         </div>
     <?php elseif ($type === 'position'): ?>
         <?php $rowId = (int) data_get($row, 'id'); ?>
-        <span class="evo-ui-position-control" title="{{ __($column['label'] ?? '') }}">
-            <button type="button" wire:click.stop="moveRow({{ $rowId }}, 'up')" aria-label="@lang('evo::global.previous')">
-                <x-evo::icon name="chevron-up" />
-            </button>
-            <span
-                class="evo-ui-position-control__handle"
-                title="{{ __($column['label'] ?? '') }}"
-                aria-label="{{ __($column['label'] ?? '') }}"
-            >
-                <span class="evo-ui-badge">{{ $toText($value) }}</span>
-            </span>
-            <button type="button" wire:click.stop="moveRow({{ $rowId }}, 'down')" aria-label="@lang('evo::global.next')">
-                <x-evo::icon name="chevron-down" />
-            </button>
+        <span class="evo-ui-position-control evo-ui-position-control--rail" title="{{ __($column['label'] ?? '') }}">
+            <x-evo::reorder-rail
+                class="evo-ui-reorder-rail--table"
+                move-up="moveRow({{ $rowId }}, 'up')"
+                move-down="moveRow({{ $rowId }}, 'down')"
+                label="{{ __($column['label'] ?? '') }}"
+            />
+            <span class="evo-ui-position-control__value evo-ui-dnd-badge">{{ $toText($value) }}</span>
         </span>
     <?php elseif ($isId): ?>
         <span class="evo-ui-id">{{ $toText($value) }}</span>

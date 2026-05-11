@@ -80,6 +80,51 @@ module owns which resource fields and TVs are exposed.
 ],
 ```
 
+Default Save actions render as the shared visible primary filled button with a
+check icon. Override only when a workflow genuinely needs a different command.
+
+Compact operational forms may opt into the shared dense settings contract:
+
+```php
+'density' => 'compact',
+'layout' => 'settings',
+'show_heading' => false,
+```
+
+`layout => settings` is the canonical compact manager settings layout. It owns
+the two-column label/control alignment, section spacing, compact card headers
+and mobile fallback, so consumers should not scope CSS to their form ids for
+those concerns.
+
+Code-like file editors that are enhanced by CodeMirror should use the shared
+field class instead of module-local editor CSS:
+
+```blade
+<label class="evo-ui-field evo-ui-field--full evo-ui-field--no-label evo-ui-code-editor-field">
+    <textarea class="evo-ui-input evo-ui-textarea evo-ui-textarea--code"></textarea>
+</label>
+```
+
+When a module must render settings rows manually, use `x-evo::settings-row` and
+the `evo-ui-settings-values` wrapper instead of module-local row CSS:
+
+```blade
+<div class="evo-ui-settings-values">
+    <x-evo::settings-row
+        :label="$fieldLabel"
+        :for="$fieldId"
+        :usage="$configUsage"
+        :description="$fieldDescription"
+    >
+        <input id="{{ $fieldId }}" class="evo-ui-input" wire:model="data.key">
+    </x-evo::settings-row>
+</div>
+```
+
+`x-evo::settings-row` supports divider rows, usage code, description placement,
+right-aligned desktop labels and mobile single-column fallback. Consumers keep
+field semantics, options and persistence local.
+
 Fields may include `rules`, `default`, `help`, `span`, `tab`, `section`,
 `options`, `options_source`, `options_provider`, `save => false` and custom
 view metadata.

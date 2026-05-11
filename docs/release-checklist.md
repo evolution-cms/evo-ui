@@ -66,6 +66,8 @@ Open each module in the Evolution manager demo and verify:
 - `evo::partials.assets` loads only local `evo-ui.css` and `evo-ui.js`.
 - No evo-ui-owned screen loads Bootstrap/CDN/legacy manager bundles directly.
 - Browser console has no syntax/runtime errors during initial load.
+- `composer drift` has been reviewed, and any strict-mode allowlist entries are
+  linked to visible consumer cleanup tasks.
 
 ## 4. Tab And Dirty-State Smoke
 
@@ -144,6 +146,26 @@ Verify in sSeo:
 - Resource SEO partial saves existing `sseo[...]` payload fields.
 
 ## 10. Release Gate
+
+For the current `evo-ui`, `sSeo`, `sLang` and `sSettings` release lane, run:
+
+```bash
+composer release-gate
+```
+
+The direct command is:
+
+```bash
+php tests/consumer-drift.php --release-gate
+```
+
+This gate must report `sSeo` green or only documented adapters. It reports
+`sLang` green only after module inline UI is gone and the remaining resource
+bridge is allowlisted with exact reasons. For the first `sSettings` release,
+the visually accepted manager config bridge and dirty-field modal exclusions are
+allowed with exact follow-up reasons; new module-local manager CSS/JS still
+blocks release unless it is documented as a narrow adapter. See
+[Four-Module Release Gate](four-module-release-gate.md).
 
 Do not tag or merge shared evo-ui changes until:
 

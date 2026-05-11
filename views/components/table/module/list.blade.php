@@ -182,9 +182,15 @@
                                                     <?php
                                                         $chipLabel = is_array($item) ? (string) ($item['label'] ?? '') : (string) $item;
                                                         $chipBadge = is_array($item) && array_key_exists('badge', $item) ? $item['badge'] : null;
+                                                        $chipIcon = is_array($item) ? (string) ($item['icon'] ?? '') : '';
+                                                        $chipColor = is_array($item) ? (string) ($item['color'] ?? '') : '';
+                                                        $chipStyle = preg_match('/^#[0-9a-f]{6}$/i', $chipColor) ? '--evo-ui-meta-chip-color: ' . strtoupper($chipColor) . ';' : '';
                                                     ?>
                                                     <?php if ($chipLabel !== ''): ?>
-                                                        <span class="evo-ui-meta-chip">
+                                                        <span class="evo-ui-meta-chip" <?php if ($chipStyle !== ''): ?>style="{{ $chipStyle }}"<?php endif; ?>>
+                                                            <?php if ($chipIcon !== ''): ?>
+                                                                <x-evo::icon :name="$chipIcon" />
+                                                            <?php endif; ?>
                                                             <span>{{ $chipLabel }}</span>
                                                             <?php if ($chipBadge !== null): ?>
                                                                 <span class="evo-ui-meta-chip__badge">{{ $chipBadge }}</span>
@@ -198,20 +204,14 @@
                                         <?php elseif ($meta['type'] === 'badge'): ?>
                                             <x-evo::badge :value="$meta['raw']" :label="$meta['value']" />
                                         <?php elseif ($meta['type'] === 'position'): ?>
-                                            <span class="evo-ui-position-control evo-ui-position-control--meta" title="{{ $meta['label'] }}">
-                                                <button type="button" wire:click.stop="moveRow({{ $rowId }}, 'up')" aria-label="@lang('evo::global.previous')">
-                                                    <x-evo::icon name="chevron-up" />
-                                                </button>
-                                                <span
-                                                    class="evo-ui-position-control__handle"
-                                                    title="{{ $meta['label'] }}"
-                                                    aria-label="{{ $meta['label'] }}"
-                                                >
-                                                    <span class="evo-ui-badge">{{ $meta['value'] }}</span>
-                                                </span>
-                                                <button type="button" wire:click.stop="moveRow({{ $rowId }}, 'down')" aria-label="@lang('evo::global.next')">
-                                                    <x-evo::icon name="chevron-down" />
-                                                </button>
+                                            <span class="evo-ui-position-control evo-ui-position-control--meta evo-ui-position-control--rail" title="{{ $meta['label'] }}">
+                                                <x-evo::reorder-rail
+                                                    class="evo-ui-reorder-rail--table"
+                                                    move-up="moveRow({{ $rowId }}, 'up')"
+                                                    move-down="moveRow({{ $rowId }}, 'down')"
+                                                    label="{{ $meta['label'] }}"
+                                                />
+                                                <span class="evo-ui-position-control__value evo-ui-dnd-badge">{{ $meta['value'] }}</span>
                                             </span>
                                         <?php elseif ($meta['type'] === 'icon'): ?>
                                             <?php

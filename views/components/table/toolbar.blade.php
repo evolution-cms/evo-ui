@@ -8,14 +8,29 @@
     'viewMode' => 'table',
     'sort' => '',
     'direction' => 'asc',
+    'tableHeader' => false,
 ])
 
+@php
+    $title = isset($config['title']) ? trim((string) __($config['title'])) : '';
+    $titleIcon = $config['title_icon'] ?? null;
+@endphp
+
 <div
-    class="evo-ui-table-toolbar"
+    @class(['evo-ui-table-toolbar', 'evo-ui-table-toolbar--table-header' => $tableHeader])
     x-data="{ filtersOpen: false, searchOpen: false }"
     @click.outside="filtersOpen = false; searchOpen = false"
 >
     <div class="evo-ui-table-actions" aria-label="@lang('evo::global.table_actions')">
+        @if($title !== '')
+            <h2 class="evo-ui-table-title">
+                @if($titleIcon)
+                    <x-evo::icon :name="$titleIcon" />
+                @endif
+                <span>{{ $title }}</span>
+            </h2>
+        @endif
+
         @foreach($config['actions'] ?? [] as $action)
             @php($href = $controller->actionHref($action, selectedId: $selectedId))
             <x-evo::button

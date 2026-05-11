@@ -1380,12 +1380,12 @@
 
 .evo-ui .evo-ui-tabs {
     width: 100%;
-    min-height: 100vh;
+    min-height: 0;
 }
 
 .evo-ui .evo-ui-tabs--module {
     width: 100%;
-    min-height: 100vh;
+    min-height: 0;
 }
 
 .evo-ui .tabs {
@@ -1434,9 +1434,10 @@
 .evo-ui .tabs-lift .tab-active::after {
     position: absolute;
     right: 12px;
-    bottom: 0;
+    bottom: -1px;
     left: 12px;
-    height: 1px;
+    z-index: 1;
+    height: 2px;
     background: color-mix(in oklch, var(--evo-ui-text) 78%, transparent);
     content: "";
 }
@@ -1459,9 +1460,10 @@
 }
 
 .evo-ui .tab-content {
+    box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    min-height: calc(100vh - 40px);
+    min-height: 0;
     padding: 18px 20px;
     overflow-x: hidden;
 }
@@ -1621,6 +1623,96 @@
     width: 17px;
     height: 17px;
     color: var(--evo-ui-muted);
+}
+
+.evo-ui-dashboard {
+    display: grid;
+    gap: var(--evo-ui-space-4, 1rem);
+    align-content: start;
+    width: 100%;
+    min-width: 0;
+}
+
+.evo-ui-dashboard__cards {
+    --evo-ui-dashboard-gap: var(--evo-ui-space-4, 1rem);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--evo-ui-dashboard-gap);
+    width: 100%;
+    min-width: 0;
+}
+
+.evo-ui-dashboard__cards--divided {
+    padding-block-end: var(--evo-ui-space-4, 1rem);
+}
+
+.evo-ui-dashboard__body {
+    display: grid;
+    gap: var(--evo-ui-space-3, 0.75rem);
+    width: 100%;
+    min-width: 0;
+}
+
+.evo-ui-dashboard-card {
+    min-width: min(100%, 240px);
+    min-height: 0;
+    overflow-wrap: anywhere;
+}
+
+.evo-ui-dashboard-card--span-3 {
+    flex: 0 1 calc(25% - (var(--evo-ui-dashboard-gap) * 0.75));
+    max-width: calc(25% - (var(--evo-ui-dashboard-gap) * 0.75));
+}
+
+.evo-ui-dashboard-card--span-4 {
+    flex: 0 1 calc(33.333% - (var(--evo-ui-dashboard-gap) * 0.667));
+    max-width: calc(33.333% - (var(--evo-ui-dashboard-gap) * 0.667));
+}
+
+.evo-ui-dashboard-card--span-6 {
+    flex: 0 1 calc(50% - (var(--evo-ui-dashboard-gap) * 0.5));
+    max-width: calc(50% - (var(--evo-ui-dashboard-gap) * 0.5));
+}
+
+.evo-ui-dashboard-card--span-8 {
+    flex: 0 1 calc(66.667% - (var(--evo-ui-dashboard-gap) * 0.333));
+    max-width: calc(66.667% - (var(--evo-ui-dashboard-gap) * 0.333));
+}
+
+.evo-ui-dashboard-card--span-12 {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+.evo-ui-dashboard-card__stats {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--evo-ui-space-2, 0.5rem);
+    min-width: 0;
+}
+
+.evo-ui-dashboard-card__stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--evo-ui-space-2, 0.5rem);
+    min-width: 0;
+}
+
+.evo-ui-dashboard-card__stat strong {
+    color: var(--evo-ui-text);
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.evo-ui-dashboard-card__stat span {
+    color: var(--evo-ui-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.evo-ui-dashboard-card__meta {
+    min-width: 0;
 }
 
 .evo-ui-alert {
@@ -1827,9 +1919,20 @@
     max-width: 100%;
 }
 
+.evo-ui-issue-workspace > .evo-ui-table-toolbar {
+    padding-top: 6px;
+    overflow: visible;
+}
+
 .evo-ui-table-toolbar--balanced {
     grid-template-columns: auto minmax(0, 1fr) 200px;
     gap: 0.45rem;
+}
+
+.evo-ui-table-toolbar--table-header {
+    padding: 0;
+    border-bottom: 0;
+    background: var(--evo-ui-surface-soft);
 }
 
 .evo-ui-table-actions,
@@ -1841,6 +1944,26 @@
 
 .evo-ui-table-actions {
     grid-area: actions;
+    align-items: center;
+}
+
+.evo-ui-table-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    min-height: 2rem;
+    color: var(--evo-ui-text);
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.evo-ui-table-title svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--evo-ui-muted);
 }
 
 .evo-ui-table-filters {
@@ -2274,6 +2397,28 @@ select.evo-ui-select--multiple option {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+.evo-ui-form-surface--layout-code-editor .evo-ui-form-section {
+    max-width: none;
+}
+
+.evo-ui-code-editor-field .evo-ui-textarea--code,
+.evo-ui-code-editor-field .CodeMirror {
+    width: 100%;
+    min-height: var(--evo-ui-code-editor-min-height, 520px);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.evo-ui-code-editor-field .CodeMirror {
+    border: 1px solid var(--evo-ui-border);
+    border-radius: var(--evo-ui-radius);
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-surface);
+}
+
+.evo-ui-code-editor-field .CodeMirror-scroll {
+    min-height: var(--evo-ui-code-editor-min-height, 520px);
+}
+
 .evo-ui-editor-field-shell {
     display: grid;
     gap: 6px;
@@ -2348,6 +2493,81 @@ select.evo-ui-select--multiple option {
     align-items: center;
     padding: 0;
     background: var(--evo-ui-bg);
+}
+
+.evo-ui-form-surface--density-compact {
+    gap: 12px;
+}
+
+.evo-ui-form-surface--density-compact .evo-ui-form-heading {
+    min-height: 32px;
+    padding-bottom: 0;
+}
+
+.evo-ui-form-surface--density-compact .evo-ui-form-toolbar {
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    overflow: visible;
+}
+
+.evo-ui-form-surface--density-compact .evo-ui-form-grid {
+    gap: 4px;
+}
+
+.evo-ui-form-surface--layout-settings {
+    gap: var(--evo-ui-space-3, 0.75rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-heading {
+    min-height: 0;
+    padding-block: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-tab-panel {
+    padding-top: 0;
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-column-layout {
+    gap: var(--evo-ui-space-4, 1rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-column {
+    gap: var(--evo-ui-space-3, 0.75rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-section {
+    display: grid;
+    width: 100%;
+    margin: 0 0 var(--evo-ui-space-3, 0.75rem);
+    padding: 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-card__header {
+    min-height: 0;
+    padding-block: 0 var(--evo-ui-space-2, 0.5rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-form-grid {
+    gap: var(--evo-ui-space-2, 0.5rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-field {
+    grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr);
+    column-gap: var(--evo-ui-space-1, 0.25rem);
+}
+
+.evo-ui-form-surface--layout-settings .evo-ui-field__label {
+    gap: var(--evo-ui-space-1, 0.25rem);
+}
+
+.evo-ui-form-surface--heading-hidden .evo-ui-form-heading__main {
+    min-width: 0;
 }
 
 .evo-ui-form-heading h2 {
@@ -2427,6 +2647,34 @@ select.evo-ui-select--multiple option {
     display: inline-flex;
 }
 
+.evo-ui-save-toast {
+    position: fixed;
+    inset-block-start: calc(var(--evo-ui-space-4, 1rem) + env(safe-area-inset-top, 0px));
+    inset-inline-end: calc(var(--evo-ui-space-4, 1rem) + env(safe-area-inset-right, 0px));
+    z-index: 1300;
+    pointer-events: none;
+}
+
+.evo-ui-save-toast__content {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--evo-ui-space-2, 0.5rem);
+    min-height: 34px;
+    padding: 0 var(--evo-ui-space-3, 0.75rem);
+    color: var(--evo-ui-success);
+    background: color-mix(in oklch, var(--evo-ui-success) 14%, var(--evo-ui-bg));
+    border: 1px solid color-mix(in oklch, var(--evo-ui-success) 38%, var(--evo-ui-border));
+    border-radius: var(--evo-ui-radius);
+    box-shadow: var(--evo-ui-shadow);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.evo-ui-save-toast svg {
+    width: 16px;
+    height: 16px;
+}
+
 .evo-ui-form {
     display: grid;
     gap: 0;
@@ -2465,9 +2713,10 @@ select.evo-ui-select--multiple option {
 .evo-ui-form-tab::after {
     position: absolute;
     right: 10px;
-    bottom: 0;
+    bottom: -1px;
     left: 10px;
-    height: 1px;
+    z-index: 1;
+    height: 2px;
     background: transparent;
     content: "";
 }
@@ -2489,7 +2738,16 @@ select.evo-ui-select--multiple option {
 }
 
 .evo-ui-modal-tabs {
-    margin: -2px 0 14px;
+    gap: 4px;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.evo-ui-modal-tabs .evo-ui-form-tab {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.82rem;
+    letter-spacing: 0;
 }
 
 .evo-ui-form-tab.is-active::after {
@@ -2502,6 +2760,15 @@ select.evo-ui-select--multiple option {
     align-items: start;
     gap: 18px 24px;
     padding: 6px 0 0;
+}
+
+.evo-ui-modal__tab-panel {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    min-width: 0;
 }
 
 .evo-ui-form-section {
@@ -2531,10 +2798,425 @@ select.evo-ui-select--multiple option {
     grid-column: span 8;
 }
 
+.evo-ui-form-column-layout {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px 24px;
+}
+
+.evo-ui-form-column {
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    min-width: 0;
+}
+
+.evo-ui-form-column .evo-ui-form-section {
+    grid-column: 1 / -1;
+}
+
 .evo-ui-form-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 5px;
+}
+
+.evo-ui-settings-values {
+    display: grid;
+    padding-top: 0;
+}
+
+.evo-ui-settings-row {
+    display: grid;
+    grid-template-columns: minmax(260px, 430px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    padding: 7px 0;
+}
+
+.evo-ui-settings-row--textarea {
+    padding-top: 8px;
+    padding-bottom: 9px;
+}
+
+.evo-ui-settings-row__meta {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+    min-width: 0;
+    text-align: right;
+}
+
+.evo-ui-settings-row__label {
+    color: var(--evo-ui-text);
+    font-size: 13px;
+    font-weight: 560;
+    line-height: 1.25;
+    text-align: right;
+}
+
+.evo-ui-settings-row__usage {
+    display: inline-block;
+    max-width: 100%;
+    color: color-mix(in oklch, var(--evo-ui-info) 68%, var(--evo-ui-muted));
+    background: transparent;
+    font-family: inherit;
+    font-size: 9.5px;
+    font-weight: 520;
+    line-height: 1.25;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-settings-row__control {
+    min-width: 0;
+}
+
+.evo-ui-settings-row__control > .evo-ui-input,
+.evo-ui-settings-row__control > .evo-ui-textarea {
+    width: 100%;
+    min-height: 30px;
+}
+
+.evo-ui-settings-row__control > textarea.evo-ui-input,
+.evo-ui-settings-row__control > .evo-ui-textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.evo-ui-settings-row__description {
+    margin: 3px 0 0;
+    color: color-mix(in oklch, var(--evo-ui-muted) 78%, var(--evo-ui-text));
+    font-size: 10.5px;
+    font-weight: 430;
+    line-height: 1.25;
+}
+
+.evo-ui-settings-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 5px;
+    color: var(--evo-ui-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.evo-ui-settings-divider::after {
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--evo-ui-border);
+    content: "";
+}
+
+.evo-ui-option-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 12px;
+    align-items: center;
+    min-height: 30px;
+}
+
+.evo-ui-option-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--evo-ui-text);
+    font-size: 12px;
+    font-weight: 520;
+    line-height: 1.2;
+}
+
+.evo-ui-option-empty {
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.evo-ui-media-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 6px;
+    align-items: start;
+}
+
+.evo-ui-media-field__button {
+    width: 32px;
+    min-width: 32px;
+    height: 30px;
+    padding: 0;
+}
+
+.evo-ui-image-preview {
+    grid-column: 1 / -1;
+    width: 160px;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--evo-ui-border);
+    background: var(--evo-ui-surface-muted) center / contain no-repeat;
+}
+
+.evo-ui-builder,
+.evo-ui-dnd {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.evo-ui-builder-list,
+.evo-ui-dnd-list,
+.evo-ui-dnd-option-list {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 10px;
+}
+
+.evo-ui-builder-list.is-drag-over,
+.evo-ui-dnd-list.is-drag-over,
+.evo-ui-dnd-option-list.is-drag-over {
+    outline: 0;
+    background: transparent;
+}
+
+.evo-ui-builder-row,
+.evo-ui-dnd-row,
+.evo-ui-dnd-group-row,
+.evo-ui-dnd-option-row {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr) max-content;
+    gap: 7px;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 38px;
+    padding: 4px 7px;
+    border: 1px solid var(--evo-ui-border);
+    background: var(--evo-ui-surface);
+}
+
+.evo-ui-builder-row.is-dragging,
+.evo-ui-dnd-row.is-dragging,
+.evo-ui-dnd-group-row.is-dragging,
+.evo-ui-dnd-option-row.is-dragging {
+    max-width: 100%;
+    opacity: 0.62;
+    outline: 1px dashed var(--evo-ui-accent);
+    outline-offset: -3px;
+    overflow: hidden;
+}
+
+.evo-ui-builder-row.is-drag-hidden,
+.evo-ui-dnd-row.is-drag-hidden,
+.evo-ui-dnd-group-row.is-drag-hidden,
+.evo-ui-dnd-option-row.is-drag-hidden {
+    position: absolute !important;
+    inset-inline: 0;
+    max-width: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.evo-ui-builder-placeholder,
+.evo-ui-dnd-placeholder,
+[data-evo-dnd-placeholder] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 10px;
+    border: 1px dashed color-mix(in oklch, var(--evo-ui-border) 72%, var(--evo-ui-muted));
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--evo-ui-surface-muted) 42%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--evo-ui-bg) 54%, transparent);
+    pointer-events: none;
+}
+
+.evo-ui-reorder-rail,
+.evo-ui-dnd-rail {
+    display: inline-grid;
+    grid-template-columns: 22px 24px 22px;
+    align-items: center;
+    justify-content: start;
+    gap: 3px;
+    width: 78px;
+}
+
+.evo-ui-reorder-rail__button,
+.evo-ui-drag-handle,
+.evo-ui-dnd-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    color: var(--evo-ui-muted);
+    background: transparent;
+}
+
+.evo-ui-drag-handle,
+.evo-ui-dnd-handle {
+    width: 24px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.evo-ui-drag-handle:active,
+.evo-ui-dnd-handle:active {
+    cursor: grabbing;
+}
+
+.evo-ui-reorder-rail__button:hover,
+.evo-ui-reorder-rail__button:focus-visible,
+.evo-ui-drag-handle:hover,
+.evo-ui-drag-handle:focus-visible,
+.evo-ui-dnd-handle:hover,
+.evo-ui-dnd-handle:focus-visible {
+    border-color: var(--evo-ui-border);
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-surface-muted);
+    outline: none;
+}
+
+.evo-ui-reorder-rail__button:disabled {
+    opacity: 0.34;
+    pointer-events: none;
+}
+
+.evo-ui-reorder-rail svg,
+.evo-ui-drag-handle svg,
+.evo-ui-dnd-handle svg {
+    width: 15px;
+    height: 15px;
+}
+
+.evo-ui-builder-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    color: var(--evo-ui-text);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.evo-ui-builder-summary__main {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.evo-ui-builder-summary__title {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-builder-summary__subtitle {
+    max-width: 100%;
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-builder-chip,
+.evo-ui-dnd-chip,
+.evo-ui-dnd-key,
+.evo-ui-dnd-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 7px;
+    border: 1px solid var(--evo-ui-border);
+    color: var(--evo-ui-muted);
+    background: var(--evo-ui-chip-bg);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1;
+}
+
+.evo-ui-dnd-key {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    color: var(--evo-ui-primary);
+    background: color-mix(in oklch, var(--evo-ui-primary-soft) 70%, transparent);
+}
+
+.evo-ui-dnd-badge {
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-surface-muted);
+}
+
+.evo-ui-dnd-actions,
+.evo-ui-row-actions--compact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 0;
+}
+
+.evo-ui-dnd-actions .evo-ui-row-action,
+.evo-ui-row-actions--compact .evo-ui-row-action,
+.evo-ui-dnd-actions button,
+.evo-ui-row-actions--compact button {
+    width: 24px;
+    height: 24px;
+}
+
+.evo-ui-dnd-option-list__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.evo-ui-dnd-option-list__label {
+    color: var(--evo-ui-text);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.evo-ui-dnd-option-list__hint {
+    min-width: 0;
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-dnd-option-row__fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px;
+    min-width: 0;
+}
+
+.evo-ui-builder-modal {
+    z-index: 10050;
 }
 
 .evo-ui-field {
@@ -2554,16 +3236,18 @@ select.evo-ui-select--multiple option {
 .evo-ui-field__label {
     display: inline-flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 8px;
     min-height: 30px;
     color: var(--evo-ui-muted);
     font-weight: 650;
+    text-align: right;
 }
 
 .evo-ui-field__label > span {
     display: grid;
     gap: 2px;
+    justify-items: end;
 }
 
 .evo-ui-field__label code {
@@ -2890,6 +3574,10 @@ select.evo-ui-select--multiple option {
     overflow: hidden;
 }
 
+.evo-ui-modal--form {
+    align-self: start;
+}
+
 .evo-ui-modal--sm {
     width: min(520px, calc(100vw - 32px));
 }
@@ -2904,6 +3592,10 @@ select.evo-ui-select--multiple option {
 
 .evo-ui-modal--2xl {
     width: min(1360px, calc(100vw - 32px));
+}
+
+.evo-ui-modal--3xl {
+    width: min(1760px, calc(100vw - 32px));
 }
 
 .evo-ui-modal--content {
@@ -3045,6 +3737,11 @@ select.evo-ui-select--multiple option {
     display: grid;
     gap: 8px;
     margin-bottom: 12px;
+}
+
+.evo-ui-modal__notices--after-fields {
+    margin-top: 10px;
+    margin-bottom: 0;
 }
 
 .evo-ui-modal__notices .evo-ui-alert {
@@ -3356,6 +4053,63 @@ select.evo-ui-select--multiple option {
 }
 
 .evo-ui-repeater--compact .evo-ui-repeater__field--compact .evo-ui-input {
+    min-width: 0;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__row {
+    align-items: start;
+    gap: 12px;
+    padding: 10px;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__sort {
+    padding-top: 30px;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__fields {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+    gap: 10px 14px;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 5px;
+    min-width: 0;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field > span:first-child {
+    text-align: left;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--wide,
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--grow {
+    grid-column: span 4;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--full {
+    grid-column: 1 / -1;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--compact {
+    grid-column: span 2;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--type-checkbox {
+    min-height: 56px;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-repeater__field--type-checkbox .evo-ui-checkbox {
+    min-height: 32px;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-color-field {
+    max-width: 100%;
+}
+
+.evo-ui-repeater--status-phases .evo-ui-color-field__input {
     min-width: 0;
 }
 
@@ -3997,6 +4751,19 @@ select.evo-ui-select--multiple option {
     background: var(--evo-ui-surface-soft);
 }
 
+.evo-ui-table-wrap--with-toolbar {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.evo-ui-table-wrap--with-toolbar .evo-ui-table {
+    overflow: hidden;
+    border: 1px solid var(--evo-ui-border);
+    border-radius: calc(var(--evo-ui-radius) - 1px);
+}
+
 .evo-ui-table-wrap--module {
     border: 1px solid var(--evo-ui-border-soft);
     border-radius: var(--evo-ui-radius);
@@ -4399,12 +5166,19 @@ select.evo-ui-select--multiple option {
     padding: 0.05rem 0.42rem;
     border: 1px solid var(--evo-ui-border-soft);
     border-radius: 999px;
-    color: color-mix(in oklch, var(--evo-ui-text) 82%, var(--evo-ui-muted));
-    background: var(--evo-ui-chip-bg);
+    color: color-mix(in oklch, var(--evo-ui-meta-chip-color, var(--evo-ui-text)) 72%, var(--evo-ui-text));
+    background: color-mix(in oklch, var(--evo-ui-meta-chip-color, var(--evo-ui-text)) 14%, var(--evo-ui-chip-bg));
     font-size: 0.68rem;
     font-weight: 500;
     line-height: 1;
     white-space: nowrap;
+}
+
+.evo-ui-meta-chip svg {
+    width: 0.82rem;
+    height: 0.82rem;
+    flex: 0 0 auto;
+    color: var(--evo-ui-meta-chip-color, currentColor);
 }
 
 .evo-ui-meta-chip__badge {
@@ -4467,6 +5241,27 @@ select.evo-ui-select--multiple option {
     justify-content: center;
     gap: 3px;
     vertical-align: middle;
+}
+
+.evo-ui-position-control--rail {
+    gap: 6px;
+}
+
+.evo-ui-position-control--rail .evo-ui-reorder-rail--table {
+    width: 58px;
+    grid-template-columns: 17px 20px 17px;
+    gap: 2px;
+}
+
+.evo-ui-position-control--rail .evo-ui-reorder-rail__button,
+.evo-ui-position-control--rail .evo-ui-drag-handle {
+    width: 17px;
+    height: 22px;
+}
+
+.evo-ui-position-control__value {
+    min-width: 24px;
+    justify-content: center;
 }
 
 .evo-ui-position-control__handle {
@@ -5064,6 +5859,15 @@ select.evo-ui-select--multiple option {
 }
 
 @media (max-width: 760px) {
+    .evo-ui-dashboard-card--span-3,
+    .evo-ui-dashboard-card--span-4,
+    .evo-ui-dashboard-card--span-6,
+    .evo-ui-dashboard-card--span-8,
+    .evo-ui-dashboard-card--span-12 {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+
     .evo-ui-issue-split {
         grid-template-columns: 1fr;
         min-height: 0;
@@ -5099,6 +5903,26 @@ select.evo-ui-select--multiple option {
         padding: 12px;
     }
 
+    .evo-ui-repeater--status-phases .evo-ui-repeater__row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .evo-ui-repeater--status-phases .evo-ui-repeater__sort {
+        padding-top: 0;
+    }
+
+    .evo-ui-repeater--status-phases .evo-ui-repeater__fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .evo-ui-repeater--status-phases .evo-ui-repeater__field,
+    .evo-ui-repeater--status-phases .evo-ui-repeater__field--wide,
+    .evo-ui-repeater--status-phases .evo-ui-repeater__field--grow,
+    .evo-ui-repeater--status-phases .evo-ui-repeater__field--full,
+    .evo-ui-repeater--status-phases .evo-ui-repeater__field--compact {
+        grid-column: 1;
+    }
+
     .evo-ui-table-toolbar {
         position: relative;
         display: flex;
@@ -5120,6 +5944,13 @@ select.evo-ui-select--multiple option {
         flex: 0 0 auto;
         flex-wrap: nowrap;
         gap: 6px;
+        min-width: 0;
+    }
+
+    .evo-ui-table-title {
+        overflow: hidden;
+        max-width: 42vw;
+        text-overflow: ellipsis;
     }
 
     .evo-ui-table-filters {
@@ -5296,6 +6127,111 @@ select.evo-ui-select--multiple option {
         grid-template-columns: 1fr;
     }
 
+    .evo-ui-form-column-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .evo-ui-settings-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .evo-ui-settings-row__meta {
+        justify-items: start;
+        text-align: left;
+    }
+
+    .evo-ui-settings-row__label {
+        text-align: left;
+    }
+
+    .evo-ui-settings-row__usage {
+        text-align: left;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .evo-ui-builder-row,
+    .evo-ui-dnd-row,
+    .evo-ui-dnd-group-row,
+    .evo-ui-dnd-option-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+        grid-template-areas:
+            "reorder summary"
+            "reorder actions";
+        align-items: center;
+        padding: 7px;
+        width: min(100%, 100vw);
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .evo-ui-builder-row > .evo-ui-reorder-rail,
+    .evo-ui-dnd-row > .evo-ui-reorder-rail,
+    .evo-ui-dnd-group-row > .evo-ui-reorder-rail,
+    .evo-ui-dnd-option-row > .evo-ui-reorder-rail,
+    .evo-ui-dnd-row > .evo-ui-dnd-rail,
+    .evo-ui-dnd-group-row > .evo-ui-dnd-rail,
+    .evo-ui-dnd-option-row > .evo-ui-dnd-rail {
+        grid-area: reorder;
+    }
+
+    .evo-ui-builder-row > .evo-ui-builder-summary,
+    .evo-ui-dnd-row > .evo-ui-builder-summary,
+    .evo-ui-dnd-group-row > .evo-ui-builder-summary,
+    .evo-ui-dnd-option-row > .evo-ui-builder-summary,
+    .evo-ui-dnd-row > .evo-ui-dnd-summary,
+    .evo-ui-dnd-group-row > .evo-ui-dnd-summary,
+    .evo-ui-dnd-option-row > .evo-ui-dnd-summary {
+        grid-area: summary;
+    }
+
+    .evo-ui-builder-row > .evo-ui-row-actions,
+    .evo-ui-dnd-row > .evo-ui-row-actions,
+    .evo-ui-dnd-group-row > .evo-ui-row-actions,
+    .evo-ui-dnd-option-row > .evo-ui-row-actions,
+    .evo-ui-dnd-row > .evo-ui-dnd-actions,
+    .evo-ui-dnd-group-row > .evo-ui-dnd-actions,
+    .evo-ui-dnd-option-row > .evo-ui-dnd-actions {
+        grid-area: actions;
+        justify-self: start;
+    }
+
+    .evo-ui-reorder-rail,
+    .evo-ui-dnd-rail {
+        align-self: start;
+        width: 64px;
+        grid-template-columns: 18px 22px 18px;
+        gap: 2px;
+        margin-top: 1px;
+    }
+
+    .evo-ui-reorder-rail__button,
+    .evo-ui-drag-handle,
+    .evo-ui-dnd-handle {
+        width: 18px;
+        height: 24px;
+    }
+
+    .evo-ui-builder-summary,
+    .evo-ui-dnd-summary {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .evo-ui-builder-summary__title,
+    .evo-ui-builder-summary__subtitle,
+    .evo-ui-dnd-title,
+    .evo-ui-dnd-subtitle {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .evo-ui-dnd-option-row__fields {
+        grid-template-columns: 1fr;
+    }
+
     .evo-ui-modal__grid--split {
         grid-template-columns: 1fr;
     }
@@ -5342,11 +6278,13 @@ select.evo-ui-select--multiple option {
         grid-column: 1;
     }
 
+    .evo-ui-field__label,
     .evo-ui-field--modal .evo-ui-field__label {
         justify-content: flex-start;
         text-align: left;
     }
 
+    .evo-ui-field__label > span,
     .evo-ui-field--modal .evo-ui-field__label > span {
         justify-items: start;
     }

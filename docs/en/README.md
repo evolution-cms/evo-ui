@@ -53,6 +53,9 @@ workflow decisions in the consuming package.
 
 ## Developer Entry Points
 
+- [User Guide](user-guide.md)
+- [Developer Guide](developer-guide.md)
+- [Frontend Guide](frontend-guide.md)
 - [Module Integration](../module-integration.md)
 - [Components](../components.md)
 - [Form And Field Catalogue](../forms.md)

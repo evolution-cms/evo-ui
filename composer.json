@@ -45,7 +45,9 @@
         }
     },
     "scripts": {
-        "test": "php tests/run.php"
+        "test": "php tests/run.php",
+        "drift": "php tests/consumer-drift.php",
+        "release-gate": "php tests/consumer-drift.php --release-gate"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

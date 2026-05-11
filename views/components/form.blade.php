@@ -11,15 +11,29 @@
 @php
     $sectionsByTab = collect($sections)->groupBy(fn ($section) => $section['tab'] ?? ($tabs[0]['name'] ?? 'default'));
     $initialTab = $tabs[0]['name'] ?? 'default';
+    $variant = (string) ($config['variant'] ?? 'default');
+    $layout = trim((string) ($config['layout'] ?? ''));
+    $layoutClass = $layout !== '' ? 'evo-ui-form-surface--layout-' . \Illuminate\Support\Str::slug($layout) : '';
+    $density = (string) ($config['density'] ?? ((bool) ($config['compact'] ?? false) ? 'compact' : 'default'));
+    $density = in_array($density, ['default', 'compact'], true) ? $density : 'default';
+    $showHeading = ($config['show_heading'] ?? true) !== false && ($config['heading'] ?? true) !== false;
 @endphp
 
 <section
-    class="evo-ui-form-surface evo-ui-form-surface--{{ $config['variant'] ?? 'default' }}"
+    @class([
+        'evo-ui-form-surface',
+        'evo-ui-form-surface--' . $variant,
+        'evo-ui-form-surface--density-' . $density,
+        $layoutClass => $layoutClass !== '',
+        'evo-ui-form-surface--heading-hidden' => !$showHeading,
+    ])
     wire:loading.class="is-loading"
     x-data="{
         selected: @js($initialTab),
         dirty: $wire.entangle('dirty').live,
         initialSnapshot: '',
+        showSavedToast: false,
+        savedToastTimer: null,
         init() {
             this.$nextTick(() => {
                 this.initialSnapshot = this.formSnapshot();
@@ -62,6 +76,11 @@
             }
 
             this.captureSnapshot();
+            this.showSavedToast = true;
+            clearTimeout(this.savedToastTimer);
+            this.savedToastTimer = setTimeout(() => {
+                this.showSavedToast = false;
+            }, 2400);
         },
         afterReset(event) {
             if (event.detail?.preset && event.detail.preset !== @js($controller->preset)) {
@@ -76,16 +95,21 @@
     x-on:evo-ui:form.reset.window="afterReset($event)"
 >
     <div class="evo-ui-form-heading">
-        <div>
-            <h2>
-                @if(!empty($config['icon']))
-                    <x-evo::icon :name="$config['icon']" />
+        <div class="evo-ui-form-heading__main">
+            @if($showHeading)
+                <h2>
+                    @if(!empty($config['icon']))
+                        <x-evo::icon :name="$config['icon']" />
+                    @endif
+                    <span>{{ $controller->formTitle($config) }}</span>
+                    @if($controller->formMeta($config))
+                        <small>{{ $controller->formMeta($config) }}</small>
+                    @endif
+                </h2>
+                @if(!empty($config['description']))
+                    <p>{{ __($config['description']) }}</p>
                 @endif
-                <span>{{ $controller->formTitle($config) }}</span>
-                @if($controller->formMeta($config))
-                    <small>{{ $controller->formMeta($config) }}</small>
-                @endif
-            </h2>
+            @endif
         </div>
 
         @if($actions)
@@ -93,11 +117,11 @@
                 @foreach($actions as $action)
                     @if(($action['type'] ?? null) === 'save')
                         <x-evo::button
-                            :icon="$action['icon'] ?? 'device-floppy'"
+                            :icon="$action['icon'] ?? 'check'"
                             :label="__($action['label'] ?? 'evo::global.action_save')"
-                            :tone="$action['tone'] ?? 'success'"
-                            :variant="$action['variant'] ?? 'soft'"
-                            :icon-only="(bool) ($action['icon_only'] ?? true)"
+                            :tone="$action['tone'] ?? 'primary'"
+                            :variant="$action['variant'] ?? 'filled'"
+                            :icon-only="(bool) ($action['icon_only'] ?? false)"
                             type="submit"
                             form="evo-ui-form-{{ $config['key'] ?? 'default' }}"
                             x-bind:disabled="!dirty"
@@ -128,12 +152,19 @@
         @endif
     </div>
 
-    @if($saved)
-        <div class="evo-ui-alert evo-ui-alert--success" role="status">
+    <div
+        class="evo-ui-save-toast evo-ui-save-toast--success"
+        role="status"
+        aria-live="polite"
+        x-cloak
+        x-show="showSavedToast"
+        x-transition.opacity.duration.150ms
+    >
+        <span class="evo-ui-save-toast__content">
             <x-evo::icon name="circle-check" />
             <span>@lang('evo::global.form_saved')</span>
-        </div>
-    @endif
+        </span>
+    </div>
 
     <form
         id="evo-ui-form-{{ $config['key'] ?? 'default' }}"
@@ -172,26 +203,43 @@
                 data-evo-form-tab-panel="{{ $tabName }}"
                 wire:key="form-tab-panel-{{ $tabName }}"
             >
-                @foreach($tabSections as $section)
+                @if(empty($config['section_columns']))
+                    @foreach($tabSections as $section)
+                        @include('evo::components.form.section', ['controller' => $controller, 'config' => $config, 'section' => $section])
+                    @endforeach
+                @else
                     @php
-                        $showSectionHeader = ($section['show_header'] ?? ($config['section_headers'] ?? true)) !== false;
-                        $sectionSpan = (int) ($section['span'] ?? 12);
-                        $sectionSpan = in_array($sectionSpan, [3, 4, 6, 8, 12], true) ? $sectionSpan : 12;
+                        $sectionColumns = collect((array) $config['section_columns'])
+                            ->filter(fn ($column) => is_array($column) && !empty($column['sections']))
+                            ->values();
+                        $sectionByKey = collect($tabSections)->keyBy(fn ($section) => (string) ($section['key'] ?? ''));
+                        $columnSectionKeys = $sectionColumns
+                            ->flatMap(fn ($column) => (array) ($column['sections'] ?? []))
+                            ->map(fn ($key) => (string) $key)
+                            ->filter()
+                            ->values()
+                            ->all();
                     @endphp
 
-                    <x-evo::card
-                        class="evo-ui-form-section evo-ui-form-section--span-{{ $sectionSpan }}"
-                        :label="$showSectionHeader ? ($section['label'] ?? null) : null"
-                        :icon="$showSectionHeader ? ($section['icon'] ?? null) : null"
-                        wire:key="form-section-{{ $section['key'] ?? \Illuminate\Support\Str::slug(__($section['label'] ?? 'section')) }}"
-                    >
-                        <div class="evo-ui-form-grid">
-                            @foreach($section['fields'] ?? [] as $field)
-                                <x-evo::form.field :controller="$controller" :field="$field" wire:key="form-field-{{ $field['name'] }}" />
-                            @endforeach
-                        </div>
-                    </x-evo::card>
-                @endforeach
+                    <div class="evo-ui-form-column-layout">
+                        @foreach($sectionColumns as $column)
+                            <div class="evo-ui-form-column" data-evo-form-column="{{ $column['key'] ?? $loop->index }}">
+                                @foreach((array) ($column['sections'] ?? []) as $sectionKey)
+                                    @php($columnSection = $sectionByKey->get((string) $sectionKey))
+                                    @if($columnSection)
+                                        @include('evo::components.form.section', ['controller' => $controller, 'config' => $config, 'section' => $columnSection])
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endforeach
+
+                        @foreach($tabSections as $section)
+                            @if(!in_array((string) ($section['key'] ?? ''), $columnSectionKeys, true))
+                                @include('evo::components.form.section', ['controller' => $controller, 'config' => $config, 'section' => $section])
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
             </div>
         @endforeach
     </form>

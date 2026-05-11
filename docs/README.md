@@ -14,13 +14,27 @@ tables, forms, modals, issue workspaces, and local assets.
 - [Polski](pl/README.md)
 - [Русский, legacy extra](ru/README.md)
 
+Each supported dDocs language folder contains:
+
+- `README.md` - localized overview and navigation.
+- `user-guide.md` - manager user workflows and visible behavior.
+- `developer-guide.md` - integration rules, examples and tests.
+- `frontend-guide.md` - asset/theme guidance and frontend boundary.
+
 ## Canonical Developer Docs
 
 - [Module Integration](module-integration.md)
-- [Components](components.md)
+- [Components And UI Kit](components.md)
+- [DnD And Reorder Contract](dnd-reorder-contract.md)
+- [DnD Implementation Guide](dnd-implementation-guide.md)
 - [Form And Field Catalogue](forms.md)
 - [Module Table Contract](module-table-contract.md)
 - [Issue Workspace Contract](issue-workspace-contract.md)
+- [Embedded Resource Contract](embedded-resource-contract.md)
+- [Editor Media Adapter Contract](editor-media-adapter-contract.md)
+- [Consumer Drift Guards](consumer-drift-guards.md)
+- [Four-Module Release Gate](four-module-release-gate.md)
+- [Component Completion Audit](component-completion-audit.md)
 - [Testing Matrix](testing.md)
 - [Consumers](consumers.md)
 - [Release Checklist](release-checklist.md)

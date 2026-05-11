@@ -685,6 +685,35 @@ class ModuleTable extends Component
         }
     }
 
+    public function runTableAction(string $actionKey): void
+    {
+        $actionKey = trim($actionKey);
+
+        if ($actionKey === '') {
+            return;
+        }
+
+        $action = collect((array) $this->tableConfig('actions', []))
+            ->first(fn ($action) => is_array($action)
+                && (string) ($action['key'] ?? '') === $actionKey
+                && (string) ($action['type'] ?? 'link') === 'wire');
+
+        if (!is_array($action)) {
+            return;
+        }
+
+        $provider = $this->provider();
+        $method = (string) ($action['provider'] ?? '');
+
+        if ($method === '' || !method_exists($provider, $method)) {
+            return;
+        }
+
+        $this->callProvider($method, $action, $this->selectedId);
+        $this->page = 1;
+        $this->dispatchClientState();
+    }
+
     public function updateInlineField(int $id, string $field, mixed $value): string
     {
         $column = $this->inlineEditableColumn($field);

@@ -124,7 +124,7 @@
     }
 
     function formIsDirty() {
-        return document.querySelector('[data-evo-form-dirty="true"]') !== null;
+        return document.querySelector('[data-evo-form-dirty="true"]:not([data-evo-form-saved="true"])') !== null;
     }
 
     function waitForCleanForm(callback, options) {
@@ -424,6 +424,519 @@
         }
 
         return window.Livewire.find(componentRoot.getAttribute('wire:id'));
+    }
+
+    function evoBuilderRows(list) {
+        return Array.prototype.filter.call(list.querySelectorAll('[data-evo-builder-row]'), function (row) {
+            return !row.matches('[data-evo-builder-placeholder]');
+        });
+    }
+
+    function evoBuilderRowAfter(list, y, dragged) {
+        return evoBuilderRows(list).reduce(function (closest, child) {
+            if (child === dragged || child.classList.contains('is-dragging')) {
+                return closest;
+            }
+
+            var box = child.getBoundingClientRect();
+            var offset = y - box.top - box.height / 2;
+
+            if (offset < 0 && offset > closest.offset) {
+                return {offset: offset, element: child};
+            }
+
+            return closest;
+        }, {offset: Number.NEGATIVE_INFINITY, element: null}).element;
+    }
+
+    function evoBuilderLists(rootElement) {
+        var lists = rootElement.querySelectorAll('[data-evo-builder-list]');
+
+        return lists.length ? Array.prototype.slice.call(lists) : [rootElement];
+    }
+
+    function evoBuilderPayload(rootElement) {
+        return evoBuilderLists(rootElement).map(function (list, listIndex) {
+            return {
+                key: list.getAttribute('data-evo-builder-list') || String(listIndex),
+                parent_id: list.getAttribute('data-evo-builder-parent-id') || '',
+                item_ids: evoBuilderRows(list).map(function (row) {
+                    return row.getAttribute('data-evo-builder-id') || '';
+                }).filter(Boolean),
+                items: evoBuilderRows(list).map(function (row, index) {
+                    return {
+                        id: row.getAttribute('data-evo-builder-id') || '',
+                        type: row.getAttribute('data-evo-builder-row-type') || '',
+                        index: index
+                    };
+                })
+            };
+        });
+    }
+
+    function initBuilder(rootElement) {
+        if (!rootElement || rootElement.__evoBuilderInitialized) {
+            return;
+        }
+
+        rootElement.__evoBuilderInitialized = true;
+        var dragged = null;
+        var placeholder = document.createElement('div');
+        placeholder.className = 'evo-ui-builder-placeholder';
+        placeholder.setAttribute('data-evo-builder-placeholder', 'true');
+
+        function cleanup() {
+            if (placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
+            }
+
+            rootElement.querySelectorAll('.is-dragging, .is-drag-hidden, .is-drag-over').forEach(function (node) {
+                node.classList.remove('is-dragging', 'is-drag-hidden', 'is-drag-over');
+            });
+
+            dragged = null;
+        }
+
+        rootElement.addEventListener('dragstart', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest('[data-evo-drag-handle]') : null;
+            var row = event.target && event.target.closest ? event.target.closest('[data-evo-builder-row]') : null;
+
+            if (!row || !rootElement.contains(row)) {
+                return;
+            }
+
+            if (!handle && event.target !== row) {
+                event.preventDefault();
+                return;
+            }
+
+            dragged = row;
+            row.classList.add('is-dragging');
+
+            var box = row.getBoundingClientRect();
+            placeholder.style.minHeight = Math.max(10, Math.round(box.height)) + 'px';
+            placeholder.style.height = Math.max(10, Math.round(box.height)) + 'px';
+
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', row.getAttribute('data-evo-builder-id') || '');
+            }
+        });
+
+        rootElement.addEventListener('dragover', function (event) {
+            var list = event.target && event.target.closest ? event.target.closest('[data-evo-builder-list]') : rootElement;
+
+            if (!dragged || !list || !rootElement.contains(list)) {
+                return;
+            }
+
+            event.preventDefault();
+            list.classList.add('is-drag-over');
+
+            var after = evoBuilderRowAfter(list, event.clientY, dragged);
+            list.insertBefore(placeholder, after || null);
+            dragged.classList.add('is-drag-hidden');
+        });
+
+        rootElement.addEventListener('dragleave', function (event) {
+            var list = event.target && event.target.closest ? event.target.closest('[data-evo-builder-list]') : null;
+
+            if (list && !list.contains(event.relatedTarget)) {
+                list.classList.remove('is-drag-over');
+            }
+        });
+
+        rootElement.addEventListener('drop', function (event) {
+            if (!dragged || !placeholder.parentNode) {
+                return;
+            }
+
+            event.preventDefault();
+            placeholder.parentNode.insertBefore(dragged, placeholder);
+            dragged.classList.remove('is-drag-hidden');
+
+            var component = livewireComponent(rootElement);
+            var method = rootElement.getAttribute('data-evo-builder-reorder-method') || 'reorderBuilderRows';
+
+            if (component && method && typeof component.call === 'function') {
+                component.call(method, evoBuilderPayload(rootElement));
+            }
+
+            cleanup();
+        });
+
+        rootElement.addEventListener('dragend', cleanup);
+    }
+
+    function dndSelector(rootElement, key, fallback) {
+        return rootElement.getAttribute('data-evo-dnd-' + key + '-selector') || fallback;
+    }
+
+    function dndUid(row, type) {
+        return row.getAttribute('data-evo-dnd-uid') ||
+            row.getAttribute('data-evo-dnd-' + type + '-uid') ||
+            row.getAttribute('data-' + type + '-uid') ||
+            '';
+    }
+
+    function dndRows(container, selector, placeholder) {
+        return Array.prototype.filter.call(container ? container.querySelectorAll(selector) : [], function (row) {
+            return row !== placeholder;
+        });
+    }
+
+    function dndCall(rootElement, method, args) {
+        var component = livewireComponent(rootElement);
+        var result = null;
+
+        markDndDirty(rootElement, 'dnd');
+        dispatch('dnd.changed', {method: method, args: args}, rootElement);
+
+        if (component && method && typeof component[method] === 'function') {
+            result = component[method].apply(component, args);
+        } else if (component && method && typeof component.call === 'function') {
+            result = component.call.apply(component, [method].concat(args));
+        } else if (component && method && typeof component.$call === 'function') {
+            result = component.$call.apply(component, [method].concat(args));
+        }
+
+        if (result && typeof result.finally === 'function') {
+            result.finally(function () {
+                window.setTimeout(function () {
+                    init(rootElement);
+                }, 0);
+            });
+        }
+    }
+
+    function markDndDirty(rootElement, source) {
+        var form = rootElement.closest && rootElement.closest('[data-evo-form]') ||
+            rootElement.querySelector && rootElement.querySelector('[data-evo-form]');
+        var surface = form && form.closest ? form.closest('[data-evo-form-dirty], .evo-ui-form-surface') : null;
+
+        if (!surface && rootElement.closest) {
+            surface = rootElement.closest('[data-evo-form-dirty], .evo-ui-form-surface');
+        }
+
+        if (surface) {
+            surface.setAttribute('data-evo-form-dirty', 'true');
+            surface.setAttribute('data-evo-form-saved', 'false');
+        }
+
+        if (form) {
+            form.setAttribute('data-evo-form-dirty', 'true');
+            form.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+
+        dispatch('form.dirty', {source: source}, rootElement);
+    }
+
+    function initDnd(rootElement) {
+        if (!rootElement || rootElement.__evoDndInitialized) {
+            return;
+        }
+
+        rootElement.__evoDndInitialized = true;
+
+        var selectors = {
+            group: dndSelector(rootElement, 'group', '[data-evo-dnd-group]'),
+            item: dndSelector(rootElement, 'item', '[data-evo-dnd-item]'),
+            list: dndSelector(rootElement, 'list', '[data-evo-dnd-list]'),
+            optionList: dndSelector(rootElement, 'option-list', '[data-evo-dnd-option-list]'),
+            optionRow: dndSelector(rootElement, 'option-row', '[data-evo-dnd-option-row]'),
+            handle: dndSelector(rootElement, 'handle', '[data-evo-dnd-handle]'),
+            dropzone: dndSelector(rootElement, 'dropzone', '[data-evo-dnd-dropzone]'),
+            modal: dndSelector(rootElement, 'modal', '.evo-ui-modal')
+        };
+        var groupMethod = rootElement.getAttribute('data-evo-dnd-group-method') || 'sortGroupByUid';
+        var itemMethod = rootElement.getAttribute('data-evo-dnd-item-method') || 'sortItemByUid';
+        var optionMethod = rootElement.getAttribute('data-evo-dnd-option-method') || '';
+        var payloadType = rootElement.getAttribute('data-evo-dnd-payload-type') || 'application/x-evo-dnd';
+        var dragged = null;
+        var placeholder = null;
+        var handleRow = null;
+        var payload = null;
+
+        function rowType(row) {
+            if (row && row.matches(selectors.group)) {
+                return 'group';
+            }
+
+            if (row && row.matches(selectors.optionRow)) {
+                return 'option';
+            }
+
+            return 'item';
+        }
+
+        function rowFromTarget(target) {
+            return target && target.closest ? target.closest(selectors.group + ', ' + selectors.item + ', ' + selectors.optionRow) : null;
+        }
+
+        function isInteractiveTarget(target) {
+            return target && target.closest && target.closest('input, select, textarea, button, a, [contenteditable="true"]');
+        }
+
+        function ensurePlaceholder(type, row) {
+            if (placeholder && placeholder.getAttribute('data-evo-dnd-placeholder-type') === type) {
+                return placeholder;
+            }
+
+            removePlaceholder();
+            placeholder = document.createElement('div');
+            placeholder.className = 'evo-ui-dnd-placeholder evo-ui-dnd-placeholder--' + type;
+            placeholder.setAttribute('data-evo-dnd-placeholder', 'true');
+            placeholder.setAttribute('data-evo-dnd-placeholder-type', type);
+            syncPlaceholderSize(row);
+
+            return placeholder;
+        }
+
+        function syncPlaceholderSize(row) {
+            if (!placeholder || !row || !row.getBoundingClientRect) {
+                return;
+            }
+
+            var box = row.getBoundingClientRect();
+            var height = Math.max(10, Math.ceil(box.height));
+            placeholder.style.minHeight = height + 'px';
+            placeholder.style.height = height + 'px';
+        }
+
+        function removePlaceholder() {
+            if (placeholder && placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
+            }
+
+            placeholder = null;
+        }
+
+        function clear() {
+            removePlaceholder();
+            rootElement.classList.remove('is-dnd-group', 'is-dnd-item', 'is-dnd-option');
+            rootElement.querySelectorAll('.is-dragging, .is-drag-hidden, .is-drag-over, .is-drop-target').forEach(function (node) {
+                node.classList.remove('is-dragging', 'is-drag-hidden', 'is-drag-over', 'is-drop-target');
+            });
+            dragged = null;
+            handleRow = null;
+            payload = null;
+        }
+
+        function listForRow(row, type) {
+            if (!row) {
+                return null;
+            }
+
+            if (type === 'group') {
+                return rootElement;
+            }
+
+            return row.closest(type === 'option' ? selectors.optionList : selectors.list) || rootElement;
+        }
+
+        function containerFromEvent(event, type) {
+            var target = event.target;
+
+            if (type === 'group') {
+                return rootElement;
+            }
+
+            return target && target.closest ? target.closest(type === 'option' ? selectors.optionList : selectors.list) : null;
+        }
+
+        function rowAfter(container, selector, y) {
+            return dndRows(container, selector, placeholder).reduce(function (closest, child) {
+                if (child === dragged || child.classList.contains('is-dragging')) {
+                    return closest;
+                }
+
+                var box = child.getBoundingClientRect();
+                var offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closest.offset) {
+                    return {offset: offset, element: child};
+                }
+
+                return closest;
+            }, {offset: Number.NEGATIVE_INFINITY, element: null}).element;
+        }
+
+        function insertPlaceholder(container, before) {
+            if (!container || !placeholder) {
+                return false;
+            }
+
+            syncPlaceholderSize(dragged);
+            container.insertBefore(placeholder, before || null);
+            container.classList.add('is-drag-over');
+            dragged.classList.add('is-dragging');
+
+            return true;
+        }
+
+        function movePlaceholder(event) {
+            if (!dragged || !payload) {
+                return false;
+            }
+
+            var type = payload.type;
+            var container = containerFromEvent(event, type) || listForRow(dragged, type);
+            var selector = type === 'group' ? selectors.group : (type === 'option' ? selectors.optionRow : selectors.item);
+            var dropzone = event.target && event.target.closest ? event.target.closest(selectors.dropzone) : null;
+
+            ensurePlaceholder(type, dragged);
+
+            if (dropzone && rootElement.contains(dropzone)) {
+                dropzone.classList.add('is-drop-target');
+                return insertPlaceholder(dropzone.parentNode, dropzone);
+            }
+
+            return insertPlaceholder(container, rowAfter(container, selector, event.clientY));
+        }
+
+        function targetPosition(type) {
+            if (!placeholder || !placeholder.parentNode) {
+                return null;
+            }
+
+            var parent = placeholder.parentNode;
+            var selector = type === 'group' ? selectors.group : (type === 'option' ? selectors.optionRow : selectors.item);
+            var rows = dndRows(parent, selector, placeholder).filter(function (row) {
+                return row !== dragged && (row.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING);
+            });
+            var group = type === 'item' ? parent.closest(selectors.group) : null;
+
+            return {
+                position: rows.length,
+                groupUid: group ? dndUid(group, 'group') : (parent.getAttribute('data-evo-dnd-group-uid') || parent.getAttribute('data-evo-dnd-uid') || '')
+            };
+        }
+
+        function commitDom() {
+            if (dragged && placeholder && placeholder.parentNode) {
+                placeholder.parentNode.insertBefore(dragged, placeholder);
+                dragged.classList.remove('is-dragging', 'is-drag-hidden');
+            }
+        }
+
+        rootElement.addEventListener('pointerdown', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
+            handleRow = handle ? rowFromTarget(handle) : null;
+        }, true);
+
+        rootElement.addEventListener('mousedown', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
+            handleRow = handle ? rowFromTarget(handle) : handleRow;
+        }, true);
+
+        rootElement.addEventListener('touchstart', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
+            handleRow = handle ? rowFromTarget(handle) : handleRow;
+        }, true);
+
+        rootElement.addEventListener('dragstart', function (event) {
+            var row = rowFromTarget(event.target);
+            var type = rowType(row);
+
+            if (!row || !rootElement.contains(row) || event.target.closest(selectors.modal) && type !== 'option') {
+                return;
+            }
+
+            if (isInteractiveTarget(event.target) && row !== handleRow) {
+                event.preventDefault();
+                return;
+            }
+
+            if (row !== handleRow && event.target !== row) {
+                event.preventDefault();
+                return;
+            }
+
+            payload = {
+                type: type,
+                uid: dndUid(row, type),
+                sourceGroupUid: type === 'item' ? (row.closest(selectors.group) ? dndUid(row.closest(selectors.group), 'group') : '') : ''
+            };
+
+            if (!payload.uid) {
+                event.preventDefault();
+                payload = null;
+                return;
+            }
+
+            dragged = row;
+            rootElement.classList.add('is-dnd-' + type);
+            ensurePlaceholder(type, row);
+
+            if (event.dataTransfer) {
+                var serialized = JSON.stringify(payload);
+                var box = row.getBoundingClientRect();
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', serialized);
+                event.dataTransfer.setData(payloadType, serialized);
+                event.dataTransfer.setDragImage(
+                    row,
+                    Math.max(0, Math.min(event.clientX - box.left, box.width)),
+                    Math.max(0, Math.min(event.clientY - box.top, box.height))
+                );
+            }
+
+            insertPlaceholder(listForRow(row, type), row.nextElementSibling);
+            window.requestAnimationFrame(function () {
+                if (dragged === row) {
+                    row.classList.add('is-drag-hidden');
+                }
+            });
+        });
+
+        rootElement.addEventListener('dragover', function (event) {
+            if (!dragged || !payload || !movePlaceholder(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'move';
+            }
+        });
+
+        rootElement.addEventListener('drop', function (event) {
+            if (!dragged || !payload) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            movePlaceholder(event);
+
+            var type = payload.type;
+            var target = targetPosition(type);
+            var uid = payload.uid;
+
+            if (!target) {
+                clear();
+                return;
+            }
+
+            commitDom();
+            clear();
+
+            if (type === 'group') {
+                dndCall(rootElement, groupMethod, [uid, target.position]);
+            } else if (type === 'item') {
+                dndCall(rootElement, itemMethod, [uid, target.position, target.groupUid]);
+            } else if (optionMethod) {
+                dndCall(rootElement, optionMethod, [uid, target.position]);
+            } else {
+                dispatch('dnd.option.changed', {uid: uid, position: target.position}, rootElement);
+                markDndDirty(rootElement, 'dnd-option');
+            }
+        });
+
+        rootElement.addEventListener('dragend', clear);
     }
 
     function issueKanbanCardAfter(list, y) {
@@ -856,6 +1369,14 @@
             initIssueKanban(target);
         }
 
+        if (target.matches && target.matches('[data-evo-builder]')) {
+            initBuilder(target);
+        }
+
+        if (target.matches && target.matches('[data-evo-dnd]')) {
+            initDnd(target);
+        }
+
         if (target.matches && target.matches('[data-evo-issue-workspace]')) {
             initIssueWorkspace(target);
         }
@@ -864,6 +1385,8 @@
         target.querySelectorAll('[data-evo-resource-parent]').forEach(initResourceParent);
         target.querySelectorAll('[data-evo-module-tabs]').forEach(initModuleTabs);
         target.querySelectorAll('[data-evo-issue-kanban]').forEach(initIssueKanban);
+        target.querySelectorAll('[data-evo-builder]').forEach(initBuilder);
+        target.querySelectorAll('[data-evo-dnd]').forEach(initDnd);
         target.querySelectorAll('[data-evo-issue-workspace]').forEach(initIssueWorkspace);
     }
 
@@ -1546,6 +2069,9 @@
     window.EvoUI.selectFilter = selectFilter;
     window.EvoUI.multiFilter = multiFilter;
     window.EvoUI.dateRangeFilter = dateRangeFilter;
+    window.EvoUI.initBuilder = initBuilder;
+    window.EvoUI.builderPayload = evoBuilderPayload;
+    window.EvoUI.initDnd = initDnd;
     window.EvoUI.initIssueKanban = initIssueKanban;
     window.EvoUI.syncRichEditors = syncRichEditors;
     window.EvoUI.clearRichEditors = clearRichEditors;

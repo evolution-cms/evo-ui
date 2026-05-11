@@ -19,6 +19,7 @@
 ])
 
 @php($selectedId = count($selected) === 1 ? $selected[0] : null)
+@php($titleInTableHeader = ($config['title_placement'] ?? null) === 'table_header')
 
 <section
     class="evo-ui-table-surface"
@@ -26,17 +27,19 @@
     wire:loading.class="is-loading"
     wire:target="search,perPage,setFilter,applySelectFilter,applyMultiFilter,applyDateRangeFilter,toggleFilter,setSort,switchView,goToPage,firstPage,previousPage,nextPage,goLastPage"
 >
-    <x-evo::table.toolbar
-        :controller="$controller"
-        :config="$config"
-        :filters="$filters"
-        :filter-options="$filterOptions"
-        :filter-labels="$filterLabels"
-        :selected-id="$selectedId"
-        :view-mode="$viewMode"
-        :sort="$sort"
-        :direction="$direction"
-    />
+    @if(!$titleInTableHeader || $viewMode === 'list')
+        <x-evo::table.toolbar
+            :controller="$controller"
+            :config="$config"
+            :filters="$filters"
+            :filter-options="$filterOptions"
+            :filter-labels="$filterLabels"
+            :selected-id="$selectedId"
+            :view-mode="$viewMode"
+            :sort="$sort"
+            :direction="$direction"
+        />
+    @endif
 
     @if($viewMode === 'list')
         <x-evo::table.list
@@ -47,7 +50,22 @@
             :selected="$selected"
         />
     @else
-        <div class="evo-ui-table-wrap">
+        <div @class(['evo-ui-table-wrap', 'evo-ui-table-wrap--with-toolbar' => $titleInTableHeader])>
+            @if($titleInTableHeader)
+                <x-evo::table.toolbar
+                    :controller="$controller"
+                    :config="$config"
+                    :filters="$filters"
+                    :filter-options="$filterOptions"
+                    :filter-labels="$filterLabels"
+                    :selected-id="$selectedId"
+                    :view-mode="$viewMode"
+                    :sort="$sort"
+                    :direction="$direction"
+                    table-header
+                />
+            @endif
+
             <table class="evo-ui-table">
                 <thead>
                     <tr>

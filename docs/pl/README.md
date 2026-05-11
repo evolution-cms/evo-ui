@@ -53,6 +53,9 @@ modulu zostaja w consumer package.
 
 ## Dokumentacja
 
+- [Przewodnik uzytkownika](user-guide.md)
+- [Przewodnik dewelopera](developer-guide.md)
+- [Frontend Guide](frontend-guide.md)
 - [Module Integration](../module-integration.md)
 - [Components](../components.md)
 - [Form And Field Catalogue](../forms.md)
