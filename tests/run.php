@@ -365,6 +365,14 @@ evo_ui_group('assets', function (): void {
         evo_ui_assert_contains('LivewireAssets::scripts()', $assets, 'Asset partial must include Livewire scripts through the manager-safe shim.');
     });
 
+    evo_ui_test('provider publishes runtime assets through Evolution symlinks', function (): void {
+        $provider = evo_ui_read('src/EvoUIServiceProvider.php');
+
+        evo_ui_assert_contains("'symlink:' . \$this->root . '/resources/css/evo-ui.css'", $provider, 'EvoUI CSS must be published through the symlink-aware vendor:publish mechanism.');
+        evo_ui_assert_contains("'symlink:' . \$this->root . '/resources/js/evo-ui.js'", $provider, 'EvoUI JS must be published through the symlink-aware vendor:publish mechanism.');
+        evo_ui_assert_contains("config/evo-ui.php' => config_path('evo-ui.php', true)", $provider, 'Config publishing must remain copy-based.');
+    });
+
     evo_ui_test('evo-ui-owned layout and asset partial do not load legacy manager bundles', function (): void {
         $surface = strtolower(evo_ui_read('views/layouts/manager.blade.php') . "\n" . evo_ui_read('views/partials/assets.blade.php'));
 

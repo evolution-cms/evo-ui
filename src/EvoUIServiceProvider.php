@@ -29,7 +29,17 @@ class EvoUIServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap the package.
+     * Bootstrap the shared manager UI runtime.
+     *
+     * EvoUI registers its Blade, translation, Livewire and publishable asset
+     * surfaces from one provider so consuming modules can depend on the package
+     * without duplicating runtime setup.
+     *
+     * CSS and JavaScript are declared as `symlink:` publish sources. Evolution's
+     * vendor:publish command creates public links when the filesystem supports
+     * them and falls back to copying on restricted hosting. This keeps installed
+     * manager modules on the current EvoUI runtime instead of serving stale
+     * files copied from an earlier package version.
      */
     public function boot(): void
     {
@@ -42,8 +52,8 @@ class EvoUIServiceProvider extends ServiceProvider
 
         $this->publishes([
             $this->root . '/config/evo-ui.php' => config_path('evo-ui.php', true),
-            $this->root . '/resources/css/evo-ui.css' => public_path('assets/modules/evo-ui/evo-ui.css'),
-            $this->root . '/resources/js/evo-ui.js' => public_path('assets/modules/evo-ui/evo-ui.js'),
+            'symlink:' . $this->root . '/resources/css/evo-ui.css' => public_path('assets/modules/evo-ui/evo-ui.css'),
+            'symlink:' . $this->root . '/resources/js/evo-ui.js' => public_path('assets/modules/evo-ui/evo-ui.js'),
         ], 'evo-ui');
     }
 

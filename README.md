@@ -54,6 +54,18 @@ Render an evo-ui-owned manager document:
 </x-evo::layout>
 ```
 
+Publish EvoUI assets after install or update:
+
+```bash
+php artisan vendor:publish --tag=evo-ui --force
+```
+
+Evolution CMS 3.5.7+ understands EvoUI asset declarations as symlink
+publishables. The public files under `assets/modules/evo-ui` are linked to the
+package runtime when possible, so modules do not keep stale copied CSS or JS
+after an EvoUI update. On hosting where symlinks are unavailable, `vendor:publish`
+falls back to copying the files.
+
 ## Documentation
 
 Start from [`docs/`](docs/README.md).

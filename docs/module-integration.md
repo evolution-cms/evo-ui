@@ -32,6 +32,20 @@ During package discovery the service provider registers:
 - shared support services such as manager context, permissions, config forms,
   resource forms, language bridge, rich editor integration and TV values
 
+Publish EvoUI resources from the Evolution root whenever the package is
+installed or updated:
+
+```bash
+php artisan vendor:publish --tag=evo-ui --force
+```
+
+The config file is copied to the project config path. Runtime CSS and JavaScript
+are registered as Evolution symlink publishables and point
+`assets/modules/evo-ui/evo-ui.css` plus `assets/modules/evo-ui/evo-ui.js` back to
+the package files when symlinks are allowed. If the filesystem rejects symlinks,
+Evolution falls back to copying the assets. Use `--force` after updates so an old
+copied file can be replaced by the current symlink or refreshed fallback copy.
+
 ## Service Provider Pattern
 
 The consuming module should register its own views, translations, routes and
@@ -120,6 +134,10 @@ The package asset partial loads:
 Module-specific scripts are allowed only for genuinely domain-specific behavior.
 If the behavior is a reusable table, form, modal, workspace, editor, picker,
 dirty-state or state-persistence primitive, it belongs in `evo-ui`.
+
+Consuming modules must not publish EvoUI assets under their own vendor tags.
+Keeping the asset publication in EvoUI preserves one shared runtime for packages
+such as `sArticles`, `sLang`, `sSeo`, and `dIssues`.
 
 ## Module Tabs
 
