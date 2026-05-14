@@ -24,7 +24,15 @@
         ->values()
         ->all();
     $opensModal = !empty($config['modal']['enabled']) && (($config['modal']['row_dblclick'] ?? true) !== false);
+    $modalDblclickAction = trim((string) data_get($config, 'modal.row_dblclick_action', ''));
     $reorderEnabled = method_exists($controller, 'reorderEnabled') && $controller->reorderEnabled();
+    $listAttributes = new \Illuminate\View\ComponentAttributeBag([
+        'class' => 'evo-ui-list',
+    ]);
+
+    if ($reorderEnabled) {
+        $listAttributes = $listAttributes->merge(['data-evo-dnd-list' => true]);
+    }
 
     $resolveActionValue = static function (array $row, mixed $value): mixed {
         if (is_string($value) && data_get($row, $value) !== null) {
@@ -35,7 +43,7 @@
     };
 @endphp
 
-<div class="evo-ui-list">
+<div {{ $listAttributes }}>
     <?php if (count($rows)): ?>
         <?php foreach ($rows as $row): ?>
             <?php
@@ -57,6 +65,34 @@
                     (!$showMedia ? 'evo-ui-list-item--no-media ' : '') .
                     ($isSelected ? 'is-selected ' : '') .
                     $stateClasses);
+                $itemAttributes = new \Illuminate\View\ComponentAttributeBag([
+                    'wire:key' => data_get($row, 'wire_key', 'row-' . $rowId) . '-list',
+                    'wire:click' => 'selectRow(' . $rowId . ')',
+                    'tabindex' => '0',
+                    'aria-selected' => $isSelected ? 'true' : 'false',
+                    'class' => $itemClass,
+                ]);
+
+                if ($opensModal && $rowId > 0) {
+                    $itemAttributes = $itemAttributes->merge(['data-evo-modal-dblclick' => $rowId]);
+
+                    if ($modalDblclickAction !== '') {
+                        $itemAttributes = $itemAttributes->merge(['data-evo-modal-action' => $modalDblclickAction]);
+                    }
+                } elseif ($editUrl !== '') {
+                    $itemAttributes = $itemAttributes->merge(['data-evo-manager-dblclick' => $editUrl]);
+                }
+
+                if ($reorderEnabled && $rowId > 0) {
+                    $itemAttributes = $itemAttributes->merge([
+                        'class' => 'evo-ui-list-item--dnd',
+                        'data-evo-dnd-item' => true,
+                        'data-evo-dnd-uid' => (string) $rowId,
+                        'data-evo-table-row' => (string) $rowId,
+                        'draggable' => 'true',
+                    ]);
+                }
+
                 $target = (string) ($titleLink['target'] ?? '');
                 $metaItems = [];
 
@@ -91,18 +127,7 @@
                 }
             ?>
 
-            <article
-                wire:key="{{ data_get($row, 'wire_key', 'row-' . $rowId) }}-list"
-                wire:click="selectRow({{ $rowId }})"
-                tabindex="0"
-                aria-selected="{{ $isSelected ? 'true' : 'false' }}"
-                class="{{ $itemClass }}"
-                @if($opensModal && $rowId > 0)
-                    data-evo-modal-dblclick="{{ $rowId }}"
-                @elseif($editUrl !== '')
-                    data-evo-manager-dblclick="{{ $editUrl }}"
-                @endif
-            >
+            <article {{ $itemAttributes }}>
                 <?php if ($showMedia): ?>
                     <div class="evo-ui-list-item__media">
                         <?php if ($imageColumn && !empty($imageColumn['editable'])): ?>
@@ -211,7 +236,7 @@
                                                     move-down="moveRow({{ $rowId }}, 'down')"
                                                     label="{{ $meta['label'] }}"
                                                 />
-                                                <span class="evo-ui-position-control__value evo-ui-dnd-badge">{{ $meta['value'] }}</span>
+                                                <span class="evo-ui-sr-only">{{ $meta['value'] }}</span>
                                             </span>
                                         <?php elseif ($meta['type'] === 'icon'): ?>
                                             <?php
@@ -263,15 +288,20 @@
 
                                 $label = $labelKey !== '' ? __($labelKey) : '';
                                 $buttonClass = trim('evo-ui-row-action ' . (in_array($tone, ['primary', 'info', 'success', 'warning', 'danger'], true) ? 'evo-ui-row-action--' . $tone : ''));
+                                $disabledField = $action['disabled_field'] ?? null;
+                                $disabled = $disabledField ? (bool) data_get($row, $disabledField) : (bool) ($action['disabled'] ?? false);
                             ?>
 
                             <?php if ($type === 'wire'): ?>
                                 <?php
                                     $method = $action['method'] ?? '';
                                     $argument = (int) $resolveActionValue($row, $action['argument'] ?? 'id');
-                                    $wireClick = $method . '(' . $argument . ')';
+                                    $withActionKey = (bool) ($action['action_argument'] ?? false);
+                                    $wireClick = $withActionKey
+                                        ? $method . "('" . e((string) ($action['key'] ?? '')) . "', " . $argument . ')'
+                                        : $method . '(' . $argument . ')';
                                 ?>
-                                <button type="button" class="{{ $buttonClass }}" title="{{ $label }}" aria-label="{{ $label }}" wire:click.stop="{{ $wireClick }}">
+                                <button type="button" class="{{ $buttonClass }}" title="{{ $label }}" aria-label="{{ $label }}" wire:click.stop="{{ $wireClick }}" @disabled($disabled)>
                                     <x-evo::icon :name="$icon" />
                                     <span class="evo-ui-sr-only">{{ $label }}</span>
                                 </button>

@@ -3,9 +3,9 @@
 evo-ui - це спільна Livewire + DaisyUI база для сучасних manager-модулів
 Evolution CMS.
 
-Цей `uk` entrypoint дублює український зміст для інструментів, які очікують ISO
-код мови `uk`. У самому Evolution CMS також підтримується `ua`, тому обидва
-entrypoints мають вести до однакового документаційного стандарту.
+Цей `uk` entrypoint є єдиною українською документаційною локаллю. Legacy
+значення Evolution manager `ua` нормалізується до `uk` і не має окремої папки
+документації.
 
 Пакет використовується в `sArticles`, `dIssues`, `sLang`, `sSeo` і `dDocs` як
 канонічний UI-шар менеджера. Consumer-модулі декларативно описують tabs,
@@ -61,16 +61,24 @@ resource-like editor, issue workspace або спільних візуальни
 - [Гід користувача](user-guide.md)
 - [Гід розробника](developer-guide.md)
 - [Frontend Guide](frontend-guide.md)
-- [Інтеграція модуля](../module-integration.md)
-- [Компоненти](../components.md)
-- [Каталог форм і полів](../forms.md)
-- [Контракт таблиці](../module-table-contract.md)
-- [Контракт issue workspace](../issue-workspace-contract.md)
-- [Testing matrix](../testing.md)
-- [Реальні consumers](../consumers.md)
-- [Release checklist](../release-checklist.md)
-- [dDocs tree/viewer notes](../ddocs-tree-viewer-notes.md)
-- [Roadmap](../roadmap.md)
+- [Конфігурація](configuration.md)
+- [Довідник](reference.md)
+- [Troubleshooting](troubleshooting.md)
+- [Стандарти документації](documentation-standards.md)
+- [Інтеграція модуля](../en/guide/module-integration.md)
+- [Компоненти](../en/components/README.md)
+- [Action Buttons](components/action-buttons.md)
+- [DnD і порядок рядків](components/dnd.md)
+- [Компонент Table](components/table.md)
+- [Компонент Form](components/form.md)
+- [Каталог форм і полів](../en/components/form-fields.md)
+- [Контракт таблиці](../en/components/module-table-contract.md)
+- [Контракт issue workspace](../en/components/issue-workspace-contract.md)
+- [Testing matrix](../en/guide/testing.md)
+- [Реальні consumers](../en/guide/consumers.md)
+- [Release checklist](../en/guide/release-checklist.md)
+- [dDocs tree/viewer notes](../en/guide/ddocs-tree-viewer-notes.md)
+- [Roadmap](../en/guide/roadmap.md)
 
 ## Правила для dDocs
 

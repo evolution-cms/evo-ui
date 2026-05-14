@@ -589,7 +589,6 @@
         var component = livewireComponent(rootElement);
         var result = null;
 
-        markDndDirty(rootElement, 'dnd');
         dispatch('dnd.changed', {method: method, args: args}, rootElement);
 
         if (component && method && typeof component[method] === 'function') {
@@ -629,6 +628,7 @@
         }
 
         dispatch('form.dirty', {source: source}, rootElement);
+        dispatch('form-dirty', {source: source}, rootElement);
     }
 
     function initDnd(rootElement) {
@@ -652,10 +652,27 @@
         var itemMethod = rootElement.getAttribute('data-evo-dnd-item-method') || 'sortItemByUid';
         var optionMethod = rootElement.getAttribute('data-evo-dnd-option-method') || '';
         var payloadType = rootElement.getAttribute('data-evo-dnd-payload-type') || 'application/x-evo-dnd';
+        var optionRoot = rootElement.matches && rootElement.matches(selectors.optionList);
         var dragged = null;
         var placeholder = null;
         var handleRow = null;
         var payload = null;
+        var stateTarget = null;
+        var optionPointerDrag = null;
+        var nativeDragImage = null;
+        var tableDragPreview = null;
+
+        function eventTarget(event) {
+            if (
+                typeof event.clientX === 'number' &&
+                typeof event.clientY === 'number' &&
+                document.elementFromPoint
+            ) {
+                return document.elementFromPoint(event.clientX, event.clientY) || event.target;
+            }
+
+            return event.target;
+        }
 
         function rowType(row) {
             if (row && row.matches(selectors.group)) {
@@ -673,8 +690,137 @@
             return target && target.closest ? target.closest(selectors.group + ', ' + selectors.item + ', ' + selectors.optionRow) : null;
         }
 
+        function ownerDndRoot(target) {
+            return target && target.closest ? target.closest('[data-evo-dnd]') : null;
+        }
+
+        function belongsToRoot(target) {
+            var owner = ownerDndRoot(target);
+            return !owner || owner === rootElement;
+        }
+
         function isInteractiveTarget(target) {
             return target && target.closest && target.closest('input, select, textarea, button, a, [contenteditable="true"]');
+        }
+
+        function createPlaceholder(type, row) {
+            if (row && row.tagName && row.tagName.toLowerCase() === 'tr') {
+                var tr = document.createElement('tr');
+                var td = document.createElement('td');
+                var inner = document.createElement('div');
+
+                tr.className = 'evo-ui-dnd-placeholder evo-ui-dnd-placeholder--' + type + ' evo-ui-dnd-placeholder--table-row';
+                td.colSpan = Math.max(1, row.children ? row.children.length : 1);
+                inner.className = 'evo-ui-dnd-placeholder__table-inner';
+                td.appendChild(inner);
+                tr.appendChild(td);
+
+                return tr;
+            }
+
+            var div = document.createElement('div');
+            div.className = 'evo-ui-dnd-placeholder evo-ui-dnd-placeholder--' + type;
+
+            return div;
+        }
+
+        function stripReactivePreviewAttributes(node) {
+            if (!node || !node.querySelectorAll) {
+                return;
+            }
+
+            [node].concat(Array.prototype.slice.call(node.querySelectorAll('*'))).forEach(function (element) {
+                if (!element.getAttributeNames) {
+                    return;
+                }
+
+                element.getAttributeNames().forEach(function (name) {
+                    if (
+                        name === 'wire:key' ||
+                        name.indexOf('wire:') === 0 ||
+                        name.indexOf('x-') === 0 ||
+                        name.indexOf(':') === 0 ||
+                        name.indexOf('@') === 0
+                    ) {
+                        element.removeAttribute(name);
+                    }
+                });
+            });
+        }
+
+        function removeNativeDragImage() {
+            if (nativeDragImage && nativeDragImage.parentNode) {
+                nativeDragImage.parentNode.removeChild(nativeDragImage);
+            }
+
+            nativeDragImage = null;
+        }
+
+        function createTransparentNativeDragImage() {
+            var preview = document.createElement('div');
+
+            preview.className = 'evo-ui-dnd-floating-preview evo-ui-dnd-floating-preview--transparent';
+            preview.setAttribute('aria-hidden', 'true');
+            preview.style.width = '1px';
+            preview.style.height = '1px';
+
+            document.body.appendChild(preview);
+            nativeDragImage = preview;
+
+            return preview;
+        }
+
+        function createNativeDragImage(row) {
+            var isTableRow = row.tagName && row.tagName.toLowerCase() === 'tr';
+
+            if (isTableRow) {
+                return createTransparentNativeDragImage();
+            }
+
+            return row;
+        }
+
+        function createTableDragPreview(row, event) {
+            if (!row || !row.tagName || row.tagName.toLowerCase() !== 'tr') {
+                return null;
+            }
+
+            var box = row.getBoundingClientRect();
+            var table = document.createElement('table');
+            var tbody = document.createElement('tbody');
+            var clone = row.cloneNode(true);
+            var sourceCells = Array.prototype.slice.call(row.children || []);
+            var cloneCells = Array.prototype.slice.call(clone.children || []);
+
+            clone.classList.remove('is-dragging', 'is-drag-hidden', 'is-drag-over', 'is-drop-target');
+            clone.removeAttribute('id');
+            clone.removeAttribute('wire:key');
+            clone.removeAttribute('draggable');
+            stripReactivePreviewAttributes(clone);
+
+            cloneCells.forEach(function (cell, index) {
+                var source = sourceCells[index];
+                if (!source || !source.getBoundingClientRect) {
+                    return;
+                }
+
+                cell.style.width = Math.max(1, Math.round(source.getBoundingClientRect().width)) + 'px';
+            });
+
+            table.className = 'evo-ui-table evo-ui-dnd-floating-preview evo-ui-dnd-floating-preview--table';
+            table.setAttribute('aria-hidden', 'true');
+            table.style.width = Math.ceil(box.width) + 'px';
+            table.style.height = Math.ceil(box.height) + 'px';
+
+            tbody.appendChild(clone);
+            table.appendChild(tbody);
+            document.body.appendChild(table);
+
+            return {
+                preview: table,
+                offsetX: event.clientX - box.left,
+                offsetY: event.clientY - box.top
+            };
         }
 
         function ensurePlaceholder(type, row) {
@@ -683,13 +829,16 @@
             }
 
             removePlaceholder();
-            placeholder = document.createElement('div');
-            placeholder.className = 'evo-ui-dnd-placeholder evo-ui-dnd-placeholder--' + type;
+            placeholder = createPlaceholder(type, row);
             placeholder.setAttribute('data-evo-dnd-placeholder', 'true');
             placeholder.setAttribute('data-evo-dnd-placeholder-type', type);
             syncPlaceholderSize(row);
 
             return placeholder;
+        }
+
+        function isStateOwnedOption(type) {
+            return type === 'option' && !optionMethod;
         }
 
         function syncPlaceholderSize(row) {
@@ -698,9 +847,20 @@
             }
 
             var box = row.getBoundingClientRect();
-            var height = Math.max(10, Math.ceil(box.height));
+            var measuredHeight = Math.ceil(box.height);
+            var previousHeight = parseInt(placeholder.getAttribute('data-evo-dnd-placeholder-height') || '0', 10) || 0;
+            var height = Math.max(10, measuredHeight || previousHeight);
+            var target = placeholder.querySelector
+                ? (placeholder.querySelector('.evo-ui-dnd-placeholder__table-inner') || placeholder)
+                : placeholder;
+            if (measuredHeight > 0) {
+                placeholder.setAttribute('data-evo-dnd-placeholder-height', String(height));
+            }
+
             placeholder.style.minHeight = height + 'px';
             placeholder.style.height = height + 'px';
+            target.style.minHeight = height + 'px';
+            target.style.height = height + 'px';
         }
 
         function removePlaceholder() {
@@ -712,14 +872,50 @@
         }
 
         function clear() {
+            removeOptionPointerPreview();
+            removeTableDragPreview();
+            removeNativeDragImage();
             removePlaceholder();
-            rootElement.classList.remove('is-dnd-group', 'is-dnd-item', 'is-dnd-option');
+            rootElement.classList.remove('is-dnd-group', 'is-dnd-item', 'is-dnd-option', 'is-dnd-handle-armed', 'is-drag-over', 'is-drop-target');
             rootElement.querySelectorAll('.is-dragging, .is-drag-hidden, .is-drag-over, .is-drop-target').forEach(function (node) {
                 node.classList.remove('is-dragging', 'is-drag-hidden', 'is-drag-over', 'is-drop-target');
             });
             dragged = null;
             handleRow = null;
             payload = null;
+            stateTarget = null;
+            optionPointerDrag = null;
+            tableDragPreview = null;
+        }
+
+        function removeOptionPointerPreview() {
+            if (optionPointerDrag && optionPointerDrag.preview && optionPointerDrag.preview.parentNode) {
+                optionPointerDrag.preview.parentNode.removeChild(optionPointerDrag.preview);
+            }
+        }
+
+        function removeTableDragPreview() {
+            if (tableDragPreview && tableDragPreview.preview && tableDragPreview.preview.parentNode) {
+                tableDragPreview.preview.parentNode.removeChild(tableDragPreview.preview);
+            }
+        }
+
+        function armHandle(handle) {
+            if (!handle || !rootElement.contains(handle) || !belongsToRoot(handle)) {
+                handleRow = null;
+                return null;
+            }
+
+            handleRow = rowFromTarget(handle);
+            if (!optionRoot && handleRow && handleRow.matches(selectors.optionRow)) {
+                handleRow.setAttribute('draggable', 'true');
+            }
+
+            if (!optionRoot) {
+                handle.setAttribute('draggable', 'true');
+            }
+
+            return handleRow;
         }
 
         function listForRow(row, type) {
@@ -735,7 +931,7 @@
         }
 
         function containerFromEvent(event, type) {
-            var target = event.target;
+            var target = eventTarget(event);
 
             if (type === 'group') {
                 return rootElement;
@@ -774,12 +970,51 @@
             return true;
         }
 
+        function positionFromPlaceholder(container, type) {
+            if (!container || !placeholder || !placeholder.parentNode) {
+                return null;
+            }
+
+            var selector = type === 'group' ? selectors.group : (type === 'option' ? selectors.optionRow : selectors.item);
+            var rows = dndRows(container, selector, placeholder).filter(function (row) {
+                return row !== dragged && (row.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING);
+            });
+            var group = type === 'item' ? container.closest(selectors.group) : null;
+
+            return {
+                position: rows.length,
+                groupUid: group ? dndUid(group, 'group') : (container.getAttribute('data-evo-dnd-group-uid') || container.getAttribute('data-evo-dnd-uid') || '')
+            };
+        }
+
+        function moveStateOwnedOptionTarget(event) {
+            var container = containerFromEvent(event, 'option') || listForRow(dragged, 'option');
+
+            if (!container) {
+                return false;
+            }
+
+            ensurePlaceholder('option', dragged);
+            var before = rowAfter(container, selectors.optionRow, event.clientY);
+            if (!insertPlaceholder(container, before)) {
+                return false;
+            }
+
+            stateTarget = positionFromPlaceholder(container, 'option');
+            return Boolean(stateTarget);
+        }
+
         function movePlaceholder(event) {
             if (!dragged || !payload) {
                 return false;
             }
 
             var type = payload.type;
+
+            if (isStateOwnedOption(type)) {
+                return moveStateOwnedOptionTarget(event);
+            }
+
             var container = containerFromEvent(event, type) || listForRow(dragged, type);
             var selector = type === 'group' ? selectors.group : (type === 'option' ? selectors.optionRow : selectors.item);
             var dropzone = event.target && event.target.closest ? event.target.closest(selectors.dropzone) : null;
@@ -794,22 +1029,200 @@
             return insertPlaceholder(container, rowAfter(container, selector, event.clientY));
         }
 
+        function createOptionPointerPreview(row, event) {
+            var box = row.getBoundingClientRect();
+            var preview = row.cloneNode(true);
+
+            preview.classList.remove('is-dragging', 'is-drag-hidden', 'is-drag-over', 'is-drop-target');
+            preview.classList.add('evo-ui-dnd-floating-preview');
+            preview.setAttribute('aria-hidden', 'true');
+            preview.style.width = Math.ceil(box.width) + 'px';
+            preview.style.height = Math.ceil(box.height) + 'px';
+            stripReactivePreviewAttributes(preview);
+            preview.setAttribute('x-ignore', '');
+
+            Array.prototype.forEach.call(preview.querySelectorAll('input, textarea, select, button'), function (control) {
+                control.setAttribute('tabindex', '-1');
+                control.setAttribute('disabled', 'disabled');
+            });
+
+            document.body.appendChild(preview);
+
+            return {
+                preview: preview,
+                offsetX: event.clientX - box.left,
+                offsetY: event.clientY - box.top
+            };
+        }
+
+        function updateOptionPointerPreview(event) {
+            if (!optionPointerDrag || !optionPointerDrag.preview) {
+                return;
+            }
+
+            var x = Math.round(event.clientX - optionPointerDrag.offsetX);
+            var y = Math.round(event.clientY - optionPointerDrag.offsetY);
+
+            optionPointerDrag.preview.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
+        }
+
+        function updateTableDragPreview(event) {
+            if (!tableDragPreview || !tableDragPreview.preview) {
+                return;
+            }
+
+            var x = Math.round(event.clientX - tableDragPreview.offsetX);
+            var y = Math.round(event.clientY - tableDragPreview.offsetY);
+
+            tableDragPreview.preview.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
+        }
+
+        function finishOptionPointerDrag(event, cancelled) {
+            if (!optionPointerDrag) {
+                return;
+            }
+
+            if (!cancelled) {
+                moveStateOwnedOptionTarget(event);
+            }
+
+            var target = cancelled ? null : targetPosition('option');
+            var uid = payload ? payload.uid : '';
+            var method = optionMethod;
+
+            if (optionPointerDrag.handle && optionPointerDrag.handle.releasePointerCapture) {
+                try {
+                    optionPointerDrag.handle.releasePointerCapture(optionPointerDrag.pointerId);
+                } catch (error) {
+                    // The pointer may already be released by the browser.
+                }
+            }
+
+            document.removeEventListener('pointermove', handleOptionPointerMove, true);
+            document.removeEventListener('pointerup', handleOptionPointerUp, true);
+            document.removeEventListener('pointercancel', handleOptionPointerCancel, true);
+
+            if (!target || !uid) {
+                clear();
+                return;
+            }
+
+            if (method) {
+                commitDom();
+                clear();
+                markDndDirty(rootElement, 'dnd-option');
+                dndCall(rootElement, method, [uid, target.position]);
+            } else {
+                clear();
+                dispatch('dnd.option.changed', {uid: uid, position: target.position}, rootElement);
+                dispatch('dnd-option-changed', {uid: uid, position: target.position}, rootElement);
+                markDndDirty(rootElement, 'dnd-option');
+            }
+        }
+
+        function handleOptionPointerMove(event) {
+            if (!optionPointerDrag || event.pointerId !== optionPointerDrag.pointerId) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            updateOptionPointerPreview(event);
+            moveStateOwnedOptionTarget(event);
+        }
+
+        function handleOptionPointerUp(event) {
+            if (!optionPointerDrag || event.pointerId !== optionPointerDrag.pointerId) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            finishOptionPointerDrag(event, false);
+        }
+
+        function handleOptionPointerCancel(event) {
+            if (!optionPointerDrag || event.pointerId !== optionPointerDrag.pointerId) {
+                return;
+            }
+
+            finishOptionPointerDrag(event, true);
+        }
+
+        function startOptionPointerDrag(event, handle) {
+            if (!optionRoot || !handle || !rootElement.contains(handle) || !belongsToRoot(handle)) {
+                return false;
+            }
+
+            if (typeof event.button === 'number' && event.button !== 0) {
+                return false;
+            }
+
+            var row = rowFromTarget(handle);
+
+            if (!row || rowType(row) !== 'option' || !belongsToRoot(row)) {
+                return false;
+            }
+
+            var uid = dndUid(row, 'option');
+
+            if (!uid) {
+                return false;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            dragged = row;
+            handleRow = row;
+            payload = {
+                type: 'option',
+                uid: uid,
+                sourceGroupUid: ''
+            };
+            optionPointerDrag = {
+                pointerId: event.pointerId,
+                handle: handle
+            };
+
+            Object.assign(optionPointerDrag, createOptionPointerPreview(row, event));
+
+            rootElement.classList.add('is-dnd-option', 'is-dnd-handle-armed');
+            updateOptionPointerPreview(event);
+            moveStateOwnedOptionTarget(event);
+
+            if (handle.setPointerCapture && typeof event.pointerId !== 'undefined') {
+                try {
+                    handle.setPointerCapture(event.pointerId);
+                } catch (error) {
+                    // Some embedded manager contexts do not allow pointer capture.
+                }
+            }
+
+            document.addEventListener('pointermove', handleOptionPointerMove, true);
+            document.addEventListener('pointerup', handleOptionPointerUp, true);
+            document.addEventListener('pointercancel', handleOptionPointerCancel, true);
+
+            window.requestAnimationFrame(function () {
+                if (dragged === row) {
+                    row.classList.add('is-drag-hidden');
+                }
+            });
+
+            return true;
+        }
+
         function targetPosition(type) {
+            if (isStateOwnedOption(type)) {
+                return stateTarget;
+            }
+
             if (!placeholder || !placeholder.parentNode) {
                 return null;
             }
 
             var parent = placeholder.parentNode;
-            var selector = type === 'group' ? selectors.group : (type === 'option' ? selectors.optionRow : selectors.item);
-            var rows = dndRows(parent, selector, placeholder).filter(function (row) {
-                return row !== dragged && (row.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING);
-            });
-            var group = type === 'item' ? parent.closest(selectors.group) : null;
-
-            return {
-                position: rows.length,
-                groupUid: group ? dndUid(group, 'group') : (parent.getAttribute('data-evo-dnd-group-uid') || parent.getAttribute('data-evo-dnd-uid') || '')
-            };
+            return positionFromPlaceholder(parent, type);
         }
 
         function commitDom() {
@@ -821,33 +1234,98 @@
 
         rootElement.addEventListener('pointerdown', function (event) {
             var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
-            handleRow = handle ? rowFromTarget(handle) : null;
+
+            if (optionRoot) {
+                startOptionPointerDrag(event, handle);
+                return;
+            }
+
+            if (!handle || !rootElement.contains(handle)) {
+                handleRow = null;
+                return;
+            }
+
+            var row = armHandle(handle);
+
+            if (row) {
+                event.stopPropagation();
+                rootElement.classList.add('is-dnd-handle-armed');
+            }
         }, true);
 
         rootElement.addEventListener('mousedown', function (event) {
+            if (optionRoot) {
+                return;
+            }
+
             var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
-            handleRow = handle ? rowFromTarget(handle) : handleRow;
+
+            if (handle && rootElement.contains(handle)) {
+                if (armHandle(handle)) {
+                    event.stopPropagation();
+                    rootElement.classList.add('is-dnd-handle-armed');
+                }
+            }
         }, true);
 
         rootElement.addEventListener('touchstart', function (event) {
+            if (optionRoot) {
+                return;
+            }
+
             var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
-            handleRow = handle ? rowFromTarget(handle) : handleRow;
+
+            if (handle && rootElement.contains(handle)) {
+                if (armHandle(handle)) {
+                    event.stopPropagation();
+                    rootElement.classList.add('is-dnd-handle-armed');
+                }
+            }
+        }, true);
+
+        rootElement.addEventListener('selectstart', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
+
+            if (!handle || !rootElement.contains(handle)) {
+                return;
+            }
+
+            event.preventDefault();
         }, true);
 
         rootElement.addEventListener('dragstart', function (event) {
-            var row = rowFromTarget(event.target);
+            if (optionRoot) {
+                event.preventDefault();
+                return;
+            }
+
+            var handle = event.target && event.target.closest ? event.target.closest(selectors.handle) : null;
+            var handleTargetRow = handle && rootElement.contains(handle) ? armHandle(handle) : null;
+            var row = handleTargetRow || rowFromTarget(event.target);
             var type = rowType(row);
 
             if (!row || !rootElement.contains(row) || event.target.closest(selectors.modal) && type !== 'option') {
                 return;
             }
 
-            if (isInteractiveTarget(event.target) && row !== handleRow) {
+            if (!belongsToRoot(row)) {
+                return;
+            }
+
+            if (handleTargetRow) {
+                handleRow = handleTargetRow;
+            }
+
+            if (isInteractiveTarget(event.target) && row !== handleRow && !handle) {
                 event.preventDefault();
                 return;
             }
 
-            if (row !== handleRow && event.target !== row) {
+            if (type === 'option' && row !== handleRow) {
+                handleRow = row;
+            }
+
+            if (row !== handleRow && event.target !== row && !handle) {
                 event.preventDefault();
                 return;
             }
@@ -866,30 +1344,52 @@
 
             dragged = row;
             rootElement.classList.add('is-dnd-' + type);
-            ensurePlaceholder(type, row);
 
             if (event.dataTransfer) {
                 var serialized = JSON.stringify(payload);
                 var box = row.getBoundingClientRect();
+                var dragImage = createNativeDragImage(row);
                 event.dataTransfer.effectAllowed = 'move';
                 event.dataTransfer.setData('text/plain', serialized);
                 event.dataTransfer.setData(payloadType, serialized);
                 event.dataTransfer.setDragImage(
-                    row,
+                    dragImage,
                     Math.max(0, Math.min(event.clientX - box.left, box.width)),
                     Math.max(0, Math.min(event.clientY - box.top, box.height))
                 );
             }
 
-            insertPlaceholder(listForRow(row, type), row.nextElementSibling);
-            window.requestAnimationFrame(function () {
-                if (dragged === row) {
-                    row.classList.add('is-drag-hidden');
+            tableDragPreview = createTableDragPreview(row, event);
+            updateTableDragPreview(event);
+
+            if (window.getSelection) {
+                var selection = window.getSelection();
+                if (selection && typeof selection.removeAllRanges === 'function') {
+                    selection.removeAllRanges();
                 }
-            });
-        });
+            }
+
+            if (isStateOwnedOption(type)) {
+                moveStateOwnedOptionTarget(event);
+                window.requestAnimationFrame(function () {
+                    if (dragged === row) {
+                        row.classList.add('is-drag-hidden');
+                    }
+                });
+            } else {
+                ensurePlaceholder(type, row);
+                insertPlaceholder(listForRow(row, type), row.nextElementSibling);
+                window.requestAnimationFrame(function () {
+                    if (dragged === row) {
+                        row.classList.add('is-drag-hidden');
+                    }
+                });
+            }
+        }, true);
 
         rootElement.addEventListener('dragover', function (event) {
+            updateTableDragPreview(event);
+
             if (!dragged || !payload || !movePlaceholder(event)) {
                 return;
             }
@@ -900,7 +1400,7 @@
             if (event.dataTransfer) {
                 event.dataTransfer.dropEffect = 'move';
             }
-        });
+        }, true);
 
         rootElement.addEventListener('drop', function (event) {
             if (!dragged || !payload) {
@@ -921,22 +1421,30 @@
                 return;
             }
 
-            commitDom();
-            clear();
-
             if (type === 'group') {
+                commitDom();
+                clear();
+                markDndDirty(rootElement, 'dnd-group');
                 dndCall(rootElement, groupMethod, [uid, target.position]);
             } else if (type === 'item') {
+                commitDom();
+                clear();
+                markDndDirty(rootElement, 'dnd-item');
                 dndCall(rootElement, itemMethod, [uid, target.position, target.groupUid]);
             } else if (optionMethod) {
+                commitDom();
+                clear();
+                markDndDirty(rootElement, 'dnd-option');
                 dndCall(rootElement, optionMethod, [uid, target.position]);
             } else {
+                clear();
                 dispatch('dnd.option.changed', {uid: uid, position: target.position}, rootElement);
+                dispatch('dnd-option-changed', {uid: uid, position: target.position}, rootElement);
                 markDndDirty(rootElement, 'dnd-option');
             }
-        });
+        }, true);
 
-        rootElement.addEventListener('dragend', clear);
+        rootElement.addEventListener('dragend', clear, true);
     }
 
     function issueKanbanCardAfter(list, y) {
@@ -1381,6 +1889,10 @@
             initIssueWorkspace(target);
         }
 
+        if (target.matches && target.matches('[data-evo-inline-create]')) {
+            initInlineCreate(target);
+        }
+
         target.querySelectorAll('[data-evo-layout]').forEach(initLayout);
         target.querySelectorAll('[data-evo-resource-parent]').forEach(initResourceParent);
         target.querySelectorAll('[data-evo-module-tabs]').forEach(initModuleTabs);
@@ -1388,6 +1900,7 @@
         target.querySelectorAll('[data-evo-builder]').forEach(initBuilder);
         target.querySelectorAll('[data-evo-dnd]').forEach(initDnd);
         target.querySelectorAll('[data-evo-issue-workspace]').forEach(initIssueWorkspace);
+        target.querySelectorAll('[data-evo-inline-create]').forEach(initInlineCreate);
     }
 
     function shouldHandleManagerLink(link, event) {
@@ -1663,6 +2176,7 @@
 
         var component = livewireComponent(row);
         var rowId = parseInt(row.getAttribute('data-evo-modal-dblclick') || '0', 10);
+        var actionKey = String(row.getAttribute('data-evo-modal-action') || '').trim();
 
         if (!component || typeof component.call !== 'function' || rowId < 1) {
             return;
@@ -1670,6 +2184,12 @@
 
         event.preventDefault();
         event.stopPropagation();
+
+        if (actionKey !== '') {
+            component.call('openActionModal', actionKey, rowId);
+            return;
+        }
+
         component.call('openEditModal', rowId);
     }
 
@@ -1939,6 +2459,119 @@
         });
     }
 
+    function inlineCreateRootMatches(rootElement, rootKey) {
+        if (!rootKey) {
+            return true;
+        }
+
+        return rootElement.getAttribute('data-evo-inline-create') === rootKey ||
+            rootElement.getAttribute('data-evo-inline-create-root') === rootKey ||
+            rootElement.id === rootKey;
+    }
+
+    function inlineCreateRoots(rootKey) {
+        return Array.prototype.slice.call(document.querySelectorAll('[data-evo-inline-create]')).filter(function (rootElement) {
+            return inlineCreateRootMatches(rootElement, rootKey);
+        });
+    }
+
+    function inlineCreateCreatedItems(rootElement, itemId) {
+        var items = Array.prototype.slice.call(rootElement.querySelectorAll('[data-evo-inline-created], [data-evo-inline-create-id]'));
+
+        if (!itemId) {
+            return items;
+        }
+
+        return items.filter(function (item) {
+            return item.getAttribute('data-evo-inline-created') === itemId ||
+                item.getAttribute('data-evo-inline-create-id') === itemId ||
+                item.id === itemId;
+        });
+    }
+
+    function inlineCreateFocusTarget(item) {
+        if (!item || !item.querySelector) {
+            return null;
+        }
+
+        return item.querySelector('[data-evo-inline-focus]') ||
+            item.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    }
+
+    function focusInlineCreateItem(item) {
+        if (!item) {
+            return;
+        }
+
+        item.classList.add('is-evo-inline-created');
+        item.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
+
+        window.setTimeout(function () {
+            var focusTarget = inlineCreateFocusTarget(item);
+
+            if (focusTarget && typeof focusTarget.focus === 'function') {
+                focusTarget.focus({preventScroll: true});
+            }
+
+            dispatch('inline-create.focused', {
+                id: item.getAttribute('data-evo-inline-create-id') || item.getAttribute('data-evo-inline-created') || item.id || ''
+            }, item);
+        }, 120);
+
+        window.setTimeout(function () {
+            item.classList.remove('is-evo-inline-created');
+        }, 1800);
+    }
+
+    function inlineCreateHasOverflow(rootElement) {
+        var mode = rootElement.getAttribute('data-evo-inline-create-overflow') || 'page';
+        var target = mode === 'root' ? rootElement : document.documentElement;
+
+        if (target === rootElement) {
+            return rootElement.scrollHeight > rootElement.clientHeight + 1 || rootElement.scrollWidth > rootElement.clientWidth + 1;
+        }
+
+        return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) > window.innerHeight + 1;
+    }
+
+    function toggleInlineCreateOverflow(rootElement) {
+        if (!rootElement || !rootElement.querySelectorAll) {
+            return;
+        }
+
+        var overflow = inlineCreateHasOverflow(rootElement);
+
+        rootElement.classList.toggle('is-evo-inline-create-overflowing', overflow);
+        rootElement.querySelectorAll('[data-evo-inline-create-bottom]').forEach(function (action) {
+            action.hidden = !overflow;
+            action.classList.toggle('is-visible', overflow);
+            action.setAttribute('aria-hidden', overflow ? 'false' : 'true');
+        });
+    }
+
+    function initInlineCreate(rootElement) {
+        toggleInlineCreateOverflow(rootElement);
+    }
+
+    function handleInlineCreateCreated(detail) {
+        detail = detail || {};
+
+        window.requestAnimationFrame(function () {
+            var roots = inlineCreateRoots(String(detail.root || detail.container || ''));
+
+            roots.forEach(function (rootElement) {
+                var items = inlineCreateCreatedItems(rootElement, String(detail.id || detail.uid || ''));
+                var item = items.length ? items[items.length - 1] : null;
+
+                if (item) {
+                    focusInlineCreateItem(item);
+                }
+
+                toggleInlineCreateOverflow(rootElement);
+            });
+        });
+    }
+
     function selectFilter(config) {
         config = config || {};
 
@@ -2072,6 +2705,8 @@
     window.EvoUI.initBuilder = initBuilder;
     window.EvoUI.builderPayload = evoBuilderPayload;
     window.EvoUI.initDnd = initDnd;
+    window.EvoUI.initInlineCreate = initInlineCreate;
+    window.EvoUI.focusInlineCreateItem = focusInlineCreateItem;
     window.EvoUI.initIssueKanban = initIssueKanban;
     window.EvoUI.syncRichEditors = syncRichEditors;
     window.EvoUI.clearRichEditors = clearRichEditors;
@@ -2181,6 +2816,14 @@
     document.addEventListener('click', handleDeleteClick, true);
     document.addEventListener('dblclick', handleModalDoubleClick, true);
     document.addEventListener('dblclick', handleManagerDoubleClick, true);
+
+    window.addEventListener('evo-ui:inline-create.created', function (event) {
+        handleInlineCreateCreated(event.detail || {});
+    });
+
+    window.addEventListener('resize', function () {
+        document.querySelectorAll('[data-evo-inline-create]').forEach(toggleInlineCreateOverflow);
+    });
 
     window.addEventListener('message', function (event) {
         if (event.data && event.data.type === 'evo:theme') {

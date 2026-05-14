@@ -73,7 +73,25 @@
             @endif
         </label>
 
-        @if($type === 'repeater')
+        @if($type === 'static')
+            @php
+                $staticValue = is_scalar($value) || $value === null
+                    ? (string) $value
+                    : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            @endphp
+            <div id="{{ $fieldId }}" class="evo-ui-static-field">{{ $staticValue }}</div>
+        @elseif($type === 'code')
+            @php
+                $codeValue = is_scalar($value) || $value === null
+                    ? (string) $value
+                    : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            @endphp
+            <pre id="{{ $fieldId }}" class="evo-ui-code-block">{{ $codeValue }}</pre>
+        @elseif($type === 'badge')
+            <div id="{{ $fieldId }}" class="evo-ui-static-field">
+                <x-evo::badge :value="$value" />
+            </div>
+        @elseif($type === 'repeater')
             @php
                 $items = array_values((array) data_get($controller->modalData, $name, []));
                 $repeaterLayout = (string) ($field['layout'] ?? '');

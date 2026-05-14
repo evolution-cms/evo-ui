@@ -52,6 +52,8 @@
                 $buttonClass = trim('evo-ui-row-action ' .
                     (in_array($tone, ['primary', 'info', 'success', 'warning', 'danger'], true) ? 'evo-ui-row-action--' . $tone : ''));
                 $extra = new \Illuminate\View\ComponentAttributeBag($attributesFor($action));
+                $disabledField = $action['disabled_field'] ?? null;
+                $disabled = $disabledField ? (bool) data_get($row, $disabledField) : (bool) ($action['disabled'] ?? false);
             @endphp
 
             @if($type === 'wire')
@@ -65,6 +67,7 @@
                     class="{{ $buttonClass }}"
                     title="{{ $label }}"
                     aria-label="{{ $label }}"
+                    @disabled($disabled)
                     @if($withActionKey)
                         wire:click.stop="{{ $method }}('{{ e((string) ($action['key'] ?? '')) }}', {{ $argument }})"
                     @else

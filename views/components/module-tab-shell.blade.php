@@ -27,13 +27,20 @@
                 ? window.EvoUI.form.isDirty()
                 : document.querySelector('[data-evo-form-dirty=&quot;true&quot;]') !== null;
         },
+        setActiveModuleTab(tab) {
+            this.activeTab = tab;
+
+            if (@js($model !== '')) {
+                this.$wire.set(@js($model), tab);
+            }
+        },
         requestModuleTab(tab) {
             if (this.activeTab === tab) {
                 return;
             }
 
             if (!this.isDirty()) {
-                this.activeTab = tab;
+                this.setActiveModuleTab(tab);
                 return;
             }
 
@@ -46,7 +53,7 @@
         },
         applyPendingNavigation() {
             if (this.pendingTab) {
-                this.activeTab = this.pendingTab;
+                this.setActiveModuleTab(this.pendingTab);
             }
 
             this.closeUnsavedPrompt();

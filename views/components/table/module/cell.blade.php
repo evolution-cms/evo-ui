@@ -87,7 +87,7 @@
                 move-down="moveRow({{ $rowId }}, 'down')"
                 label="{{ __($column['label'] ?? '') }}"
             />
-            <span class="evo-ui-position-control__value evo-ui-dnd-badge">{{ $toText($value) }}</span>
+            <span class="evo-ui-sr-only">{{ $toText($value) }}</span>
         </span>
     <?php elseif ($isId): ?>
         <span class="evo-ui-id">{{ $toText($value) }}</span>

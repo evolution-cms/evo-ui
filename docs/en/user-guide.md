@@ -10,7 +10,7 @@ dDocs.
 - Tabs, toolbars, buttons, badges, cards and modals.
 - Tables, list views, filters, pagination and row actions.
 - Settings and editor forms with dirty-state protection.
-- Save feedback through a compact auto-dismiss toast.
+- Save feedback inside the Save button.
 - Issue-style workspaces such as list, kanban, detail and comments.
 
 ## Standard Actions
@@ -23,8 +23,8 @@ looks the same in every module.
 
 When a form has unsaved changes, evo-ui keeps the tab guard active. If you try
 to leave the tab, the shared unsaved-changes dialog appears. After a successful
-save, the form becomes clean again and the top-right save toast disappears
-automatically.
+save, the button briefly says Saved, then returns to disabled Save until you
+change the form again.
 
 ## dDocs Exception
 
@@ -39,4 +39,3 @@ evo-ui buttons, inputs, cards, badges, colors and typography.
 - Tables keep filters and pagination while you work.
 - Modals keep primary actions at the bottom.
 - Alerts, badges and chips use the shared visual language.
-

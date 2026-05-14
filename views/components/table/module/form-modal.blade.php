@@ -13,6 +13,7 @@
     $modalHeaderMeta = method_exists($controller, 'modalHeaderMeta') ? $controller->modalHeaderMeta() : [];
     $cancelLabel = __((string) ($modal['cancel_label'] ?? 'evo::global.action_cancel'));
     $modalActions = $controller->modalActions();
+    $showSubmit = (($modal['submit'] ?? true) !== false) && (($modal['readonly'] ?? false) !== true);
     $modalNotices = collect((array) ($modal['notices'] ?? []))
         ->filter(fn ($notice) => is_array($notice) && (!empty($notice['title']) || !empty($notice['body'])))
         ->values();
@@ -30,7 +31,14 @@
     :size="$modalSize"
     class="evo-ui-modal--form"
 >
-    <form class="evo-ui-modal__form" x-on:submit.prevent="EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())">
+    <form
+        class="evo-ui-modal__form"
+        @if($showSubmit)
+            x-on:submit.prevent="EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())"
+        @else
+            x-on:submit.prevent
+        @endif
+    >
         <div class="evo-ui-modal__body" x-data="{ selectedModalTab: @js($defaultModalTab) }">
             @if($modalTabs->isNotEmpty())
                 <nav class="evo-ui-form-tabs evo-ui-modal-tabs" aria-label="{{ $controller->modalTitle() }}">
@@ -235,10 +243,12 @@
                     <span>{{ $action['label'] }}</span>
                 </button>
             <?php endforeach; ?>
-            <button type="submit" class="evo-ui-btn evo-ui-btn--primary evo-ui-btn--filled" wire:loading.attr="disabled" wire:target="saveModal">
-                <x-evo::icon name="check" class="evo-ui-btn__icon" />
-                <span>{{ $controller->modalSubmitLabel() }}</span>
-            </button>
+            @if($showSubmit)
+                <button type="submit" class="evo-ui-btn evo-ui-btn--primary evo-ui-btn--filled" wire:loading.attr="disabled" wire:target="saveModal">
+                    <x-evo::icon name="check" class="evo-ui-btn__icon" />
+                    <span>{{ $controller->modalSubmitLabel() }}</span>
+                </button>
+            @endif
         </footer>
     </form>
 </x-evo::modal>

@@ -148,6 +148,8 @@
     --evo-ui-row-hover: color-mix(in oklch, var(--color-primary) 8%, var(--evo-ui-bg));
     --evo-ui-row-selected: color-mix(in oklch, var(--color-primary) 15%, var(--evo-ui-bg));
     --evo-ui-chip-bg: color-mix(in oklch, var(--evo-ui-muted) 11%, transparent);
+    --evo-ui-chip-max-inline-size: 16rem;
+    --evo-ui-chip-compact-max-inline-size: 13rem;
     --evo-ui-shadow-soft: 0 14px 34px color-mix(in oklch, oklch(0% 0 0) 18%, transparent);
     --evo-ui-primary: var(--color-primary);
     --evo-ui-primary-soft: color-mix(in oklch, var(--color-primary) 14%, transparent);
@@ -1115,6 +1117,141 @@
     white-space: nowrap;
 }
 
+.evo-ui-chat-workspace-frame {
+    --evo-ui-issue-workspace-height: calc(100dvh - 8px);
+    height: var(--evo-ui-issue-workspace-height);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.evo-ui-chat-workspace.evo-ui-issue-split {
+    grid-template-columns: minmax(300px, 34%) minmax(0, 1fr);
+}
+
+.evo-ui-chat-list.evo-ui-issue-split__list {
+    padding-right: 0;
+}
+
+.evo-ui-chat-list__item.evo-ui-issue-list-item {
+    min-height: 98px;
+}
+
+.evo-ui-chat-thread.evo-ui-issue-split__detail {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: stretch;
+    gap: 0;
+    overflow: hidden;
+}
+
+.evo-ui-chat-thread__header.evo-ui-issue-detail__header {
+    align-items: flex-start;
+}
+
+.evo-ui-chat-thread__meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.evo-ui-chat-thread__meta .evo-ui-icon,
+.evo-ui-chat-list__item .evo-ui-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.evo-ui-chat-chip--success {
+    color: var(--evo-ui-success);
+    background: color-mix(in oklch, var(--evo-ui-success) 18%, transparent);
+}
+
+.evo-ui-chat-chip--warning {
+    color: var(--evo-ui-warning);
+    background: color-mix(in oklch, var(--evo-ui-warning) 18%, transparent);
+}
+
+.evo-ui-chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    padding: 14px 4px 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    background:
+        linear-gradient(to bottom, color-mix(in oklch, var(--evo-ui-control-bg) 62%, transparent), transparent 160px);
+}
+
+.evo-ui-chat-message {
+    display: grid;
+    gap: 4px;
+    max-width: min(720px, 78%);
+}
+
+.evo-ui-chat-message--incoming {
+    align-self: flex-start;
+}
+
+.evo-ui-chat-message--outgoing {
+    align-self: flex-end;
+    justify-items: end;
+}
+
+.evo-ui-chat-message__meta {
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.evo-ui-chat-message__bubble {
+    padding: 10px 12px;
+    border: 1px solid var(--evo-ui-border-soft);
+    border-radius: 16px 16px 16px 4px;
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-control-bg);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.evo-ui-chat-message--outgoing .evo-ui-chat-message__bubble {
+    border-color: color-mix(in oklch, var(--evo-ui-primary) 34%, var(--evo-ui-border));
+    border-radius: 16px 16px 4px 16px;
+    background: color-mix(in oklch, var(--evo-ui-primary) 16%, var(--evo-ui-control-bg));
+}
+
+.evo-ui-chat-empty {
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    min-height: 180px;
+    padding: 18px;
+    color: var(--evo-ui-muted);
+    text-align: center;
+}
+
+.evo-ui-chat-empty .evo-ui-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.evo-ui-chat-empty strong {
+    color: var(--evo-ui-text);
+    font-size: 13px;
+}
+
+.evo-ui-chat-empty small {
+    max-width: 320px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .evo-ui-issue-comment {
     display: grid;
     grid-template-columns: 30px minmax(0, 1fr);
@@ -1719,6 +1856,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    max-width: 100%;
     padding: 9px 11px;
     border: 1px solid var(--evo-ui-border);
     border-radius: var(--evo-ui-radius);
@@ -1726,9 +1864,36 @@
     background: var(--evo-ui-surface);
 }
 
+.evo-ui-alert--inline {
+    justify-self: end;
+    max-width: min(560px, 100%);
+}
+
+.evo-ui-toast-stack {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 1200;
+    display: grid;
+    justify-items: end;
+    width: min(420px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.evo-ui-toast {
+    width: 100%;
+    box-shadow: var(--evo-ui-shadow-lg);
+    pointer-events: auto;
+}
+
 .evo-ui-alert svg {
+    flex: 0 0 auto;
     width: 17px;
     height: 17px;
+}
+
+.evo-ui-alert > span {
+    min-width: 0;
 }
 
 .evo-ui-alert--success {
@@ -1753,6 +1918,222 @@
     color: var(--evo-ui-danger);
     background: var(--evo-ui-danger-soft);
     border-color: color-mix(in oklch, var(--evo-ui-danger) 36%, var(--evo-ui-border));
+}
+
+.evo-ui-onboarding-hero {
+    display: grid;
+    gap: 14px;
+    width: min(100%, 980px);
+    max-width: 100%;
+    padding: 24px 28px;
+    border: 1px solid var(--evo-ui-border);
+    border-radius: var(--evo-ui-radius);
+    background: var(--evo-ui-surface);
+}
+
+.evo-ui-onboarding-hero--wide,
+.evo-ui-onboarding-split > .evo-ui-onboarding-hero,
+.evo-ui-modal .evo-ui-onboarding-hero {
+    width: 100%;
+}
+
+.evo-ui-onboarding-hero--modal {
+    padding: 16px 18px;
+}
+
+.evo-ui-onboarding-split {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.08fr);
+    align-items: stretch;
+    gap: 12px;
+}
+
+.evo-ui-onboarding-split > .evo-ui-onboarding-hero {
+    align-content: start;
+    min-width: 0;
+}
+
+.evo-ui-onboarding-hero--form .evo-ui-form-grid {
+    gap: 10px;
+}
+
+.evo-ui-form-grid--label-30 .evo-ui-field,
+.evo-ui-onboarding-hero--form .evo-ui-form-grid--label-30 .evo-ui-field {
+    grid-template-columns: minmax(90px, 30%) minmax(0, 1fr);
+}
+
+.evo-ui-onboarding-hero--form .evo-ui-form-toolbar {
+    justify-content: stretch;
+}
+
+.evo-ui-onboarding-hero--form .evo-ui-form-toolbar > .evo-ui-btn:not(.evo-ui-btn--icon) {
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+}
+
+.evo-ui-onboarding-hero__main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    min-width: 0;
+}
+
+.evo-ui-onboarding-hero__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid color-mix(in oklch, var(--evo-ui-primary) 34%, var(--evo-ui-border));
+    border-radius: var(--evo-ui-radius);
+    color: var(--evo-ui-primary);
+    background: var(--evo-ui-primary-soft);
+}
+
+.evo-ui-onboarding-hero__icon svg {
+    width: 23px;
+    height: 23px;
+}
+
+.evo-ui-onboarding-hero__badge {
+    justify-self: start;
+}
+
+.evo-ui-onboarding-hero__copy {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding-top: 0;
+}
+
+.evo-ui-onboarding-hero__copy h2 {
+    margin: 0;
+    color: var(--evo-ui-text);
+    font-size: 20px;
+    font-weight: 760;
+    line-height: 1.24;
+}
+
+.evo-ui-onboarding-hero__copy p {
+    max-width: 860px;
+    margin: 0;
+    color: var(--evo-ui-muted);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.evo-ui-onboarding-hero__action {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    min-width: 0;
+}
+
+.evo-ui-onboarding-hero__action .evo-ui-btn {
+    justify-content: center;
+    min-width: min(100%, 430px);
+    min-height: 46px;
+    padding-inline: 18px;
+}
+
+.evo-ui-onboarding-hero--modal .evo-ui-onboarding-hero__action .evo-ui-btn {
+    min-width: min(100%, 320px);
+}
+
+.evo-ui-onboarding-hero__action-hint {
+    max-width: 430px;
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    font-weight: 540;
+    line-height: 1.3;
+    text-align: left;
+}
+
+.evo-ui-onboarding-hero__requirements {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--evo-ui-border-soft);
+    border-radius: var(--evo-ui-radius);
+    background: var(--evo-ui-bg);
+}
+
+.evo-ui-onboarding-hero__requirement {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.evo-ui-onboarding-hero__requirement code {
+    display: block;
+    min-width: 0;
+    padding: 5px 7px;
+    border: 1px solid var(--evo-ui-border-soft);
+    border-radius: var(--evo-ui-radius);
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-control-bg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 11px;
+    font-weight: 560;
+    line-height: 1.35;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.evo-ui-onboarding-hero__steps {
+    display: grid;
+    gap: 9px;
+    padding-top: 3px;
+}
+
+.evo-ui-onboarding-hero__steps h3 {
+    margin: 0;
+    color: var(--evo-ui-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.evo-ui-step-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: evo-ui-onboarding-step;
+}
+
+.evo-ui-step-list li {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    color: var(--evo-ui-text);
+    font-size: 13px;
+    font-weight: 560;
+    line-height: 1.4;
+}
+
+.evo-ui-step-list li::before {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--evo-ui-border-soft);
+    border-radius: 999px;
+    color: var(--evo-ui-muted);
+    background: var(--evo-ui-control-bg);
+    font-size: 11px;
+    font-weight: 760;
+    counter-increment: evo-ui-onboarding-step;
+    content: counter(evo-ui-onboarding-step);
 }
 
 .evo-ui-btn,
@@ -1970,6 +2351,28 @@
     grid-area: filters;
     justify-content: center;
     min-width: 0;
+}
+
+.evo-ui-module-actionbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.evo-ui-module-actionbar__group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.evo-ui-module-actionbar__group--end {
+    justify-content: flex-end;
 }
 
 .evo-ui-table-controls {
@@ -2302,13 +2705,44 @@ select.evo-ui-input:not([multiple]) {
     line-height: 28px;
 }
 
+select.evo-ui-input option {
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-surface);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+select.evo-ui-select--listbox option,
+select.evo-ui-select--multiple option {
+    padding: 3px 6px;
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-control-bg);
+}
+
+select.evo-ui-select--listbox option:checked,
+select.evo-ui-select--multiple option:checked {
+    color: var(--evo-ui-text);
+    background: color-mix(in oklch, var(--evo-ui-primary) 16%, var(--evo-ui-control-bg));
+    box-shadow: 0 0 0 999px color-mix(in oklch, var(--evo-ui-primary) 16%, var(--evo-ui-control-bg)) inset;
+}
+
+select.evo-ui-select--listbox {
+    height: 150px;
+    min-height: 150px;
+    padding: 5px 8px;
+    line-height: normal;
+}
+
+select.evo-ui-input.evo-ui-select--listbox:not([multiple]) {
+    height: 150px;
+    min-height: 150px;
+    padding: 5px 8px;
+    line-height: normal;
+}
+
 select.evo-ui-select--multiple {
     min-height: 112px;
     padding: 5px 8px;
-}
-
-select.evo-ui-select--multiple option {
-    padding: 4px 0;
 }
 
 .evo-ui-input-icon {
@@ -2647,34 +3081,6 @@ select.evo-ui-select--multiple option {
     display: inline-flex;
 }
 
-.evo-ui-save-toast {
-    position: fixed;
-    inset-block-start: calc(var(--evo-ui-space-4, 1rem) + env(safe-area-inset-top, 0px));
-    inset-inline-end: calc(var(--evo-ui-space-4, 1rem) + env(safe-area-inset-right, 0px));
-    z-index: 1300;
-    pointer-events: none;
-}
-
-.evo-ui-save-toast__content {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--evo-ui-space-2, 0.5rem);
-    min-height: 34px;
-    padding: 0 var(--evo-ui-space-3, 0.75rem);
-    color: var(--evo-ui-success);
-    background: color-mix(in oklch, var(--evo-ui-success) 14%, var(--evo-ui-bg));
-    border: 1px solid color-mix(in oklch, var(--evo-ui-success) 38%, var(--evo-ui-border));
-    border-radius: var(--evo-ui-radius);
-    box-shadow: var(--evo-ui-shadow);
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.evo-ui-save-toast svg {
-    width: 16px;
-    height: 16px;
-}
-
 .evo-ui-form {
     display: grid;
     gap: 0;
@@ -2830,8 +3236,8 @@ select.evo-ui-select--multiple option {
 
 .evo-ui-settings-row {
     display: grid;
-    grid-template-columns: minmax(260px, 430px) minmax(0, 1fr);
-    gap: 18px;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: 14px;
     align-items: start;
     padding: 7px 0;
 }
@@ -2844,9 +3250,15 @@ select.evo-ui-select--multiple option {
 .evo-ui-settings-row__meta {
     display: grid;
     justify-items: end;
+    align-self: center;
     gap: 4px;
     min-width: 0;
     text-align: right;
+}
+
+.evo-ui-settings-row:has(.evo-ui-select--listbox, .evo-ui-select--multiple, .evo-ui-textarea, textarea) .evo-ui-settings-row__meta {
+    align-self: start;
+    padding-top: 4px;
 }
 
 .evo-ui-settings-row__label {
@@ -2867,9 +3279,8 @@ select.evo-ui-select--multiple option {
     font-weight: 520;
     line-height: 1.25;
     text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 .evo-ui-settings-row__control {
@@ -2968,6 +3379,57 @@ select.evo-ui-select--multiple option {
     max-width: 100%;
 }
 
+.evo-ui-builder-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 34px;
+}
+
+.evo-ui-builder-toolbar__right {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+
+.evo-ui-inline-create {
+    min-width: 0;
+}
+
+.evo-ui-inline-create-bottom,
+[data-evo-inline-create-bottom] {
+    display: none;
+    justify-content: flex-end;
+    width: 100%;
+    margin-block-start: var(--evo-ui-space-3, 0.75rem);
+}
+
+.evo-ui-inline-create-bottom.is-visible,
+[data-evo-inline-create-bottom].is-visible {
+    display: flex;
+}
+
+.is-evo-inline-created {
+    animation: evo-ui-inline-created 1.6s ease-out;
+}
+
+@keyframes evo-ui-inline-created {
+    0% {
+        outline: 2px solid color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);
+        outline-offset: 2px;
+        background: color-mix(in oklch, var(--evo-ui-primary) 14%, var(--evo-ui-surface));
+    }
+
+    100% {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        background: inherit;
+    }
+}
+
 .evo-ui-builder-list,
 .evo-ui-dnd-list,
 .evo-ui-dnd-option-list {
@@ -3001,6 +3463,97 @@ select.evo-ui-select--multiple option {
     padding: 4px 7px;
     border: 1px solid var(--evo-ui-border);
     background: var(--evo-ui-surface);
+}
+
+.evo-ui-dnd-group-row--nested {
+    grid-template-columns: none;
+    gap: 6px;
+    align-items: stretch;
+    min-height: 0;
+    padding: 8px;
+    background: color-mix(in srgb, var(--evo-ui-surface) 88%, var(--evo-ui-bg));
+}
+
+.evo-ui-dnd-group-header {
+    display: grid;
+    grid-template-columns: 78px minmax(300px, 520px) max-content;
+    grid-template-areas: "reorder label actions";
+    gap: 10px;
+    align-items: center;
+}
+
+.evo-ui-dnd-group-header > .evo-ui-reorder-rail {
+    grid-area: reorder;
+}
+
+.evo-ui-dnd-group-header > .evo-ui-dnd-inline-field {
+    grid-area: label;
+}
+
+.evo-ui-dnd-group-header > .evo-ui-row-actions,
+.evo-ui-dnd-group-header > .evo-ui-dnd-actions {
+    grid-area: actions;
+}
+
+.evo-ui-dnd-inline-field {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 7px;
+    align-items: center;
+    min-width: 0;
+}
+
+.evo-ui-dnd-inline-field--label {
+    grid-template-columns: 96px minmax(180px, 1fr);
+}
+
+.evo-ui-dnd-inline-field > span {
+    justify-self: end;
+    color: var(--evo-ui-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.evo-ui-dnd-inline-field .evo-ui-input {
+    min-height: 28px;
+    height: 28px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.evo-ui-dnd-row--with-badge {
+    grid-template-columns: 78px minmax(0, 1fr) max-content max-content;
+    grid-template-areas: "reorder summary type actions";
+}
+
+.evo-ui-dnd-row--with-badge > .evo-ui-reorder-rail {
+    grid-area: reorder;
+}
+
+.evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary {
+    grid-area: summary;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.evo-ui-dnd-row--with-badge > .evo-ui-dnd-badge {
+    grid-area: type;
+}
+
+.evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary > .evo-ui-dnd-summary__main {
+    flex: 0 1 auto;
+    max-width: min(360px, 48vw);
+}
+
+.evo-ui-dnd-row--with-badge > .evo-ui-row-actions,
+.evo-ui-dnd-row--with-badge > .evo-ui-dnd-actions {
+    grid-area: actions;
 }
 
 .evo-ui-builder-row.is-dragging,
@@ -3039,6 +3592,94 @@ select.evo-ui-select--multiple option {
     pointer-events: none;
 }
 
+.evo-ui-table tr.evo-ui-dnd-placeholder,
+.evo-ui-table tr.evo-ui-dnd-placeholder:hover {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.evo-ui-table tr.evo-ui-dnd-placeholder > td {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.evo-ui-dnd-placeholder__table-inner {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 10px;
+    border: 1px dashed color-mix(in oklch, var(--evo-ui-border) 72%, var(--evo-ui-muted));
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--evo-ui-surface-muted) 42%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--evo-ui-bg) 54%, transparent);
+}
+
+.evo-ui-table-row--dnd.is-dragging,
+.evo-ui-list-item--dnd.is-dragging {
+    opacity: 0.62;
+    outline: 1px dashed var(--evo-ui-accent);
+    outline-offset: -3px;
+}
+
+.evo-ui-table-row--dnd.is-drag-hidden,
+.evo-ui-list-item--dnd.is-drag-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.evo-ui-table-row--dnd.is-drag-hidden {
+    display: none;
+}
+
+.evo-ui-list-item--dnd.is-drag-hidden {
+    position: absolute !important;
+    inset-inline: 0;
+    max-width: 100%;
+}
+
+.evo-ui-dnd-floating-preview {
+    position: fixed !important;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 100000;
+    max-width: calc(100vw - 24px);
+    opacity: 0.88;
+    pointer-events: none;
+    box-shadow: 0 18px 42px color-mix(in oklch, var(--evo-ui-bg) 42%, transparent);
+    transform: translate3d(-9999px, -9999px, 0);
+}
+
+.evo-ui-dnd-floating-preview--transparent {
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.evo-ui-dnd-floating-preview--table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    overflow: hidden;
+    opacity: 0.78;
+    border: 1px solid var(--evo-ui-border);
+    border-radius: 4px;
+    background: var(--evo-ui-surface);
+    box-shadow: 0 18px 42px color-mix(in oklch, var(--evo-ui-bg) 48%, transparent);
+}
+
+.evo-ui-dnd-floating-preview--table tr {
+    background: var(--evo-ui-row-selected);
+}
+
+.evo-ui-dnd-floating-preview--table td {
+    border-block-end: 0;
+}
+
 .evo-ui-reorder-rail,
 .evo-ui-dnd-rail {
     display: inline-grid;
@@ -3069,6 +3710,14 @@ select.evo-ui-select--multiple option {
     width: 24px;
     cursor: grab;
     touch-action: none;
+    -webkit-user-drag: element;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.evo-ui-drag-handle *,
+.evo-ui-dnd-handle * {
+    pointer-events: none;
 }
 
 .evo-ui-drag-handle:active,
@@ -3114,13 +3763,43 @@ select.evo-ui-select--multiple option {
     cursor: pointer;
 }
 
+.evo-ui-dnd-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    color: var(--evo-ui-text);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
 .evo-ui-builder-summary__main {
     display: grid;
     gap: 2px;
     min-width: 0;
 }
 
+.evo-ui-dnd-summary__main {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
 .evo-ui-builder-summary__title {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-dnd-title {
     min-width: 0;
     font-size: 13px;
     font-weight: 650;
@@ -3140,12 +3819,24 @@ select.evo-ui-select--multiple option {
     white-space: nowrap;
 }
 
+.evo-ui-dnd-subtitle {
+    max-width: 100%;
+    color: var(--evo-ui-muted);
+    font-size: 11px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .evo-ui-builder-chip,
 .evo-ui-dnd-chip,
 .evo-ui-dnd-key,
 .evo-ui-dnd-badge {
     display: inline-flex;
     align-items: center;
+    min-width: 0;
+    max-width: 100%;
     min-height: 20px;
     padding: 0 7px;
     border: 1px solid var(--evo-ui-border);
@@ -3157,14 +3848,35 @@ select.evo-ui-select--multiple option {
 }
 
 .evo-ui-dnd-key {
+    min-height: 17px;
+    width: fit-content;
+    padding: 0 5px;
+    border-color: color-mix(in oklch, var(--evo-ui-info) 34%, var(--evo-ui-border));
+    border-radius: 5px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    color: var(--evo-ui-primary);
-    background: color-mix(in oklch, var(--evo-ui-primary-soft) 70%, transparent);
+    color: color-mix(in oklch, var(--evo-ui-info) 68%, var(--evo-ui-muted));
+    background: color-mix(in oklch, var(--evo-ui-info) 8%, transparent);
+    font-size: 10.5px;
+    font-weight: 580;
+    line-height: 1.2;
 }
 
 .evo-ui-dnd-badge {
-    color: var(--evo-ui-text);
-    background: var(--evo-ui-surface-muted);
+    justify-content: center;
+    width: max-content;
+    max-inline-size: min(100%, var(--evo-ui-chip-compact-max-inline-size));
+    height: 18px;
+    min-height: 18px;
+    padding: 0 6px;
+    border-color: color-mix(in oklch, var(--evo-ui-muted) 26%, var(--evo-ui-border));
+    border-radius: 999px;
+    color: color-mix(in oklch, var(--evo-ui-muted) 82%, var(--evo-ui-text));
+    background: color-mix(in oklch, var(--evo-ui-surface-muted) 58%, transparent);
+    font-size: 10.5px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .evo-ui-dnd-actions,
@@ -3176,12 +3888,28 @@ select.evo-ui-select--multiple option {
     min-width: 0;
 }
 
-.evo-ui-dnd-actions .evo-ui-row-action,
+.evo-ui-dnd-actions.evo-ui-row-actions .evo-ui-row-action,
 .evo-ui-row-actions--compact .evo-ui-row-action,
-.evo-ui-dnd-actions button,
+.evo-ui-dnd-actions.evo-ui-row-actions button,
 .evo-ui-row-actions--compact button {
     width: 24px;
     height: 24px;
+}
+
+.evo-ui-dnd-empty {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px;
+    color: var(--evo-ui-muted);
+    font-size: 13px;
+    border: 1px dashed var(--evo-ui-border);
+}
+
+.evo-ui-dnd-list.is-drag-over .evo-ui-dnd-empty,
+.evo-ui-dnd-list:has(.evo-ui-dnd-row) .evo-ui-dnd-empty {
+    display: none;
 }
 
 .evo-ui-dnd-option-list__header {
@@ -3607,14 +4335,12 @@ select.evo-ui-select--multiple option {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 14px;
-    border-color: var(--evo-ui-border);
-    background: var(--evo-ui-surface-raised);
+    padding: 10px 14px;
+    background: transparent;
 }
 
 .evo-ui-modal__header {
     justify-content: space-between;
-    border-bottom: 1px solid var(--evo-ui-border);
 }
 
 .evo-ui-modal__header-actions {
@@ -3728,9 +4454,14 @@ select.evo-ui-select--multiple option {
 
 .evo-ui-modal__body {
     min-height: 0;
-    padding: 12px 14px;
+    padding: 4px 14px 14px;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.evo-ui-modal__body--compact {
+    display: grid;
+    gap: 8px;
 }
 
 .evo-ui-modal__notices {
@@ -3831,6 +4562,33 @@ select.evo-ui-select--multiple option {
     justify-items: end;
 }
 
+.evo-ui-static-field {
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--evo-ui-border);
+    border-radius: calc(var(--evo-ui-radius) - 2px);
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-control-bg);
+    overflow-wrap: anywhere;
+}
+
+.evo-ui-code-block {
+    min-width: 0;
+    max-width: 100%;
+    max-height: 360px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--evo-ui-border);
+    border-radius: calc(var(--evo-ui-radius) - 2px);
+    color: var(--evo-ui-text);
+    background: var(--evo-ui-control-bg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow: auto;
+}
+
 .evo-ui-field--no-label {
     grid-template-columns: minmax(0, 1fr);
 }
@@ -3843,7 +4601,7 @@ select.evo-ui-select--multiple option {
 
 .evo-ui-modal__footer {
     justify-content: flex-start;
-    border-top: 1px solid var(--evo-ui-border);
+    padding-top: 8px;
 }
 
 .evo-ui-modal__footer-spacer {
@@ -5158,6 +5916,14 @@ select.evo-ui-select--multiple option {
     gap: 0.24rem;
 }
 
+.evo-ui-meta-list--nowrap {
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
+}
+
 .evo-ui-meta-chip {
     display: inline-flex;
     align-items: center;
@@ -5171,6 +5937,31 @@ select.evo-ui-select--multiple option {
     font-size: 0.68rem;
     font-weight: 500;
     line-height: 1;
+    white-space: nowrap;
+}
+
+.evo-ui-copy-command {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    width: min(100%, 620px);
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--evo-ui-border-soft);
+    border-radius: var(--evo-ui-radius-sm);
+    background: color-mix(in oklch, var(--evo-ui-surface) 84%, var(--evo-ui-bg));
+}
+
+.evo-ui-copy-command code {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--evo-ui-text);
+    font-family: var(--evo-ui-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -5221,6 +6012,47 @@ select.evo-ui-select--multiple option {
     background: color-mix(in oklch, var(--evo-ui-text) 24%, var(--evo-ui-bg));
     font-size: 0.72rem;
     font-weight: 700;
+}
+
+.evo-ui-chip,
+.evo-ui-badge--compact {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    max-inline-size: min(100%, var(--evo-ui-chip-compact-max-inline-size));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.evo-ui-chip {
+    justify-content: center;
+    gap: 0.22rem;
+    min-height: 1.35rem;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    color: color-mix(in oklch, var(--evo-ui-text) 76%, var(--evo-ui-bg));
+    background: var(--evo-ui-chip-bg);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.evo-ui-chip--wide,
+.evo-ui-badge--wide {
+    max-inline-size: min(100%, var(--evo-ui-chip-max-inline-size));
+}
+
+.evo-ui-chip--full,
+.evo-ui-badge--full {
+    max-inline-size: none;
+}
+
+.evo-ui-badge--compact > span,
+.evo-ui-badge--wide > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .evo-ui-badge svg {
@@ -5873,6 +6705,27 @@ select.evo-ui-select--multiple option {
         min-height: 0;
     }
 
+    .evo-ui-chat-workspace-frame {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .evo-ui-chat-workspace.evo-ui-issue-split {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .evo-ui-chat-thread.evo-ui-issue-split__detail {
+        min-height: 420px;
+    }
+
+    .evo-ui-chat-message {
+        max-width: 94%;
+    }
+
     .evo-ui .tabs {
         flex-wrap: wrap;
         overflow-x: auto;
@@ -5901,6 +6754,33 @@ select.evo-ui-select--multiple option {
 
     .evo-ui .evo-ui-tabs--module > .tab-content {
         padding: 12px;
+    }
+
+    .evo-ui-onboarding-hero {
+        width: 100%;
+        padding: 16px;
+    }
+
+    .evo-ui-onboarding-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .evo-ui-onboarding-hero__main,
+    .evo-ui-onboarding-hero__requirement {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .evo-ui-form-grid--label-30 .evo-ui-field,
+    .evo-ui-onboarding-hero--form .evo-ui-form-grid--label-30 .evo-ui-field {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .evo-ui-onboarding-hero__copy {
+        padding-top: 0;
+    }
+
+    .evo-ui-onboarding-hero__action-hint {
+        max-width: none;
     }
 
     .evo-ui-repeater--status-phases .evo-ui-repeater__row {
@@ -6131,6 +7011,10 @@ select.evo-ui-select--multiple option {
         grid-template-columns: 1fr;
     }
 
+    .evo-ui-builder-toolbar {
+        align-items: flex-start;
+    }
+
     .evo-ui-settings-row {
         grid-template-columns: 1fr;
         gap: 6px;
@@ -6164,6 +7048,63 @@ select.evo-ui-select--multiple option {
         width: min(100%, 100vw);
         max-width: 100%;
         overflow: hidden;
+    }
+
+    .evo-ui-dnd-group-row--nested {
+        padding: 6px;
+    }
+
+    .evo-ui-dnd-group-header {
+        grid-template-columns: 78px minmax(0, 1fr);
+        grid-template-areas:
+            "reorder actions"
+            "label label";
+        align-items: center;
+    }
+
+    .evo-ui-dnd-group-header > .evo-ui-row-actions,
+    .evo-ui-dnd-group-header > .evo-ui-dnd-actions {
+        justify-self: end;
+    }
+
+    .evo-ui-dnd-inline-field--label {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .evo-ui-dnd-inline-field > span {
+        justify-self: start;
+        text-align: left;
+    }
+
+    .evo-ui-dnd-row--with-badge {
+        grid-template-columns: 64px minmax(0, 1fr);
+        grid-template-areas:
+            "reorder summary"
+            "reorder type"
+            "reorder actions";
+    }
+
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-badge {
+        justify-self: start;
+    }
+
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2px;
+        width: auto;
+    }
+
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary > .evo-ui-dnd-summary__main {
+        display: grid;
+        max-width: 100%;
+    }
+
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary .evo-ui-dnd-title,
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary .evo-ui-dnd-key,
+    .evo-ui-dnd-row--with-badge > .evo-ui-dnd-summary .evo-ui-dnd-subtitle {
+        grid-column: 1;
     }
 
     .evo-ui-builder-row > .evo-ui-reorder-rail,

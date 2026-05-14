@@ -10,7 +10,7 @@ evo-ui - це спільний UI-kit менеджера для Evolution CMS ex
 - Таби, toolbar, кнопки, badges, cards і модальні вікна.
 - Таблиці, list view, фільтри, пагінація і дії рядка.
 - Форми налаштувань і редакторів з dirty-state захистом.
-- Save feedback через компактний auto-dismiss toast.
+- Save feedback всередині самої кнопки Save.
 - Issue workspace: list, kanban, detail і comments.
 
 ## Стандартні дії
@@ -23,7 +23,8 @@ duplicate і delete використовують спільні evo-ui icon/tone
 
 Коли у формі є незбережені зміни, evo-ui тримає активним shared tab guard. Якщо
 перейти в інший tab, з'явиться спільний unsaved-changes dialog. Після успішного
-save форма стає clean, а top-right save toast автоматично зникає.
+save кнопка коротко показує `Збережено`, потім повертається в disabled
+`Зберегти`, поки ви знову не зміните форму.
 
 ## Виняток dDocs
 
@@ -38,4 +39,3 @@ dDocs навмисно використовує documentation workspace з sideb
 - Таблиці зберігають filters і pagination під час роботи.
 - Modal actions лишаються внизу.
 - Alerts, badges і chips використовують shared visual language.
-

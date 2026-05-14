@@ -714,6 +714,37 @@ class ModuleTable extends Component
         $this->dispatchClientState();
     }
 
+    public function runRowAction(string $actionKey, ?int $id = null): void
+    {
+        $actionKey = trim($actionKey);
+        $id = $id ?: $this->selectedId;
+
+        if ($actionKey === '' || !$id) {
+            return;
+        }
+
+        $action = collect($this->rowActions())
+            ->first(fn ($action) => is_array($action)
+                && (string) ($action['key'] ?? '') === $actionKey
+                && (string) ($action['type'] ?? 'link') === 'wire');
+
+        if (!is_array($action)) {
+            return;
+        }
+
+        $provider = $this->provider();
+        $method = (string) ($action['provider'] ?? '');
+
+        if ($method === '' || !method_exists($provider, $method)) {
+            return;
+        }
+
+        $this->callProvider($method, $id, $action);
+        $this->selectedId = $id;
+        $this->page = 1;
+        $this->dispatchClientState();
+    }
+
     public function updateInlineField(int $id, string $field, mixed $value): string
     {
         $column = $this->inlineEditableColumn($field);
@@ -840,6 +871,35 @@ class ModuleTable extends Component
         $this->selectedId = $id;
         $this->useReorderSort();
         $this->dispatchClientState();
+    }
+
+    public function sortTableRowByUid(string $uid, int $position, string $targetGroupUid = ''): void
+    {
+        if (!$this->reorderEnabled()) {
+            return;
+        }
+
+        $id = (int) $uid;
+
+        if ($id < 1) {
+            return;
+        }
+
+        $rowIds = collect($this->provider()->rows($this->page, $this->perPage))
+            ->map(fn ($row) => (int) data_get($row, 'id'))
+            ->filter(fn (int $rowId) => $rowId > 0 && $rowId !== $id)
+            ->values()
+            ->all();
+
+        if ($rowIds === []) {
+            return;
+        }
+
+        $position = max(0, min($position, count($rowIds)));
+        $targetId = $position >= count($rowIds) ? (int) end($rowIds) : (int) $rowIds[$position];
+        $placement = $position >= count($rowIds) ? 'after' : 'before';
+
+        $this->reorderRow($id, $targetId, $placement);
     }
 
     public function firstPage(): void

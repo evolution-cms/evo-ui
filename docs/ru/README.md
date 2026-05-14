@@ -34,12 +34,12 @@ Evolution CMS.
 
 ## Документы
 
-- [Интеграция модуля](../module-integration.md)
-- [Компоненты](../components.md)
-- [Контракт таблицы](../module-table-contract.md)
-- [Consumers](../consumers.md)
-- [Release checklist](../release-checklist.md)
-- [Roadmap](../roadmap.md)
+- [Интеграция модуля](../en/guide/module-integration.md)
+- [Компоненты](../en/components/README.md)
+- [Контракт таблицы](../en/components/module-table-contract.md)
+- [Consumers](../en/guide/consumers.md)
+- [Release checklist](../en/guide/release-checklist.md)
+- [Roadmap](../en/guide/roadmap.md)
 
 ## Правило
 

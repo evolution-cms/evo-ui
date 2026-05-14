@@ -34,13 +34,22 @@
             @if($item === '...')
                 <span class="evo-ui-pager__ellipsis">...</span>
             @else
-                <button
-                    type="button"
-                    wire:key="table-page-{{ $item }}"
-                    wire:click="goToPage({{ $item }})"
-                    @if($currentPage === (int) $item) aria-current="page" @endif
-                    @class(['is-active' => $currentPage === (int) $item])
-                >{{ $item }}</button>
+                @php($isCurrent = $currentPage === (int) $item)
+                @if($isCurrent)
+                    <button
+                        type="button"
+                        class="is-active"
+                        wire:key="table-page-{{ $item }}"
+                        wire:click="goToPage({{ $item }})"
+                        aria-current="page"
+                    >{{ $item }}</button>
+                @else
+                    <button
+                        type="button"
+                        wire:key="table-page-{{ $item }}"
+                        wire:click="goToPage({{ $item }})"
+                    >{{ $item }}</button>
+                @endif
             @endif
         @endforeach
 

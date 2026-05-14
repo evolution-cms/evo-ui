@@ -10,7 +10,7 @@ und `dDocs`.
 - Tabs, Toolbars, Buttons, Badges, Cards und Modals.
 - Tabellen, Listen, Filter, Pagination und Row Actions.
 - Formulare mit Dirty-State-Schutz.
-- Save feedback als kompakten auto-dismiss Toast.
+- Save feedback im Save Button selbst.
 - Issue Workspaces mit Liste, Kanban, Detail und Kommentaren.
 
 ## Standardaktionen
@@ -23,4 +23,3 @@ duplicate und delete verwenden die gemeinsamen evo-ui Icon- und Tone-Regeln.
 dDocs nutzt bewusst eine Dokumentationsoberflaeche mit Sidebar-Tree und Viewer.
 Es verwendet keine oberen Module-Tabs, soll aber Buttons, Inputs, Cards, Badges,
 Farben und Typografie aus evo-ui wiederverwenden.
-

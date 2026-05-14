@@ -9,7 +9,7 @@ go w modulach `sArticles`, `dIssues`, `sLang`, `sSeo`, `sSettings` i `dDocs`.
 - Taby, toolbary, przyciski, badges, cards i modale.
 - Tabele, listy, filtry, paginacje i akcje wiersza.
 - Formularze z ochrona dirty-state.
-- Feedback zapisu jako kompaktowy auto-dismiss toast.
+- Feedback zapisu wewnatrz przycisku Save.
 - Issue workspaces: lista, kanban, detail i komentarze.
 
 ## Standardowe akcje
@@ -22,4 +22,3 @@ i delete uzywaja wspolnych regul ikon i tone evo-ui.
 dDocs celowo uzywa workspace dokumentacji z sidebar tree i viewer. Nie uzywa
 gornych module tabs, ale powinien nadal korzystac z przyciskow, inputs, cards,
 badges, kolorow i typografii evo-ui.
-

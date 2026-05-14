@@ -13,27 +13,32 @@
     'delete' => null,
     'upDisabled' => false,
     'downDisabled' => false,
-    'draggable' => true,
+    'draggable' => false,
 ])
 
 @php
     $rowUid = $uid ?: 'option-' . $index;
     $valueName = $valueName ?: 'options.' . $index . '.value';
     $labelName = $labelName ?: 'options.' . $index . '.label';
+    $rowAttributes = [
+        'data-evo-dnd-option-row' => true,
+        'data-evo-dnd-uid' => $rowUid,
+    ];
+
+    if ($draggable) {
+        $rowAttributes['draggable'] = 'true';
+    }
 @endphp
 
 <div
-    {{ $attributes->class('evo-ui-dnd-option-row')->merge([
-        'data-evo-dnd-option-row' => true,
-        'data-evo-dnd-uid' => $rowUid,
-        'draggable' => $draggable ? 'true' : 'false',
-    ]) }}
+    {{ $attributes->except('draggable')->class('evo-ui-dnd-option-row')->merge($rowAttributes) }}
 >
     <x-evo::reorder-rail
         :move-up="$moveUp"
         :move-down="$moveDown"
         :up-disabled="$upDisabled"
         :down-disabled="$downDisabled"
+        :handle-draggable="false"
     />
 
     <div class="evo-ui-dnd-option-row__fields">
@@ -60,7 +65,7 @@
         @endempty
     </div>
 
-    <div class="evo-ui-dnd-actions evo-ui-row-actions--compact">
+    <div class="evo-ui-dnd-actions evo-ui-row-actions evo-ui-row-actions--compact">
         {{ $actions ?? '' }}
 
         @empty($actions)

@@ -32,11 +32,14 @@
         selected: @js($initialTab),
         dirty: $wire.entangle('dirty').live,
         initialSnapshot: '',
-        showSavedToast: false,
-        savedToastTimer: null,
+        savedFeedback: @js($saved),
+        savedFeedbackTimer: null,
         init() {
             this.$nextTick(() => {
                 this.initialSnapshot = this.formSnapshot();
+                if (this.savedFeedback) {
+                    this.scheduleSavedFeedbackReset();
+                }
             });
         },
         formSnapshot() {
@@ -67,7 +70,15 @@
             this.initialSnapshot = this.formSnapshot();
             this.dirty = false;
         },
+        scheduleSavedFeedbackReset() {
+            clearTimeout(this.savedFeedbackTimer);
+            this.savedFeedbackTimer = setTimeout(() => {
+                this.savedFeedback = false;
+            }, 1600);
+        },
         markDirty() {
+            this.savedFeedback = false;
+            clearTimeout(this.savedFeedbackTimer);
             this.dirty = true;
         },
         afterSaved(event) {
@@ -76,21 +87,21 @@
             }
 
             this.captureSnapshot();
-            this.showSavedToast = true;
-            clearTimeout(this.savedToastTimer);
-            this.savedToastTimer = setTimeout(() => {
-                this.showSavedToast = false;
-            }, 2400);
+            this.savedFeedback = true;
+            this.scheduleSavedFeedbackReset();
         },
         afterReset(event) {
             if (event.detail?.preset && event.detail.preset !== @js($controller->preset)) {
                 return;
             }
 
+            this.savedFeedback = false;
+            clearTimeout(this.savedFeedbackTimer);
             this.$nextTick(() => this.captureSnapshot());
         }
     }"
     x-bind:data-evo-form-dirty="dirty ? 'true' : 'false'"
+    x-bind:data-evo-form-saved="dirty ? 'false' : 'true'"
     x-on:evo-ui:form.saved.window="afterSaved($event)"
     x-on:evo-ui:form.reset.window="afterReset($event)"
 >
@@ -117,18 +128,22 @@
                 @foreach($actions as $action)
                     @if(($action['type'] ?? null) === 'save')
                         <x-evo::button
-                            :icon="$action['icon'] ?? 'check'"
-                            :label="__($action['label'] ?? 'evo::global.action_save')"
                             :tone="$action['tone'] ?? 'primary'"
                             :variant="$action['variant'] ?? 'filled'"
                             :icon-only="(bool) ($action['icon_only'] ?? false)"
                             type="submit"
                             form="evo-ui-form-{{ $config['key'] ?? 'default' }}"
-                            x-bind:disabled="!dirty"
-                            x-bind:class="{ 'is-disabled': !dirty }"
+                            x-bind:title="savedFeedback ? @js(__('evo::global.form_saved')) : @js(__($action['label'] ?? 'evo::global.action_save'))"
+                            x-bind:aria-label="savedFeedback ? @js(__('evo::global.form_saved')) : @js(__($action['label'] ?? 'evo::global.action_save'))"
+                            x-bind:disabled="!dirty || savedFeedback"
+                            x-bind:class="{ 'is-disabled': !dirty || savedFeedback, 'is-saved': savedFeedback }"
                             wire:loading.attr="disabled"
                             wire:target="save"
-                        />
+                        >
+                            <x-evo::icon :name="$action['icon'] ?? 'check'" class="evo-ui-btn__icon" x-show="!savedFeedback" />
+                            <x-evo::icon name="circle-check" class="evo-ui-btn__icon" x-show="savedFeedback" x-cloak />
+                            <span class="evo-ui-btn__label">@lang($action['label'] ?? 'evo::global.action_save')</span>
+                        </x-evo::button>
                     @elseif(!empty($action['url']))
                         <x-evo::button
                             :icon="$action['icon'] ?? null"
@@ -150,20 +165,6 @@
                 @endforeach
             </div>
         @endif
-    </div>
-
-    <div
-        class="evo-ui-save-toast evo-ui-save-toast--success"
-        role="status"
-        aria-live="polite"
-        x-cloak
-        x-show="showSavedToast"
-        x-transition.opacity.duration.150ms
-    >
-        <span class="evo-ui-save-toast__content">
-            <x-evo::icon name="circle-check" />
-            <span>@lang('evo::global.form_saved')</span>
-        </span>
     </div>
 
     <form

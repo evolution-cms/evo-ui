@@ -4,6 +4,7 @@
     'upDisabled' => false,
     'downDisabled' => false,
     'label' => null,
+    'handleDraggable' => true,
 ])
 
 @php
@@ -28,6 +29,7 @@
         tabindex="0"
         title="{{ $dragLabel }}"
         aria-label="{{ $dragLabel }}"
+        @if($handleDraggable) draggable="true" @endif
         data-evo-drag-handle
         data-evo-dnd-handle
     >
