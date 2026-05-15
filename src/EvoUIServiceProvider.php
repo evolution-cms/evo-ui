@@ -55,6 +55,8 @@ class EvoUIServiceProvider extends ServiceProvider
             'symlink:' . $this->root . '/resources/css/evo-ui.css' => public_path('assets/modules/evo-ui/evo-ui.css'),
             'symlink:' . $this->root . '/resources/js/evo-ui.js' => public_path('assets/modules/evo-ui/evo-ui.js'),
         ], 'evo-ui');
+
+        $this->ensureRuntimeAssetsArePublished();
     }
 
     /**
@@ -91,6 +93,53 @@ class EvoUIServiceProvider extends ServiceProvider
     protected function registerLivewireProvider(): void
     {
         $this->app->register(LivewireServiceProvider::class);
+    }
+
+    protected function ensureRuntimeAssetsArePublished(): void
+    {
+        $this->ensureRuntimeAsset(
+            $this->root . '/resources/css/evo-ui.css',
+            public_path('assets/modules/evo-ui/evo-ui.css')
+        );
+
+        $this->ensureRuntimeAsset(
+            $this->root . '/resources/js/evo-ui.js',
+            public_path('assets/modules/evo-ui/evo-ui.js')
+        );
+    }
+
+    protected function ensureRuntimeAsset(string $source, string $target): void
+    {
+        if (!is_file($source)) {
+            return;
+        }
+
+        $targetDir = dirname($target);
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0775, true);
+        }
+
+        if (!is_dir($targetDir)) {
+            return;
+        }
+
+        if (is_link($target)) {
+            if (readlink($target) === $source) {
+                return;
+            }
+
+            @unlink($target);
+        }
+
+        if (is_file($target) && filemtime($target) >= filemtime($source) && filesize($target) === filesize($source)) {
+            return;
+        }
+
+        if (!file_exists($target) && @symlink($source, $target)) {
+            return;
+        }
+
+        @copy($source, $target);
     }
 
     protected function registerBladeComponentNamespace(): void

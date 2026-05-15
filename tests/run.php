@@ -846,6 +846,10 @@ evo_ui_group('assets', function (): void {
         evo_ui_assert_contains("'symlink:' . \$this->root . '/resources/css/evo-ui.css'", $provider, 'EvoUI CSS must be published through the symlink-aware vendor:publish mechanism.');
         evo_ui_assert_contains("'symlink:' . \$this->root . '/resources/js/evo-ui.js'", $provider, 'EvoUI JS must be published through the symlink-aware vendor:publish mechanism.');
         evo_ui_assert_contains("config/evo-ui.php' => config_path('evo-ui.php', true)", $provider, 'Config publishing must remain copy-based.');
+        evo_ui_assert_contains('$this->ensureRuntimeAssetsArePublished();', $provider, 'Provider must self-publish runtime assets when EvoUI is installed as a dependency.');
+        evo_ui_assert_contains('protected function ensureRuntimeAsset(string $source, string $target): void', $provider, 'Provider must own an idempotent runtime asset publisher.');
+        evo_ui_assert_contains('@symlink($source, $target)', $provider, 'Runtime asset publisher should prefer symlinks for local package updates.');
+        evo_ui_assert_contains('@copy($source, $target)', $provider, 'Runtime asset publisher must fall back to copying on restricted filesystems.');
     });
 
     evo_ui_test('evo-ui-owned layout and asset partial do not load legacy manager bundles', function (): void {
