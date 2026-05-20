@@ -123,6 +123,90 @@
         }));
     }
 
+    function pageScroller() {
+        return document.scrollingElement || document.documentElement || document.body;
+    }
+
+    function canScrollVertically(element, deltaY) {
+        if (!element || element === document.body || element === document.documentElement) {
+            return false;
+        }
+
+        var style = window.getComputedStyle(element);
+
+        if (!/(auto|scroll)/.test(style.overflowY || '')) {
+            return false;
+        }
+
+        var max = element.scrollHeight - element.clientHeight;
+
+        if (max <= 1) {
+            return false;
+        }
+
+        return deltaY < 0 ? element.scrollTop > 0 : element.scrollTop < max;
+    }
+
+    function hasScrollableWheelTarget(target, deltaY) {
+        var element = target && target.nodeType === 1 ? target : target && target.parentElement;
+
+        while (element && element !== document.body && element !== document.documentElement) {
+            if (canScrollVertically(element, deltaY)) {
+                return true;
+            }
+
+            element = element.parentElement;
+        }
+
+        return false;
+    }
+
+    function handleEmbeddedManagerWheel(event) {
+        if (
+            event.defaultPrevented
+            || event.ctrlKey
+            || event.metaKey
+            || event.shiftKey
+            || Math.abs(event.deltaX || 0) > Math.abs(event.deltaY || 0)
+        ) {
+            return;
+        }
+
+        var deltaY = event.deltaY || 0;
+
+        if (!deltaY || hasScrollableWheelTarget(event.target, deltaY)) {
+            return;
+        }
+
+        var scroller = pageScroller();
+        var max = scroller.scrollHeight - scroller.clientHeight;
+
+        if (max <= 1) {
+            return;
+        }
+
+        var before = scroller.scrollTop;
+        var next = Math.max(0, Math.min(max, before + deltaY));
+
+        if (next === before) {
+            return;
+        }
+
+        scroller.scrollTop = next;
+        event.preventDefault();
+    }
+
+    function registerEmbeddedManagerWheelBridge() {
+        if (window.self === window.top) {
+            return;
+        }
+
+        document.addEventListener('wheel', handleEmbeddedManagerWheel, {
+            capture: true,
+            passive: false
+        });
+    }
+
     function formIsDirty() {
         return document.querySelector('[data-evo-form-dirty="true"]:not([data-evo-form-saved="true"])') !== null;
     }
@@ -2806,6 +2890,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         hydrateTheme();
+        registerEmbeddedManagerWheelBridge();
         observeParentTheme();
         observeComponentDom();
         init(document);

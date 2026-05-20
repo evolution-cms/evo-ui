@@ -883,6 +883,23 @@ evo_ui_group('assets', function (): void {
         }
     });
 
+    evo_ui_test('javascript bridges wheel scrolling inside embedded manager frames', function (): void {
+        $js = evo_ui_read('resources/js/evo-ui.js');
+
+        foreach ([
+            'function registerEmbeddedManagerWheelBridge()',
+            'function handleEmbeddedManagerWheel(event)',
+            "document.addEventListener('wheel', handleEmbeddedManagerWheel",
+            'passive: false',
+            'window.self === window.top',
+            'document.scrollingElement',
+            'hasScrollableWheelTarget(event.target, deltaY)',
+            'scroller.scrollTop = next',
+        ] as $marker) {
+            evo_ui_assert_contains($marker, $js, 'Missing embedded manager wheel bridge marker: ' . $marker);
+        }
+    });
+
     evo_ui_test('inline create runtime exposes focus and overflow contracts', function (): void {
         $js = evo_ui_read('resources/js/evo-ui.js');
         $css = evo_ui_read('resources/css/evo-ui.css');
