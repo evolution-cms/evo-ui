@@ -8,9 +8,9 @@
     $alt = $image['alt'] ?? '';
 @endphp
 
-<figure class="evo-ui-table-image">
+<figure class="evo-ui-table-image" @if($src) data-evo-image-preview="{{ $src }}" @endif>
     @if($src)
-        <img src="{{ $src }}" alt="{{ $alt }}" width="38" height="28" loading="lazy" decoding="async">
+        <img src="{{ $src }}" alt="{{ $alt }}" width="48" height="32" loading="lazy" decoding="async">
     @else
         <x-evo::icon name="photo" />
     @endif

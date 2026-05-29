@@ -193,7 +193,7 @@
     color: var(--evo-ui-text);
     background: var(--evo-ui-bg);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.45;
     overscroll-behavior: none;
 }
@@ -202,7 +202,7 @@
     color: var(--evo-ui-text);
     background: var(--evo-ui-bg);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.45;
     min-height: 100vh;
     max-width: 100%;
@@ -249,12 +249,12 @@
 
 .evo-ui-issue-workspace {
     --evo-ui-issue-workspace-height: calc(100dvh - 8px);
-    --evo-ui-issue-page-title-font-size: 20px;
-    --evo-ui-issue-title-font-size: 14px;
-    --evo-ui-issue-list-title-font-size: 13px;
-    --evo-ui-issue-body-font-size: 12px;
-    --evo-ui-issue-detail-title-font-size: 18px;
-    --evo-ui-issue-detail-body-font-size: 14px;
+    --evo-ui-issue-page-title-font-size: 21px;
+    --evo-ui-issue-title-font-size: 15px;
+    --evo-ui-issue-list-title-font-size: 14px;
+    --evo-ui-issue-body-font-size: 13px;
+    --evo-ui-issue-detail-title-font-size: 19px;
+    --evo-ui-issue-detail-body-font-size: 15px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -473,7 +473,7 @@
     border-radius: 999px;
     color: var(--evo-ui-primary);
     background: var(--evo-ui-primary-soft);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 780;
     font-variant-numeric: tabular-nums;
 }
@@ -595,7 +595,7 @@
     justify-content: center;
     min-height: 24px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1;
 }
@@ -629,7 +629,7 @@
     max-width: 118px;
     min-height: 20px;
     padding: 0 7px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 560;
 }
 
@@ -673,7 +673,7 @@
     overflow: hidden;
     color: var(--evo-ui-primary);
     background: var(--evo-ui-primary-soft);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0;
 }
 
@@ -687,7 +687,7 @@
     border-radius: 999px;
     color: var(--evo-ui-primary);
     background: var(--evo-ui-primary-soft);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     letter-spacing: 0;
 }
@@ -725,7 +725,7 @@
     border-radius: var(--evo-ui-radius);
     color: var(--evo-ui-muted);
     background: var(--evo-ui-control-bg);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -741,7 +741,7 @@
     gap: 8px;
     min-height: 150px;
     color: var(--evo-ui-muted);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-issue-kanban__empty .evo-ui-icon {
@@ -911,7 +911,7 @@
     min-height: 180px;
     padding: 16px;
     color: var(--evo-ui-muted);
-    font-size: 13px;
+    font-size: 14px;
     text-align: center;
 }
 
@@ -943,7 +943,7 @@
     border-radius: 999px;
     color: var(--evo-ui-muted);
     background: var(--evo-ui-control-bg);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
 }
 
@@ -1013,7 +1013,7 @@
     justify-content: space-between;
     gap: 12px;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 760;
     text-transform: uppercase;
 }
@@ -1063,7 +1063,7 @@
 
 .evo-ui-issue-subtask__title {
     overflow: hidden;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 760;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1091,7 +1091,7 @@
     border-radius: var(--evo-ui-radius-sm);
     color: var(--evo-ui-muted);
     background: var(--evo-ui-control-bg);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-issue-timeline__item .evo-ui-icon {
@@ -1103,7 +1103,7 @@
 .evo-ui-issue-timeline__item strong {
     display: block;
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-issue-timeline__item span {
@@ -1113,7 +1113,7 @@
 
 .evo-ui-issue-timeline__item small {
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
@@ -1203,7 +1203,7 @@
 
 .evo-ui-chat-message__meta {
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -1213,7 +1213,7 @@
     border-radius: 16px 16px 16px 4px;
     color: var(--evo-ui-text);
     background: var(--evo-ui-control-bg);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     line-height: 1.45;
     overflow-wrap: anywhere;
@@ -1243,12 +1243,12 @@
 
 .evo-ui-chat-empty strong {
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-chat-empty small {
     max-width: 320px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
 }
 
@@ -1268,7 +1268,7 @@
     overflow: hidden;
     color: var(--evo-ui-primary);
     background: var(--evo-ui-primary-soft);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 780;
 }
 
@@ -1288,7 +1288,7 @@
     gap: 8px;
     min-width: 0;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-issue-comment__meta strong {
@@ -1327,7 +1327,7 @@
     border-radius: 6px;
     color: var(--evo-ui-muted);
     background: var(--evo-ui-row-hover);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-issue-comment__parent span:last-child {
@@ -1346,7 +1346,7 @@
 
 .evo-ui-issue-comment__content {
     color: var(--evo-ui-text);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.45;
 }
 
@@ -1355,7 +1355,7 @@
     border: 1px dashed var(--evo-ui-border);
     border-radius: var(--evo-ui-radius);
     color: var(--evo-ui-muted);
-    font-size: 13px;
+    font-size: 14px;
     text-align: center;
 }
 
@@ -1396,7 +1396,7 @@
     align-items: center;
     gap: 10px;
     margin: 0;
-    font-size: 20px;
+    font-size: 21px;
     line-height: 1.2;
     font-weight: 650;
 }
@@ -1423,7 +1423,7 @@
 
 .evo-ui-surface__header h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: 19px;
 }
 
 .evo-ui-surface__header p {
@@ -1551,7 +1551,7 @@
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 650;
 }
 
@@ -1656,7 +1656,7 @@
     border-radius: 0;
     color: var(--evo-ui-muted);
     background: transparent;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 650;
     line-height: 1.2;
     text-decoration: none;
@@ -1728,7 +1728,7 @@
 
 .evo-ui-layout-examples h3 {
     margin: 0 0 8px;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .evo-ui-card {
@@ -1752,7 +1752,7 @@
 .evo-ui-card__header h3 {
     margin: 0;
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 750;
 }
 
@@ -2011,7 +2011,7 @@
 .evo-ui-onboarding-hero__copy h2 {
     margin: 0;
     color: var(--evo-ui-text);
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 760;
     line-height: 1.24;
 }
@@ -2020,7 +2020,7 @@
     max-width: 860px;
     margin: 0;
     color: var(--evo-ui-muted);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     line-height: 1.45;
 }
@@ -2046,7 +2046,7 @@
 .evo-ui-onboarding-hero__action-hint {
     max-width: 430px;
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 540;
     line-height: 1.3;
     text-align: left;
@@ -2078,7 +2078,7 @@
     color: var(--evo-ui-text);
     background: var(--evo-ui-control-bg);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 560;
     line-height: 1.35;
     overflow-x: auto;
@@ -2094,7 +2094,7 @@
 .evo-ui-onboarding-hero__steps h3 {
     margin: 0;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     letter-spacing: 0;
     text-transform: uppercase;
@@ -2115,7 +2115,7 @@
     gap: 10px;
     align-items: start;
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 560;
     line-height: 1.4;
 }
@@ -2130,7 +2130,7 @@
     border-radius: 999px;
     color: var(--evo-ui-muted);
     background: var(--evo-ui-control-bg);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 760;
     counter-increment: evo-ui-onboarding-step;
     content: counter(evo-ui-onboarding-step);
@@ -2564,7 +2564,7 @@
     border-radius: 999px;
     color: var(--color-primary-content);
     background: var(--evo-ui-primary);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
     box-shadow: 0 0 0 1px var(--evo-ui-border);
@@ -2606,7 +2606,7 @@
     display: grid;
     gap: 5px;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-filter-menu--compact {
@@ -2713,7 +2713,7 @@ select.evo-ui-input:not([multiple]) {
 select.evo-ui-input option {
     color: var(--evo-ui-text);
     background: var(--evo-ui-surface);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -2882,7 +2882,7 @@ select.evo-ui-select--multiple {
     color: var(--evo-ui-muted);
     background-color: var(--evo-ui-control-bg);
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 28px;
 }
 
@@ -3014,7 +3014,7 @@ select.evo-ui-select--multiple {
     align-items: center;
     gap: 10px;
     margin: 0;
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.2;
 }
 
@@ -3026,7 +3026,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-form-heading small {
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -3268,7 +3268,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-settings-row__label {
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 560;
     line-height: 1.25;
     text-align: right;
@@ -3280,7 +3280,7 @@ select.evo-ui-select--multiple {
     color: color-mix(in oklch, var(--evo-ui-info) 68%, var(--evo-ui-muted));
     background: transparent;
     font-family: inherit;
-    font-size: 9.5px;
+    font-size: 10.5px;
     font-weight: 520;
     line-height: 1.25;
     text-align: right;
@@ -3307,7 +3307,7 @@ select.evo-ui-select--multiple {
 .evo-ui-settings-row__description {
     margin: 3px 0 0;
     color: color-mix(in oklch, var(--evo-ui-muted) 78%, var(--evo-ui-text));
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 430;
     line-height: 1.25;
 }
@@ -3318,7 +3318,7 @@ select.evo-ui-select--multiple {
     gap: 10px;
     padding: 12px 0 5px;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     text-transform: uppercase;
 }
@@ -3343,14 +3343,14 @@ select.evo-ui-select--multiple {
     align-items: center;
     gap: 6px;
     color: var(--evo-ui-text);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 520;
     line-height: 1.2;
 }
 
 .evo-ui-option-empty {
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -3515,7 +3515,7 @@ select.evo-ui-select--multiple {
 .evo-ui-dnd-inline-field > span {
     justify-self: end;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     text-align: right;
     white-space: nowrap;
@@ -3796,7 +3796,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-builder-summary__title {
     min-width: 0;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 650;
     line-height: 1.2;
     overflow: hidden;
@@ -3806,7 +3806,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-dnd-title {
     min-width: 0;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 650;
     line-height: 1.2;
     overflow: hidden;
@@ -3817,7 +3817,7 @@ select.evo-ui-select--multiple {
 .evo-ui-builder-summary__subtitle {
     max-width: 100%;
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.25;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3827,7 +3827,7 @@ select.evo-ui-select--multiple {
 .evo-ui-dnd-subtitle {
     max-width: 100%;
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.25;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3847,7 +3847,7 @@ select.evo-ui-select--multiple {
     border: 1px solid var(--evo-ui-border);
     color: var(--evo-ui-muted);
     background: var(--evo-ui-chip-bg);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 650;
     line-height: 1;
 }
@@ -3861,7 +3861,7 @@ select.evo-ui-select--multiple {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     color: color-mix(in oklch, var(--evo-ui-info) 68%, var(--evo-ui-muted));
     background: color-mix(in oklch, var(--evo-ui-info) 8%, transparent);
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 580;
     line-height: 1.2;
 }
@@ -3877,7 +3877,7 @@ select.evo-ui-select--multiple {
     border-radius: 999px;
     color: color-mix(in oklch, var(--evo-ui-muted) 82%, var(--evo-ui-text));
     background: color-mix(in oklch, var(--evo-ui-surface-muted) 58%, transparent);
-    font-size: 10.5px;
+    font-size: 11.5px;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3908,7 +3908,7 @@ select.evo-ui-select--multiple {
     gap: 10px;
     padding: 8px;
     color: var(--evo-ui-muted);
-    font-size: 13px;
+    font-size: 14px;
     border: 1px dashed var(--evo-ui-border);
 }
 
@@ -3927,14 +3927,14 @@ select.evo-ui-select--multiple {
 
 .evo-ui-dnd-option-list__label {
     color: var(--evo-ui-text);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 650;
 }
 
 .evo-ui-dnd-option-list__hint {
     min-width: 0;
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.25;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3963,7 +3963,7 @@ select.evo-ui-select--multiple {
 .evo-ui-field__label,
 .evo-ui-field__hint,
 .evo-ui-field__error {
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-field__label {
@@ -3986,7 +3986,7 @@ select.evo-ui-select--multiple {
 .evo-ui-field__label code {
     color: var(--evo-ui-muted);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     opacity: 0.72;
 }
@@ -4001,7 +4001,7 @@ select.evo-ui-select--multiple {
     border-radius: 999px;
     color: var(--evo-ui-muted);
     background: color-mix(in oklch, var(--evo-ui-muted) 16%, transparent);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1;
     opacity: 0.68;
     cursor: help;
@@ -4029,7 +4029,7 @@ select.evo-ui-select--multiple {
     background: var(--evo-ui-surface);
     box-shadow: 0 10px 24px color-mix(in oklch, oklch(0% 0 0) 24%, transparent);
     content: attr(data-evo-tooltip);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     line-height: 1.35;
     opacity: 0;
@@ -4168,7 +4168,7 @@ select.evo-ui-select--multiple {
     border-radius: 999px;
     color: var(--evo-ui-text);
     background: var(--evo-ui-chip-bg);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.25;
 }
 
@@ -4206,7 +4206,7 @@ select.evo-ui-select--multiple {
     align-self: center;
     padding: 0 4px;
     color: var(--evo-ui-placeholder);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-choices__search {
@@ -4231,7 +4231,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-choices__dropdown .evo-ui-choices__search {
     min-height: 30px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-choices--open-up .evo-ui-choices__dropdown {
@@ -4252,7 +4252,7 @@ select.evo-ui-select--multiple {
     color: var(--evo-ui-text);
     background: transparent;
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     text-align: left;
     cursor: pointer;
 }
@@ -4362,7 +4362,7 @@ select.evo-ui-select--multiple {
     align-items: center;
     gap: 9px;
     min-width: 0;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 750;
 }
 
@@ -4399,7 +4399,7 @@ select.evo-ui-select--multiple {
     border-radius: 999px;
     color: var(--evo-ui-muted);
     background: var(--evo-ui-control-bg);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1;
 }
 
@@ -4588,7 +4588,7 @@ select.evo-ui-select--multiple {
     color: var(--evo-ui-text);
     background: var(--evo-ui-control-bg);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.55;
     white-space: pre-wrap;
     overflow: auto;
@@ -4630,7 +4630,7 @@ select.evo-ui-select--multiple {
 .evo-ui-confirm__message {
     margin: 0;
     color: var(--evo-ui-text);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 650;
     line-height: 1.45;
 }
@@ -4711,7 +4711,7 @@ select.evo-ui-select--multiple {
     gap: 10px;
     min-height: 34px;
     color: var(--evo-ui-muted);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 650;
 }
 
@@ -4806,7 +4806,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-repeater__field > span:first-child {
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     text-align: right;
 }
@@ -4902,7 +4902,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-builder__toolbar > span {
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
 }
 
@@ -4954,7 +4954,7 @@ select.evo-ui-select--multiple {
     gap: 8px;
     min-width: 0;
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 750;
 }
 
@@ -4999,7 +4999,7 @@ select.evo-ui-select--multiple {
     gap: 7px;
     min-height: 30px;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     text-align: right;
 }
@@ -5050,7 +5050,7 @@ select.evo-ui-select--multiple {
     background: transparent;
     color: var(--evo-ui-text);
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 650;
     text-align: left;
     cursor: pointer;
@@ -5101,7 +5101,7 @@ select.evo-ui-select--multiple {
     overflow: hidden;
     min-width: 0;
     color: var(--evo-ui-muted);
-    font-size: 11.5px;
+    font-size: 12.5px;
     font-weight: 750;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -5142,7 +5142,7 @@ select.evo-ui-select--multiple {
     gap: 6px;
     min-width: 0;
     color: var(--evo-ui-text);
-    font-size: 11.5px;
+    font-size: 12.5px;
     font-weight: 750;
 }
 
@@ -5179,7 +5179,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-builder-nested__fields .evo-ui-builder__label {
     min-height: 28px;
-    font-size: 11.5px;
+    font-size: 12.5px;
 }
 
 .evo-ui-builder-nested .evo-ui-image-field {
@@ -5251,13 +5251,13 @@ select.evo-ui-select--multiple {
 
 .evo-ui-config-map__item-header b {
     color: var(--evo-ui-text);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-config-map__item-header code,
 .evo-ui-config-map__item-header small {
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .evo-ui-config-map__item-header > .evo-ui-row-action {
@@ -5593,7 +5593,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-table th {
     color: var(--evo-ui-muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -5700,7 +5700,9 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-table__image-column {
-    width: 48px;
+    width: 64px;
+    min-width: 64px;
+    max-width: 64px;
 }
 
 .evo-ui-table__title-column {
@@ -5741,9 +5743,10 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-table-cell--image {
-    width: 48px;
-    min-width: 48px;
-    padding-inline: 7px;
+    width: 64px;
+    min-width: 64px;
+    max-width: 64px;
+    padding-inline: 8px;
     padding-block: 0 !important;
     text-align: center !important;
 }
@@ -5843,13 +5846,13 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-inline-edit--title .evo-ui-inline-edit__input {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
 }
 
 .evo-ui-inline-edit--subtitle .evo-ui-inline-edit__input {
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-inline-image,
@@ -5876,8 +5879,8 @@ select.evo-ui-select--multiple {
 
 .evo-ui-table-image,
 .evo-ui-table-thumb {
-    --evo-ui-table-image-width: 34px;
-    --evo-ui-table-image-height: 34px;
+    --evo-ui-table-image-width: 48px;
+    --evo-ui-table-image-height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -5888,7 +5891,7 @@ select.evo-ui-select--multiple {
     height: var(--evo-ui-table-image-height);
     min-height: var(--evo-ui-table-image-height);
     max-height: var(--evo-ui-table-image-height);
-    padding: 3px;
+    padding: 0;
     border: 0;
     border-radius: 6px;
     background: var(--evo-ui-control-bg);
@@ -5903,18 +5906,42 @@ select.evo-ui-select--multiple {
 .evo-ui-table-image img,
 .evo-ui-table-thumb {
     display: block;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
     border-radius: 4px;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .evo-ui-table-image svg {
     width: 1rem;
     height: 1rem;
     color: var(--evo-ui-muted);
+}
+
+.evo-ui-image-preview {
+    position: fixed;
+    z-index: 2147483000;
+    display: none;
+    pointer-events: none;
+}
+
+.evo-ui-image-preview.is-visible {
+    display: block;
+}
+
+.evo-ui-image-preview img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(680px, calc(100vw - 32px));
+    max-height: min(460px, calc(100vh - 32px));
+    border: 3px solid color-mix(in oklch, var(--evo-ui-bg) 82%, var(--evo-ui-border));
+    border-radius: 6px;
+    background: var(--evo-ui-bg);
+    box-shadow: 0 18px 46px color-mix(in oklch, oklch(0% 0 0) 34%, transparent);
+    object-fit: contain;
 }
 
 .evo-ui-meta-list {
@@ -6214,7 +6241,7 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-resource-title {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-resource-title span {
@@ -6396,7 +6423,7 @@ select.evo-ui-select--multiple {
 
 .evo-ui-list-field__label {
     color: var(--evo-ui-muted);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     line-height: 1.1;
     text-transform: uppercase;
@@ -6420,7 +6447,7 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-list-item__main .evo-ui-table-link {
-    font-size: 13px;
+    font-size: 14px;
     justify-self: start;
     width: fit-content;
 }
@@ -6433,11 +6460,11 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-list-item__main strong {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .evo-ui-list-item__main span {
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-list-item__main span {
@@ -6451,7 +6478,7 @@ select.evo-ui-select--multiple {
     gap: 6px 11px;
     margin: 0;
     color: var(--evo-ui-muted);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1;
 }
 
@@ -6579,7 +6606,7 @@ select.evo-ui-select--multiple {
     justify-self: start;
     gap: 12px;
     min-width: 0;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-per-page {
@@ -6610,7 +6637,7 @@ select.evo-ui-select--multiple {
     min-width: 28px;
     min-height: 30px;
     padding: 0 7px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .evo-ui-pager svg {
@@ -6742,7 +6769,7 @@ select.evo-ui-select--multiple {
         min-height: 38px;
         min-width: 44px;
         padding-inline: 10px;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .evo-ui .evo-ui-tab-label,
@@ -6941,7 +6968,7 @@ select.evo-ui-select--multiple {
     }
 
     .evo-ui-list-field__label {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .evo-ui-list-field__value > .evo-ui-inline-edit {

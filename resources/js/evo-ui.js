@@ -2394,6 +2394,111 @@
         });
     }
 
+    var imagePreview = null;
+    var imagePreviewTarget = null;
+
+    function supportsImagePreview() {
+        return !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    }
+
+    function imagePreviewElement() {
+        if (imagePreview || !document.body) {
+            return imagePreview;
+        }
+
+        imagePreview = document.createElement('div');
+        imagePreview.className = 'evo-ui-image-preview';
+        imagePreview.innerHTML = '<img alt="" decoding="async">';
+        document.body.appendChild(imagePreview);
+
+        return imagePreview;
+    }
+
+    function positionImagePreview(event) {
+        if (!imagePreview || !imagePreview.classList.contains('is-visible')) {
+            return;
+        }
+
+        var gap = 18;
+        var left = event.clientX + gap;
+        var top = event.clientY + gap;
+        var rect = imagePreview.getBoundingClientRect();
+
+        if (left + rect.width > window.innerWidth - 12) {
+            left = Math.max(12, event.clientX - rect.width - gap);
+        }
+
+        if (top + rect.height > window.innerHeight - 12) {
+            top = Math.max(12, event.clientY - rect.height - gap);
+        }
+
+        imagePreview.style.left = left + 'px';
+        imagePreview.style.top = top + 'px';
+    }
+
+    function showImagePreview(event) {
+        if (!supportsImagePreview()) {
+            return;
+        }
+
+        var target = event.target && event.target.closest ? event.target.closest('[data-evo-image-preview]') : null;
+        var src = target ? String(target.getAttribute('data-evo-image-preview') || '').trim() : '';
+
+        if (!target || src === '' || target === imagePreviewTarget) {
+            return;
+        }
+
+        var preview = imagePreviewElement();
+        var img = preview ? preview.querySelector('img') : null;
+
+        if (!preview || !img) {
+            return;
+        }
+
+        imagePreviewTarget = target;
+        img.src = src;
+        img.alt = target.querySelector('img') ? target.querySelector('img').alt : '';
+        preview.classList.add('is-visible');
+        positionImagePreview(event);
+    }
+
+    function hideImagePreview() {
+        if (imagePreview) {
+            imagePreview.classList.remove('is-visible');
+        }
+
+        imagePreviewTarget = null;
+    }
+
+    function handleImagePreviewOver(event) {
+        showImagePreview(event);
+    }
+
+    function handleImagePreviewMove(event) {
+        if (!imagePreviewTarget) {
+            return;
+        }
+
+        if (!event.target || !event.target.closest || !event.target.closest('[data-evo-image-preview]')) {
+            hideImagePreview();
+            return;
+        }
+
+        positionImagePreview(event);
+    }
+
+    function handleImagePreviewOut(event) {
+        if (!imagePreviewTarget) {
+            return;
+        }
+
+        var next = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest('[data-evo-image-preview]') : null;
+
+        if (next !== imagePreviewTarget) {
+            hideImagePreview();
+        }
+    }
+
     function normalizeOptions(options) {
         return Array.isArray(options)
             ? options.map(function (option) {
@@ -2997,6 +3102,11 @@
     document.addEventListener('click', handleDeleteClick, true);
     document.addEventListener('dblclick', handleModalDoubleClick, true);
     document.addEventListener('dblclick', handleManagerDoubleClick, true);
+    document.addEventListener('mouseover', handleImagePreviewOver, true);
+    document.addEventListener('mousemove', handleImagePreviewMove, true);
+    document.addEventListener('mouseout', handleImagePreviewOut, true);
+    document.addEventListener('scroll', hideImagePreview, true);
+    window.addEventListener('blur', hideImagePreview);
 
     window.addEventListener('evo-ui:inline-create.created', function (event) {
         handleInlineCreateCreated(event.detail || {});
