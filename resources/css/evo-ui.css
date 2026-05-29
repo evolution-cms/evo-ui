@@ -1551,7 +1551,7 @@
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 650;
 }
 
@@ -1656,7 +1656,7 @@
     border-radius: 0;
     color: var(--evo-ui-muted);
     background: transparent;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 650;
     line-height: 1.2;
     text-decoration: none;
@@ -6769,7 +6769,7 @@ select.evo-ui-select--multiple {
         min-height: 38px;
         min-width: 44px;
         padding-inline: 10px;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .evo-ui .evo-ui-tab-label,
