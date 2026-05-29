@@ -2576,6 +2576,21 @@
             || (isTinyMceCoreScript(normalized) && window.tinymce && typeof window.tinymce.init === 'function');
     }
 
+    function normalizeLegacyEditorInlineScript(source) {
+        var text = String(source || '');
+
+        if (text.indexOf('tinymce') === -1 && text.indexOf('selector_') === -1) {
+            return text;
+        }
+
+        text = text.replace(/\blet\s+(modx_site_url|lang|content_css|filePicker|windowManagerURL|selector_[A-Za-z0-9_$]+)\b/g, 'var $1');
+
+        return text.replace(
+            /(var\s+selector_([A-Za-z0-9_$]+)\s*=\s*[^;]+;)/g,
+            '$1\nif (typeof $2 !== "undefined" && $2 && typeof $2 === "object") { $2.selector = selector_$2; }'
+        );
+    }
+
     function executeScriptElement(script) {
         return new Promise(function (resolve) {
             var next = document.createElement('script');
@@ -2596,7 +2611,7 @@
             next.async = false;
 
             if (!src) {
-                next.text = script.textContent || '';
+                next.text = normalizeLegacyEditorInlineScript(script.textContent || '');
                 try {
                     document.head.appendChild(next);
                 } catch (error) {

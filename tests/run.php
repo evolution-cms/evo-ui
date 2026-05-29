@@ -2077,6 +2077,8 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains('window.EvoUI.syncRichEditors = syncRichEditors', $js, 'Runtime must expose rich editor sync.');
         evo_ui_assert_contains('window.EvoUI.browseMediaField = browseMediaField', $js, 'Runtime must expose file media picker bridge.');
         evo_ui_assert_contains('window.EvoUI.browseImageField = function (inputId)', $js, 'Runtime must expose image picker bridge.');
+        evo_ui_assert_contains('normalizeLegacyEditorInlineScript', $js, 'Runtime must normalize repeated legacy rich editor inline scripts.');
+        evo_ui_assert_contains('typeof $2 !== "undefined" && $2 && typeof $2 === "object"', $js, 'Runtime must refresh TinyMCE config selector before repeated init calls.');
     });
 
     evo_ui_test('custom field registry resolves view, name and type overrides', function (): void {
