@@ -1514,6 +1514,7 @@ evo_ui_group('module-table', function (): void {
         $pagination = evo_ui_read('views/components/table/pagination.blade.php');
         $header = evo_ui_read('views/components/table/header-cell.blade.php');
         $css = evo_ui_read('resources/css/evo-ui.css');
+        $js = evo_ui_read('resources/js/evo-ui.js');
 
         foreach (['applyMultiFilter', 'applySelectFilter', 'applyDateRangeFilter', 'setSort', 'switchView'] as $method) {
             evo_ui_assert_contains('function ' . $method, $moduleTable, 'ModuleTable must expose method: ' . $method);
@@ -1556,7 +1557,11 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('wire:key="{{ $viewKey }}-table"', $genericTable, 'Generic table table branch must be keyed for Livewire replacement.');
         evo_ui_assert_contains("data_get(\$row, 'wire_key', 'row-' . data_get(\$row, 'id')) . '-table'", $moduleTableView, 'Module table row keys must be isolated from list row keys.');
         evo_ui_assert_contains('wire:click="setSort', $header, 'Header cells must expose sorting.');
-        evo_ui_assert_contains("'q', 'page', 'sort', 'dir', 'perPage', 'f', 'view'", $moduleTable, 'URL query keys must include table state.');
+        evo_ui_assert_contains("'q', 'page', 'sort', 'dir', 'f', 'view'", $moduleTable, 'URL query keys must include shareable table state.');
+        evo_ui_assert_not_contains("'q', 'page', 'sort', 'dir', 'perPage', 'f', 'view'", $moduleTable, 'Per-page preference must not be persisted in the URL state.');
+        evo_ui_assert_contains('data-evo-table-per-page-cookie', $moduleTableView, 'Module table surface must expose a cookie key for first-render per-page preferences.');
+        evo_ui_assert_contains('syncTablePerPagePreference(surface)', $js, 'Module table JavaScript must sync per-page preferences before responsive view checks.');
+        evo_ui_assert_contains('evo-ui.table.per-page.', $js, 'Module table JavaScript must keep per-page preferences in localStorage.');
     });
 
     evo_ui_test('module table renders typed cells and list parity markers', function (): void {

@@ -11,6 +11,8 @@
     :pagination-items="$paginationItems"
     :per-page="$perPage"
     :per-page-options="$perPageOptions"
+    :storage-key="$storageKey"
+    :per-page-cookie-name="$perPageCookieName"
     :view-mode="$viewMode"
     :sort="$sort"
     :direction="$direction"

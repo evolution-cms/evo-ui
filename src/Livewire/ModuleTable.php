@@ -27,7 +27,6 @@ class ModuleTable extends Component
     #[Url(as: 'dir', history: true, except: 'asc')]
     public string $direction = 'asc';
 
-    #[Url(as: 'perPage', history: true, except: 0)]
     public int $perPage = 0;
 
     /** @var array<string, mixed> */
@@ -994,6 +993,8 @@ class ModuleTable extends Component
             'paginationItems' => $this->paginationItems($lastPage),
             'perPage' => $this->perPage,
             'perPageOptions' => $this->perPageOptions(),
+            'storageKey' => $this->storageKey(),
+            'perPageCookieName' => $this->perPageCookieName(),
             'viewMode' => $this->viewMode,
             'sort' => $this->sort,
             'direction' => $this->direction,
@@ -1469,7 +1470,6 @@ class ModuleTable extends Component
         return [
             'search' => $this->search,
             'page' => $this->page,
-            'perPage' => $this->perPage,
             'filters' => $this->filterState,
             'sort' => $this->sort,
             'direction' => $this->direction,
@@ -1935,14 +1935,6 @@ class ModuleTable extends Component
             $this->search = (string) $state['search'];
         }
 
-        if (array_key_exists('perPage', $state)) {
-            $perPage = (int) $state['perPage'];
-
-            if (in_array($perPage, $this->perPageOptions(), true)) {
-                $this->perPage = $perPage;
-            }
-        }
-
         if (array_key_exists('view', $state) && is_scalar($state['view'])) {
             $view = (string) $state['view'];
 
@@ -1978,7 +1970,7 @@ class ModuleTable extends Component
 
     protected function requestHasTableState(): bool
     {
-        $keys = ['q', 'page', 'sort', 'dir', 'perPage', 'f', 'view'];
+        $keys = ['q', 'page', 'sort', 'dir', 'f', 'view'];
 
         $request = request();
 
@@ -2002,7 +1994,8 @@ class ModuleTable extends Component
     protected function syncConfigState(): void
     {
         $options = $this->perPageOptions();
-        $default = (int) $this->tableConfig('per_page', $options[0] ?? 30);
+        $storedPerPage = $this->storedPerPagePreference($options);
+        $default = $storedPerPage ?? (int) $this->tableConfig('per_page', $options[0] ?? 30);
 
         $this->perPage = in_array($this->perPage, $options, true)
             ? $this->perPage
@@ -2032,6 +2025,20 @@ class ModuleTable extends Component
             $this->sort = '';
             $this->direction = 'asc';
         }
+    }
+
+    /** @param array<int, int> $options */
+    protected function storedPerPagePreference(array $options): ?int
+    {
+        $cookie = request()->cookie($this->perPageCookieName());
+        $perPage = is_scalar($cookie) ? (int) $cookie : 0;
+
+        return in_array($perPage, $options, true) ? $perPage : null;
+    }
+
+    public function perPageCookieName(): string
+    {
+        return 'evo_ui_table_per_page_' . sha1($this->storageKey());
     }
 
     /** @return array<int, int> */

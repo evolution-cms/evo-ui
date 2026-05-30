@@ -49,6 +49,21 @@
             })[0] || null;
     }
 
+    function writeCookie(key, value, sourceDocument) {
+        var doc = sourceDocument || document;
+        var cookie = key + '=' + encodeURIComponent(value || '') + '; Path=/; Max-Age=31536000; SameSite=Lax';
+
+        if (window.location && window.location.protocol === 'https:') {
+            cookie += '; Secure';
+        }
+
+        try {
+            doc.cookie = cookie;
+        } catch (error) {
+            // Cookies can be disabled; localStorage remains the client-side source of truth.
+        }
+    }
+
     function normalizeTheme(theme) {
         if (!theme) {
             return null;
@@ -1948,6 +1963,60 @@
         return 'evo-ui.table.responsive-view.' + key;
     }
 
+    function tablePerPageStorageKey(surface) {
+        var key = surface.getAttribute('data-evo-table-storage-key') || surface.getAttribute('data-evo-table') || 'default';
+
+        return 'evo-ui.table.per-page.' + key;
+    }
+
+    function tablePerPageOptions(surface) {
+        return String(surface.getAttribute('data-evo-table-per-page-options') || '')
+            .split(',')
+            .map(function (value) {
+                return parseInt(value, 10);
+            })
+            .filter(function (value) {
+                return value > 0;
+            });
+    }
+
+    function syncTablePerPagePreference(surface) {
+        var select = surface.querySelector('[data-evo-per-page-select]');
+        var options = tablePerPageOptions(surface);
+        var storageKey = tablePerPageStorageKey(surface);
+        var cookieKey = surface.getAttribute('data-evo-table-per-page-cookie') || '';
+        var stored = parseInt(readStorage(storageKey), 10);
+
+        if (!select || !options.length) {
+            return;
+        }
+
+        if (!select.__evoPerPageInitialized) {
+            select.__evoPerPageInitialized = true;
+            select.addEventListener('change', function () {
+                writeStorage(storageKey, String(select.value || ''));
+                if (cookieKey) {
+                    writeCookie(cookieKey, String(select.value || ''));
+                }
+            });
+        }
+
+        if (options.indexOf(stored) !== -1 && String(stored) !== String(select.value || '')) {
+            select.value = String(stored);
+            if (cookieKey) {
+                writeCookie(cookieKey, String(stored));
+            }
+            select.dispatchEvent(new Event('input', {bubbles: true}));
+            select.dispatchEvent(new Event('change', {bubbles: true}));
+            return;
+        }
+
+        writeStorage(storageKey, String(select.value || surface.getAttribute('data-evo-table-per-page') || ''));
+        if (cookieKey) {
+            writeCookie(cookieKey, String(select.value || surface.getAttribute('data-evo-table-per-page') || ''));
+        }
+    }
+
     function tableSupportsView(surface, view) {
         return !!surface.querySelector('[wire\\:click="switchView(\'' + view + '\')"]');
     }
@@ -2014,11 +2083,13 @@
 
     function initResponsiveTableView(surface) {
         if (!surface || surface.__evoResponsiveTableInitialized) {
+            syncTablePerPagePreference(surface);
             syncResponsiveTableView(surface);
             return;
         }
 
         surface.__evoResponsiveTableInitialized = true;
+        syncTablePerPagePreference(surface);
 
         surface.querySelectorAll('[wire\\:click^="switchView("]').forEach(function (button) {
             button.addEventListener('click', function () {
