@@ -529,7 +529,7 @@ class Form extends Component
             'config-map' => $this->castConfigMapValue($field, $value),
             'csv' => $this->castCsvValue($value),
             'datetime' => $this->castDateTimeValue($value),
-            'multi-checkbox' => $this->castMultiValue($field, $value),
+            'multi-checkbox', 'multi-select' => $this->castMultiValue($field, $value),
             'number' => is_numeric($value) ? (int) $value : 0,
             'radio' => $this->castSelectValue($field, $value),
             'resource-parent' => max(0, (int) $value),
@@ -598,7 +598,7 @@ class Form extends Component
             return $value ? date('Y-m-d\TH:i', (int) $value) : '';
         }
 
-        if (($field['type'] ?? null) === 'multi-checkbox' && is_string($value)) {
+        if (in_array(($field['type'] ?? null), ['multi-checkbox', 'multi-select'], true) && is_string($value)) {
             return collect(explode('||', $value))
                 ->map(fn ($item) => trim($item))
                 ->filter()

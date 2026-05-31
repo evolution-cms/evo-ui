@@ -13,6 +13,7 @@
     :per-page-options="$perPageOptions"
     :storage-key="$storageKey"
     :per-page-cookie-name="$perPageCookieName"
+    :url-defaults="$urlDefaults"
     :view-mode="$viewMode"
     :sort="$sort"
     :direction="$direction"

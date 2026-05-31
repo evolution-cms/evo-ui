@@ -2017,6 +2017,116 @@
         }
     }
 
+    function parseTableUrlDefaults(surface) {
+        try {
+            return JSON.parse(surface.getAttribute('data-evo-table-url-defaults') || '{}') || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function flattenTableFilterDefaults(prefix, value, result) {
+        result = result || {};
+
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            Object.keys(value).forEach(function (key) {
+                flattenTableFilterDefaults(prefix + '[' + key + ']', value[key], result);
+            });
+
+            return result;
+        }
+
+        result[prefix] = Array.isArray(value) ? value.join(',') : String(value == null ? '' : value);
+
+        return result;
+    }
+
+    function currentHashParams() {
+        var hash = window.location.hash || '';
+        var index = hash.indexOf('?');
+
+        if (index === -1) {
+            return null;
+        }
+
+        return {
+            prefix: hash.slice(0, index + 1),
+            params: new URLSearchParams(hash.slice(index + 1))
+        };
+    }
+
+    function replaceHashParams(parts) {
+        var next = parts.prefix + parts.params.toString();
+
+        if (next === window.location.hash) {
+            return;
+        }
+
+        window.history.replaceState(window.history.state, document.title, window.location.pathname + window.location.search + next);
+    }
+
+    function cleanDefaultTableUrlState(surface) {
+        var parts = currentHashParams();
+        var defaults = parseTableUrlDefaults(surface);
+        var params;
+        var changed = false;
+        var filterDefaults;
+
+        if (!parts) {
+            return;
+        }
+
+        params = parts.params;
+
+        ['perPage'].forEach(function (key) {
+            if (params.has(key)) {
+                params.delete(key);
+                changed = true;
+            }
+        });
+
+        [
+            ['q', defaults.q || ''],
+            ['page', String(defaults.page || 1)],
+            ['sort', defaults.sort || ''],
+            ['view', defaults.view || 'table']
+        ].forEach(function (entry) {
+            if (params.has(entry[0]) && String(params.get(entry[0]) || '') === String(entry[1])) {
+                params.delete(entry[0]);
+                changed = true;
+            }
+        });
+
+        if (params.has('dir')) {
+            var currentSort = params.get('sort') || defaults.sort || '';
+            var defaultDirection = currentSort === (defaults.sort || '') ? (defaults.dir || 'asc') : 'asc';
+
+            if (String(params.get('dir') || '') === String(defaultDirection)) {
+                params.delete('dir');
+                changed = true;
+            }
+        }
+
+        filterDefaults = flattenTableFilterDefaults('f', defaults.f || {});
+        Object.keys(filterDefaults).forEach(function (key) {
+            if (params.has(key) && String(params.get(key) || '') === String(filterDefaults[key] || '')) {
+                params.delete(key);
+                changed = true;
+            }
+        });
+
+        Array.prototype.slice.call(params.keys()).forEach(function (key) {
+            if (key.indexOf('f[') === 0 && String(params.get(key) || '') === '') {
+                params.delete(key);
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            replaceHashParams(parts);
+        }
+    }
+
     function tableSupportsView(surface, view) {
         return !!surface.querySelector('[wire\\:click="switchView(\'' + view + '\')"]');
     }
@@ -2084,12 +2194,12 @@
     function initResponsiveTableView(surface) {
         if (!surface || surface.__evoResponsiveTableInitialized) {
             syncTablePerPagePreference(surface);
+            cleanDefaultTableUrlState(surface);
             syncResponsiveTableView(surface);
             return;
         }
 
         surface.__evoResponsiveTableInitialized = true;
-        syncTablePerPagePreference(surface);
 
         surface.querySelectorAll('[wire\\:click^="switchView("]').forEach(function (button) {
             button.addEventListener('click', function () {
@@ -2101,6 +2211,8 @@
             }, true);
         });
 
+        syncTablePerPagePreference(surface);
+        cleanDefaultTableUrlState(surface);
         syncResponsiveTableView(surface);
     }
 

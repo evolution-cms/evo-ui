@@ -1559,6 +1559,13 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('wire:click="setSort', $header, 'Header cells must expose sorting.');
         evo_ui_assert_contains("'q', 'page', 'sort', 'dir', 'f', 'view'", $moduleTable, 'URL query keys must include shareable table state.');
         evo_ui_assert_not_contains("'q', 'page', 'sort', 'dir', 'perPage', 'f', 'view'", $moduleTable, 'Per-page preference must not be persisted in the URL state.');
+        evo_ui_assert_contains('$this->dispatchClientState();', $moduleTable, 'Per-page updates must dispatch client state.');
+        evo_ui_assert_contains("'urlDefaults' => \$this->urlDefaultState()", $moduleTable, 'Module table payload must expose URL defaults.');
+        evo_ui_assert_contains('data-evo-table-url-defaults', $moduleTableView, 'Module table surface must expose URL defaults for client cleanup.');
+        evo_ui_assert_contains('cleanDefaultTableUrlState(surface)', $js, 'Module table JavaScript must remove default URL table state.');
+        evo_ui_assert_contains('protected function urlDefaultState(): array', $moduleTable, 'Module table must expose URL default state.');
+        evo_ui_assert_contains("\$keys = ['q', 'page', 'sort', 'dir', 'f', 'view']", $moduleTable, 'URL state detection must not treat perPage as shareable table state.');
+        evo_ui_assert_not_contains("#[Url(as: 'perPage'", $moduleTable, 'Per-page preference must not be written into the URL.');
         evo_ui_assert_contains('data-evo-table-per-page-cookie', $moduleTableView, 'Module table surface must expose a cookie key for first-render per-page preferences.');
         evo_ui_assert_contains('syncTablePerPagePreference(surface)', $js, 'Module table JavaScript must sync per-page preferences before responsive view checks.');
         evo_ui_assert_contains('evo-ui.table.per-page.', $js, 'Module table JavaScript must keep per-page preferences in localStorage.');
@@ -2035,6 +2042,8 @@ evo_ui_group('forms', function (): void {
             'evo-ui-color-field__input' => 'Color fields must render a hex text input.',
             "\$type === 'resource-parent'" => 'Resource parent field contract must be rendered.',
             "\$type === 'multi-checkbox'" => 'Multi-checkbox field contract must be rendered.',
+            "\$type === 'multi-select'" => 'Multi-select field contract must be rendered.',
+            "\$itemType === 'multi-select'" => 'Config-map child fields must support compact multi-select controls.',
             "\$type === 'config-map'" => 'Config-map field contract must be rendered.',
             'addConfigMapItem' => 'Config-map fields must expose add behavior.',
             'removeConfigMapItem' => 'Config-map fields must expose delete behavior.',
@@ -2106,6 +2115,7 @@ evo_ui_group('forms', function (): void {
             "'config-map' => \$this->castConfigMapValue(\$field, \$value)," => 'Form must cast config-map values before save.',
             "'csv' => \$this->castCsvValue(\$value)," => 'Form must cast CSV values before save.',
             "'datetime' => \$this->castDateTimeValue(\$value)," => 'Form must cast datetime values before save.',
+            "'multi-checkbox', 'multi-select' => \$this->castMultiValue(\$field, \$value)," => 'Form must cast multi-select values before save.',
             "'resource-parent' => max(0, (int) \$value)," => 'Form must normalize resource parent ids before save.',
             'protected function castConfigMapValue(array $field, mixed $value): array' => 'Form must expose config-map casting helper.',
             'protected function castCsvValue(mixed $value): array' => 'Form must expose CSV casting helper.',

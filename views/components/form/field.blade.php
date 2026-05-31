@@ -209,6 +209,17 @@
                                             <span class="evo-ui-checkbox">
                                                 <input type="checkbox" wire:model.live="{{ $itemModel }}">
                                             </span>
+                                        @elseif($itemType === 'multi-select')
+                                            <select
+                                                class="evo-ui-input evo-ui-select--multiple"
+                                                wire:model.live="{{ $itemModel }}"
+                                                multiple
+                                                size="{{ (int) ($itemField['size'] ?? 5) }}"
+                                            >
+                                                @foreach($controller->fieldOptions($itemField) as $option)
+                                                    <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                                @endforeach
+                                            </select>
                                         @elseif(in_array($itemType, ['color', 'color-picker'], true))
                                             @php
                                                 $itemRawColor = (string) data_get($item, $itemName, '');
@@ -261,6 +272,12 @@
             </span>
         @elseif($type === 'select')
             <select class="evo-ui-input" wire:model.live="{{ $model }}">
+                @foreach($controller->fieldOptions($field) as $option)
+                    <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                @endforeach
+            </select>
+        @elseif($type === 'multi-select')
+            <select class="evo-ui-input evo-ui-select--multiple" wire:model.live="{{ $model }}" multiple size="{{ (int) ($field['size'] ?? 6) }}">
                 @foreach($controller->fieldOptions($field) as $option)
                     <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
                 @endforeach

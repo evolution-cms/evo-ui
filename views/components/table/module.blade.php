@@ -13,6 +13,7 @@
     'perPageOptions' => [],
     'storageKey' => '',
     'perPageCookieName' => '',
+    'urlDefaults' => [],
     'viewMode' => 'table',
     'sort' => '',
     'direction' => 'asc',
@@ -46,6 +47,7 @@
         'data-evo-table-per-page' => $perPage,
         'data-evo-table-per-page-cookie' => $perPageCookieName,
         'data-evo-table-per-page-options' => implode(',', $perPageOptions),
+        'data-evo-table-url-defaults' => json_encode($urlDefaults, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         'wire:loading.class' => 'is-loading',
         'wire:target' => $wireTarget,
     ]);

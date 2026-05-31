@@ -82,6 +82,7 @@ class ModuleTable extends Component
     {
         $this->syncConfigState();
         $this->resetPageState();
+        $this->dispatchClientState();
     }
 
     public function setFilter(string $state, string $value): void
@@ -959,7 +960,6 @@ class ModuleTable extends Component
         return [
             'search' => $this->search,
             'page' => $this->page,
-            'perPage' => $this->perPage,
             'filters' => $this->filterState,
             'sort' => $this->sort,
             'direction' => $this->direction,
@@ -995,6 +995,7 @@ class ModuleTable extends Component
             'perPageOptions' => $this->perPageOptions(),
             'storageKey' => $this->storageKey(),
             'perPageCookieName' => $this->perPageCookieName(),
+            'urlDefaults' => $this->urlDefaultState(),
             'viewMode' => $this->viewMode,
             'sort' => $this->sort,
             'direction' => $this->direction,
@@ -1470,6 +1471,7 @@ class ModuleTable extends Component
         return [
             'search' => $this->search,
             'page' => $this->page,
+            'perPage' => $this->perPage,
             'filters' => $this->filterState,
             'sort' => $this->sort,
             'direction' => $this->direction,
@@ -1838,12 +1840,44 @@ class ModuleTable extends Component
                 continue;
             }
 
-            $this->filterState[$state] = ($filter['type'] ?? null) === 'multi-select'
-                ? []
-                : ($filter['default'] ?? (($filter['type'] ?? null) === 'date-range'
-                    ? ['from' => '', 'to' => '']
-                    : (($filter['type'] ?? null) === 'segmented' ? 'all' : null)));
+            $this->filterState[$state] = $this->defaultFilterValue($filter);
         }
+    }
+
+    /** @param array<string, mixed> $filter */
+    protected function defaultFilterValue(array $filter): mixed
+    {
+        if (($filter['type'] ?? null) === 'multi-select') {
+            return [];
+        }
+
+        if (array_key_exists('default', $filter)) {
+            return $filter['default'];
+        }
+
+        return match ($filter['type'] ?? null) {
+            'date-range' => ['from' => '', 'to' => ''],
+            'segmented' => 'all',
+            default => null,
+        };
+    }
+
+    /** @return array<string, mixed> */
+    protected function defaultFilterState(): array
+    {
+        $defaults = [];
+
+        foreach ($this->filters() as $filter) {
+            $state = (string) ($filter['state'] ?? '');
+
+            if ($state === '') {
+                continue;
+            }
+
+            $defaults[$state] = $this->defaultFilterValue($filter);
+        }
+
+        return $defaults;
     }
 
     protected function normalizeDateFilterValue(string $value): string
@@ -2039,6 +2073,30 @@ class ModuleTable extends Component
     public function perPageCookieName(): string
     {
         return 'evo_ui_table_per_page_' . sha1($this->storageKey());
+    }
+
+    /** @return array<string, mixed> */
+    protected function urlDefaultState(): array
+    {
+        $sort = (string) $this->tableConfig('default_sort', '');
+        $column = $this->sortableColumn($sort);
+        $direction = 'asc';
+
+        if ($column) {
+            $direction = (string) $this->tableConfig('default_direction', $column['default_direction'] ?? 'asc');
+            $direction = $direction === 'desc' ? 'desc' : 'asc';
+        } else {
+            $sort = '';
+        }
+
+        return [
+            'q' => '',
+            'page' => 1,
+            'sort' => $sort,
+            'dir' => $direction,
+            'f' => $this->defaultFilterState(),
+            'view' => (string) $this->tableConfig('default_view', 'table'),
+        ];
     }
 
     /** @return array<int, int> */
