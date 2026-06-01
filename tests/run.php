@@ -849,15 +849,17 @@ evo_ui_group('assets', function (): void {
 
     evo_ui_test('livewire assets use manager-scoped routes without PATH_INFO', function (): void {
         $assets = evo_ui_read('src/Support/LivewireAssets.php');
-        $provider = evo_ui_read('src/EvoUIServiceProvider.php');
+        $endpoint = evo_ui_read('src/Support/LivewireManagerEndpoint.php');
 
         evo_ui_assert_contains("managerEndpointUrl('script'", $assets, 'Livewire script URL must use the manager endpoint.');
         evo_ui_assert_contains("managerEndpointUrl('update'", $assets, 'Livewire update URI must use the manager endpoint.');
         evo_ui_assert_contains('managerEndpointBaseUrl()', $assets, 'Livewire module URL must use the manager endpoint base so /js and /css module paths can be appended.');
-        evo_ui_assert_contains('evo-ui-livewire.php', $assets, 'Livewire assets must point to the physical manager endpoint.');
-        evo_ui_assert_contains('resources/manager/evo-ui-livewire.php', $provider, 'Provider must publish the physical manager endpoint.');
+        evo_ui_assert_contains('/evo-ui', $assets, 'Livewire assets must point to the manager route endpoint.');
+        evo_ui_assert_contains('class LivewireManagerEndpoint', $endpoint, 'EvoUI must expose a manager route endpoint handler.');
+        evo_ui_assert_contains('HandleRequests::class', $endpoint, 'Manager endpoint must proxy Livewire update requests.');
+        evo_ui_assert_contains('FrontendAssets::class', $endpoint, 'Manager endpoint must proxy Livewire script requests.');
         evo_ui_assert_not_contains("'/index.php/'", $assets, 'Livewire manager assets must not rely on PATH_INFO after manager/index.php.');
-        evo_ui_assert_not_contains("Route::post('evo-ui/livewire/update.json'", $provider, 'EvoUI must not expose Livewire update as a public route.');
+        evo_ui_assert_not_contains('evo-ui-livewire.php', $assets, 'Livewire assets must not depend on a physical manager PHP file.');
     });
 
     evo_ui_test('provider publishes runtime assets through Evolution symlinks', function (): void {

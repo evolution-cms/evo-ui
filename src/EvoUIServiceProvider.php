@@ -105,12 +105,6 @@ class EvoUIServiceProvider extends ServiceProvider
             public_path('assets/modules/evo-ui/evo-ui.js')
         );
 
-        if (defined('EVO_MANAGER_PATH')) {
-            $this->ensureRuntimeAsset(
-                $this->root . '/resources/manager/evo-ui-livewire.php',
-                rtrim(EVO_MANAGER_PATH, '/\\') . '/evo-ui-livewire.php'
-            );
-        }
     }
 
     protected function ensureRuntimeAsset(string $source, string $target): void

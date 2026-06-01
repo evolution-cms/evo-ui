@@ -68,7 +68,7 @@ class LivewireAssets
 
     protected static function managerEndpointBaseUrl(): string
     {
-        return rtrim(EVO_MANAGER_URL, '/') . '/evo-ui-livewire.php';
+        return rtrim(EVO_MANAGER_URL, '/') . '/evo-ui';
     }
 
     /**
