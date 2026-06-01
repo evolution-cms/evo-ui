@@ -847,12 +847,12 @@ evo_ui_group('assets', function (): void {
         evo_ui_assert_contains('LivewireAssets::scripts()', $assets, 'Asset partial must include Livewire scripts through the manager-safe shim.');
     });
 
-    evo_ui_test('livewire assets use the manager index entrypoint', function (): void {
+    evo_ui_test('livewire assets use root routes instead of manager PATH_INFO', function (): void {
         $assets = evo_ui_read('src/Support/LivewireAssets.php');
 
-        evo_ui_assert_contains("managerRouteUrl('livewire/livewire.js')", $assets, 'Livewire script URL must go through manager index.php for renamed manager directories.');
-        evo_ui_assert_contains("managerRoutePath('livewire/update')", $assets, 'Livewire update URI must go through manager index.php for renamed manager directories.');
-        evo_ui_assert_contains("'/index.php/'", $assets, 'Manager Livewire assets must not rely on directory rewrite rules only.');
+        evo_ui_assert_contains("sitePath('livewire/livewire.js')", $assets, 'Livewire script URL must use the site front controller routes.');
+        evo_ui_assert_contains("sitePath('livewire/update')", $assets, 'Livewire update URI must use the site front controller routes.');
+        evo_ui_assert_not_contains("'/index.php/'", $assets, 'Livewire manager assets must not rely on PATH_INFO after manager/index.php.');
     });
 
     evo_ui_test('provider publishes runtime assets through Evolution symlinks', function (): void {
