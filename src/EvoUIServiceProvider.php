@@ -12,8 +12,6 @@ use Illuminate\Routing\Redirector;
 use Illuminate\Routing\RouteCollectionInterface;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Route;
-use Livewire\Mechanisms\FrontendAssets\FrontendAssets;
 use Livewire\Livewire;
 use Livewire\LivewireServiceProvider;
 
@@ -106,6 +104,13 @@ class EvoUIServiceProvider extends ServiceProvider
             $this->root . '/resources/js/evo-ui.js',
             public_path('assets/modules/evo-ui/evo-ui.js')
         );
+
+        if (defined('EVO_MANAGER_PATH')) {
+            $this->ensureRuntimeAsset(
+                $this->root . '/resources/manager/evo-ui-livewire.php',
+                rtrim(EVO_MANAGER_PATH, '/\\') . '/evo-ui-livewire.php'
+            );
+        }
     }
 
     protected function ensureRuntimeAsset(string $source, string $target): void
@@ -150,36 +155,7 @@ class EvoUIServiceProvider extends ServiceProvider
     protected function registerLivewireDefaults(): void
     {
         config()->set('livewire.component_layout', config('evo-ui.livewire.layout', 'evo::layouts.manager'));
-        $this->registerLivewireManagerRoutes();
-    }
-
-    protected function registerLivewireManagerRoutes(): void
-    {
-        $this->registerLivewireMiddlewareGroup();
-        $livewire = app('livewire');
-
-        $livewire->setPersistentMiddleware(config('app.middleware.mgr', []));
-        $livewire->setUpdateRoute(fn ($handle) => Route::post('evo-ui/livewire/update.json', $handle)
-            ->middleware('mgr')
-            ->name('manager.livewire.update'));
-        $livewire->setScriptRoute(fn ($handle) => Route::get('evo-ui/livewire/livewire.js', $handle)
-            ->middleware('mgr')
-            ->name('manager.livewire.script'));
-
-        Route::get('evo-ui/livewire/livewire.min.js.map', [FrontendAssets::class, 'maps'])
-            ->middleware('mgr');
-
-        Route::get('evo-ui/livewire/livewire.csp.min.js.map', [FrontendAssets::class, 'cspMaps'])
-            ->middleware('mgr');
-    }
-
-    protected function registerLivewireMiddlewareGroup(): void
-    {
-        $router = app('router');
-
-        if (!$router->hasMiddlewareGroup('web')) {
-            $router->middlewareGroup('web', []);
-        }
+        app('livewire')->setPersistentMiddleware(config('app.middleware.mgr', []));
     }
 
     protected function registerLivewireComponents(): void

@@ -851,12 +851,13 @@ evo_ui_group('assets', function (): void {
         $assets = evo_ui_read('src/Support/LivewireAssets.php');
         $provider = evo_ui_read('src/EvoUIServiceProvider.php');
 
-        evo_ui_assert_contains("managerEndpointPath('evo-ui/livewire/livewire.js')", $assets, 'Livewire script URL must use the manager-scoped EvoUI route.');
-        evo_ui_assert_contains("managerEndpointPath('evo-ui/livewire/update.json')", $assets, 'Livewire update URI must use the manager-scoped EvoUI route.');
-        evo_ui_assert_contains("Route::post('evo-ui/livewire/update.json'", $provider, 'Livewire update route must be registered under the EvoUI manager namespace.');
-        evo_ui_assert_contains("Route::get('evo-ui/livewire/livewire.js'", $provider, 'Livewire script route must be registered under the EvoUI manager namespace.');
-        evo_ui_assert_contains("->middleware('mgr')", $provider, 'Livewire runtime routes must keep manager middleware.');
+        evo_ui_assert_contains("managerEndpointUrl('script'", $assets, 'Livewire script URL must use the manager endpoint.');
+        evo_ui_assert_contains("managerEndpointUrl('update'", $assets, 'Livewire update URI must use the manager endpoint.');
+        evo_ui_assert_contains('managerEndpointBaseUrl()', $assets, 'Livewire module URL must use the manager endpoint base so /js and /css module paths can be appended.');
+        evo_ui_assert_contains('evo-ui-livewire.php', $assets, 'Livewire assets must point to the physical manager endpoint.');
+        evo_ui_assert_contains('resources/manager/evo-ui-livewire.php', $provider, 'Provider must publish the physical manager endpoint.');
         evo_ui_assert_not_contains("'/index.php/'", $assets, 'Livewire manager assets must not rely on PATH_INFO after manager/index.php.');
+        evo_ui_assert_not_contains("Route::post('evo-ui/livewire/update.json'", $provider, 'EvoUI must not expose Livewire update as a public route.');
     });
 
     evo_ui_test('provider publishes runtime assets through Evolution symlinks', function (): void {

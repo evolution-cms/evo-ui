@@ -3,7 +3,6 @@
 namespace EvoUI\Support;
 
 use Livewire\Mechanisms\FrontendAssets\FrontendAssets;
-use Livewire\Mechanisms\HandleRequests\EndpointResolver;
 
 class LivewireAssets
 {
@@ -28,15 +27,15 @@ class LivewireAssets
         $progressBar = config('livewire.navigate.show_progress_bar', true) ? '' : 'data-no-progress-bar';
         $attributes = self::attributes($assets->scriptTagAttributes ?? []);
         $version = self::manifestVersion();
-        $scriptUrl = rtrim(self::managerEndpointPath('evo-ui/livewire/livewire.js'), '/') . '?id=' . rawurlencode($version);
+        $scriptUrl = self::managerEndpointUrl('script', ['id' => $version]);
 
         return sprintf(
             '<script src="%s" %s data-csrf="%s" data-module-url="%s" data-update-uri="%s" %s></script>',
             e($scriptUrl),
             $progressBar,
             e($token),
-            e(self::managerEndpointPath(ltrim(EndpointResolver::prefix(), '/'))),
-            e(self::managerEndpointPath('evo-ui/livewire/update.json')),
+            e(self::managerEndpointBaseUrl()),
+            e(self::managerEndpointUrl('update')),
             $attributes
         );
     }
@@ -57,11 +56,19 @@ class LivewireAssets
         return is_array($manifest) ? ($manifest['/livewire.js'] ?? 'dev') : 'dev';
     }
 
-    protected static function managerEndpointPath(string $path = ''): string
+    /**
+     * @param array<string, string> $query
+     */
+    protected static function managerEndpointUrl(string $action, array $query = []): string
     {
-        $base = parse_url(EVO_SITE_URL, PHP_URL_PATH) ?: '/';
+        $query = array_merge(['action' => $action], $query);
 
-        return '/' . trim(trim($base, '/') . '/' . trim($path, '/'), '/');
+        return self::managerEndpointBaseUrl() . '?' . http_build_query($query);
+    }
+
+    protected static function managerEndpointBaseUrl(): string
+    {
+        return rtrim(EVO_MANAGER_URL, '/') . '/evo-ui-livewire.php';
     }
 
     /**

@@ -4335,6 +4335,12 @@ select.evo-ui-select--multiple {
     width: min(1440px, calc(100vw - 32px));
 }
 
+.evo-ui-modal--fullscreen {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    max-height: calc(100vh - 16px);
+}
+
 .evo-ui-modal__header,
 .evo-ui-modal__footer {
     display: flex;

@@ -22,6 +22,8 @@ return [
     'action_save_continue' => 'Зберегти + Продовжити',
     'action_reset' => 'Скинути',
     'action_cancel' => 'Скасувати',
+    'action_fullscreen' => 'Відкрити на весь екран',
+    'action_exit_fullscreen' => 'Вийти з повного екрана',
     'action_discard' => 'Не зберігати',
     'action_preview' => 'Перегляд',
     'move_up' => 'Перемістити вгору',

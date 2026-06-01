@@ -22,6 +22,8 @@ return [
     'action_save_continue' => 'Save + Continue',
     'action_reset' => 'Reset',
     'action_cancel' => 'Cancel',
+    'action_fullscreen' => 'Open full screen',
+    'action_exit_fullscreen' => 'Exit full screen',
     'action_discard' => 'Do not save',
     'action_preview' => 'Preview',
     'move_up' => 'Move up',

@@ -4,6 +4,7 @@
     'icon' => null,
     'meta' => [],
     'size' => 'md',
+    'fullscreen' => true,
 ])
 
 @if($open)
@@ -14,11 +15,13 @@
     <div
         class="evo-ui-modal-backdrop"
         role="presentation"
+        x-data="{ fullscreen: false }"
         wire:click.self="closeModal"
         wire:keydown.escape.window="closeModal"
     >
         <section
             {{ $attributes->merge(['class' => $modalClass]) }}
+            x-bind:class="{ 'evo-ui-modal--fullscreen': fullscreen }"
             role="dialog"
             aria-modal="true"
             aria-labelledby="evo-ui-modal-title"
@@ -53,6 +56,19 @@
                                 @endif
                             @endforeach
                         </dl>
+                    @endif
+
+                    @if($fullscreen)
+                        <button
+                            type="button"
+                            class="evo-ui-modal__close"
+                            x-bind:title="fullscreen ? @js(__('evo::global.action_exit_fullscreen')) : @js(__('evo::global.action_fullscreen'))"
+                            x-bind:aria-label="fullscreen ? @js(__('evo::global.action_exit_fullscreen')) : @js(__('evo::global.action_fullscreen'))"
+                            x-on:click.prevent="fullscreen = !fullscreen"
+                        >
+                            <x-evo::icon name="arrows-maximize" x-show="!fullscreen" />
+                            <x-evo::icon name="arrows-minimize" x-show="fullscreen" x-cloak />
+                        </button>
                     @endif
 
                     <button type="button" class="evo-ui-modal__close" title="@lang('evo::global.action_cancel')" aria-label="@lang('evo::global.action_cancel')" wire:click="closeModal">
