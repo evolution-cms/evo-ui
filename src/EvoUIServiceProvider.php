@@ -4,6 +4,7 @@ namespace EvoUI;
 
 use EvolutionCMS\ServiceProvider;
 use EvoUI\Support\ManagerContext;
+use EvoUI\Support\LivewireManagerEndpoint;
 use EvoUI\Support\Permissions;
 use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
@@ -12,6 +13,7 @@ use Illuminate\Routing\Redirector;
 use Illuminate\Routing\RouteCollectionInterface;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Livewire\LivewireServiceProvider;
 
@@ -47,6 +49,7 @@ class EvoUIServiceProvider extends ServiceProvider
         $this->registerBladeComponentNamespace();
         $this->registerLivewireDefaults();
         $this->registerLivewireComponents();
+        $this->registerManagerEndpointRoute();
 
         $this->publishes([
             $this->root . '/config/evo-ui.php' => config_path('evo-ui.php', true),
@@ -158,6 +161,17 @@ class EvoUIServiceProvider extends ServiceProvider
         Livewire::component('evo-ui.form', \EvoUI\Livewire\Form::class);
         Livewire::component('evo-ui.module-table', \EvoUI\Livewire\ModuleTable::class);
         Livewire::component('evo-ui.issue-workspace', \EvoUI\Livewire\IssueWorkspace::class);
+    }
+
+    protected function registerManagerEndpointRoute(): void
+    {
+        if (!defined('IN_MANAGER_MODE') || !IN_MANAGER_MODE) {
+            return;
+        }
+
+        Route::match(['GET', 'POST'], 'evo-ui/{path?}', function (?string $path = null) {
+            return app(LivewireManagerEndpoint::class)(request(), $path);
+        })->where('path', '.*');
     }
 
     protected function registerLivewireBridge(): void
