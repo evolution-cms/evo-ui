@@ -1468,6 +1468,23 @@ evo_ui_group('state', function (): void {
         }
     });
 
+    evo_ui_test('module tab active state uses primary accent', function (): void {
+        $css = evo_ui_read('resources/css/evo-ui.css');
+
+        foreach ([
+            ".evo-ui .tab-active {\n    color: var(--evo-ui-primary);" => 'Generic active tabs must use the shared primary accent even before nav-specific classes apply.',
+            ".evo-ui .tabs-lift .tab-active {\n    background: transparent;\n    color: var(--evo-ui-primary);" => 'Lifted tabs must use the shared primary accent for active labels.',
+            'background: color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);' => 'Lifted tabs must use the shared primary accent for the active underline.',
+            'background: var(--evo-ui-surface);' => 'Nav tabs must own the shared surface background instead of inheriting the page background.',
+            ".evo-ui .evo-ui-nav-tab:hover,\n.evo-ui .evo-ui-nav-tab:focus-visible {\n    color: var(--evo-ui-primary);" => 'Nav tabs must use the shared primary accent for hover and focus labels.',
+            ".evo-ui .evo-ui-nav-tab.is-active {\n    color: var(--evo-ui-primary);" => 'Nav tabs must use the shared primary accent for active labels.',
+            ".evo-ui .evo-ui-nav-tab.is-active::after {\n    background: color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);" => 'Nav tabs must use the shared primary accent for the active underline.',
+            'color: var(--evo-ui-primary);' => 'Nav tab icons must keep the shared primary accent even when inactive labels are muted.',
+        ] as $marker => $message) {
+            evo_ui_assert_contains($marker, $css, $message);
+        }
+    });
+
     evo_ui_test('table and issue workspace persist state in manager session', function (): void {
         $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
         $issueWorkspace = evo_ui_read('src/Livewire/IssueWorkspace.php');

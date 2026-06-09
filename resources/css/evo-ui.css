@@ -1555,9 +1555,12 @@
     font-weight: 650;
 }
 
-.evo-ui .tab:hover,
-.evo-ui .tab-active {
+.evo-ui .tab:hover {
     color: var(--evo-ui-text);
+}
+
+.evo-ui .tab-active {
+    color: var(--evo-ui-primary);
 }
 
 .evo-ui .tabs-lift {
@@ -1566,6 +1569,7 @@
 
 .evo-ui .tabs-lift .tab-active {
     background: transparent;
+    color: var(--evo-ui-primary);
 }
 
 .evo-ui .tabs-lift .tab-active::after {
@@ -1575,7 +1579,7 @@
     left: 12px;
     z-index: 1;
     height: 2px;
-    background: color-mix(in oklch, var(--evo-ui-text) 78%, transparent);
+    background: color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);
     content: "";
 }
 
@@ -1623,7 +1627,7 @@
     border: 0;
     border-bottom: 1px solid var(--evo-ui-border);
     border-radius: 0;
-    background: transparent;
+    background: var(--evo-ui-surface);
 }
 
 .evo-ui .evo-ui-nav-tabs__list {
@@ -1675,17 +1679,17 @@
 
 .evo-ui .evo-ui-nav-tab:hover,
 .evo-ui .evo-ui-nav-tab:focus-visible {
-    color: var(--evo-ui-text);
+    color: var(--evo-ui-primary);
     background: transparent;
     outline: 0;
 }
 
 .evo-ui .evo-ui-nav-tab.is-active {
-    color: var(--evo-ui-text);
+    color: var(--evo-ui-primary);
 }
 
 .evo-ui .evo-ui-nav-tab.is-active::after {
-    background: color-mix(in oklch, var(--evo-ui-text) 78%, transparent);
+    background: color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);
 }
 
 .evo-ui .evo-ui-nav-tab__label {
@@ -1698,7 +1702,7 @@
     width: 18px;
     height: 18px;
     flex: 0 0 18px;
-    color: currentColor;
+    color: var(--evo-ui-primary);
 }
 
 .evo-ui-placeholder--muted {
