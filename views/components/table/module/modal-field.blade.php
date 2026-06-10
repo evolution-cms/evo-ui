@@ -64,7 +64,6 @@
             @if($helpText !== '')
                 <span
                     class="evo-ui-field__help"
-                    title="{{ $helpText }}"
                     aria-label="{{ $helpText }}"
                     data-tooltip="{{ $helpText }}"
                     data-evo-tooltip="{{ $helpText }}"
@@ -546,7 +545,7 @@
                                                 <span class="evo-ui-builder__label">
                                                     <span>{{ $blockFieldLabel }}</span>
                                                     @if($blockFieldHelp !== '')
-                                                        <span class="evo-ui-field__help" title="{{ $blockFieldHelp }}" aria-label="{{ $blockFieldHelp }}" data-tooltip="{{ $blockFieldHelp }}" data-evo-tooltip="{{ $blockFieldHelp }}" tabindex="0">?</span>
+                                                            <span class="evo-ui-field__help" aria-label="{{ $blockFieldHelp }}" data-tooltip="{{ $blockFieldHelp }}" data-evo-tooltip="{{ $blockFieldHelp }}" tabindex="0">?</span>
                                                     @endif
                                                 </span>
                                             @endif
@@ -628,7 +627,7 @@
                                                                             <span class="evo-ui-builder__label">
                                                                                 <span>{{ $nestedLabel }}</span>
                                                                                 @if($nestedHelp !== '')
-                                                                                    <span class="evo-ui-field__help" title="{{ $nestedHelp }}" aria-label="{{ $nestedHelp }}" data-tooltip="{{ $nestedHelp }}" data-evo-tooltip="{{ $nestedHelp }}" tabindex="0">?</span>
+                                                                            <span class="evo-ui-field__help" aria-label="{{ $nestedHelp }}" data-tooltip="{{ $nestedHelp }}" data-evo-tooltip="{{ $nestedHelp }}" tabindex="0">?</span>
                                                                                 @endif
                                                                             </span>
 

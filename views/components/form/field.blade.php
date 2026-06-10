@@ -50,7 +50,6 @@
             @if($helpText)
                 <span
                     class="evo-ui-field__help"
-                    title="{{ $helpText }}"
                     aria-label="{{ $helpText }}"
                     data-tooltip="{{ $helpText }}"
                     data-evo-tooltip="{{ $helpText }}"
