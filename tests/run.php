@@ -1922,7 +1922,7 @@ evo_ui_group('forms', function (): void {
         foreach ([
             'evo-ui-dashboard-card--span-' => 'Dashboard card must expose span classes.',
             'data-evo-dashboard-card-span' => 'Dashboard card must expose the selected span marker.',
-            '$allowedSpans = [3, 4, 6, 8, 12]' => 'Dashboard card must clamp supported spans.',
+            '$allowedSpans = [2, 3, 4, 6, 8, 12]' => 'Dashboard card must clamp supported spans.',
             'evo-ui-dashboard-card__stats' => 'Dashboard card must render standard stat rows.',
             '<x-evo::badge :value="$badge" />' => 'Dashboard card must reuse shared badge rendering.',
         ] as $marker => $message) {
@@ -1933,9 +1933,10 @@ evo_ui_group('forms', function (): void {
             '.evo-ui-dashboard__cards {' => 'Dashboard card group CSS must exist.',
             '.evo-ui-dashboard__cards--divided {' => 'Dashboard divided spacing CSS must exist.',
             'padding-block-end: var(--evo-ui-space-4, 1rem);' => 'Dashboard card group must reserve standard spacing before body content.',
+            '.evo-ui-dashboard-card--span-2 {' => 'Dashboard sixth-width span CSS must exist.',
             '.evo-ui-dashboard-card--span-6 {' => 'Dashboard half-width span CSS must exist.',
             'flex: 0 1 calc(50% - (var(--evo-ui-dashboard-gap) * 0.5));' => 'Dashboard span-6 must be half width minus gap.',
-            '.evo-ui-dashboard-card--span-3,' . PHP_EOL . '    .evo-ui-dashboard-card--span-4,' => 'Dashboard spans must collapse together on narrow screens.',
+            '.evo-ui-dashboard-card--span-2,' . PHP_EOL . '    .evo-ui-dashboard-card--span-3,' => 'Dashboard spans must collapse together on narrow screens.',
             'flex-basis: 100%;' => 'Dashboard spans must fall back to full width on narrow screens.',
         ] as $marker => $message) {
             evo_ui_assert_contains($marker, $css, $message);
