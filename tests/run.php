@@ -1575,6 +1575,11 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('.evo-ui-table-title', $css, 'Table title must have a shared evo-ui style.');
         evo_ui_assert_contains('.evo-ui-table-toolbar--table-header', $css, 'Attached table title toolbar must have shared evo-ui CSS.');
         evo_ui_assert_contains('.evo-ui-table-wrap--with-toolbar', $css, 'Attached table title toolbar must reuse the table surface frame.');
+        evo_ui_assert_contains('.evo-ui-table tr.is-dimmed', $css, 'Dimmed table rows must use shared muted styling.');
+        evo_ui_assert_contains('.evo-ui-list-item.is-dimmed', $css, 'Dimmed list rows must use shared muted styling.');
+        evo_ui_assert_contains('.evo-ui-row-actions button.evo-ui-row-action--info', $css, 'Info row actions must expose a shared tone style.');
+        evo_ui_assert_contains('background: var(--evo-ui-info-soft);', $css, 'Info row actions must use the same soft info surface as icon toolbar buttons.');
+        evo_ui_assert_contains('color: var(--evo-ui-muted);', $css, 'Dimmed rows must inherit the shared muted text token.');
         evo_ui_assert_contains(".evo-ui .tab-content {\n    box-sizing: border-box;", $css, 'Module tab content must keep stable padding and sizing.');
         evo_ui_assert_contains(".evo-ui .evo-ui-tabs {\n    width: 100%;\n    min-height: 0;", $css, 'Module tab wrapper must not force viewport height and create false scrollbars.');
         evo_ui_assert_contains("min-height: 0;\n    padding: 18px 20px;", $css, 'Module tab content must not force viewport height and create false scrollbars.');
