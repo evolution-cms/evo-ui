@@ -5606,6 +5606,15 @@ select.evo-ui-select--multiple {
     color: var(--evo-ui-text);
 }
 
+.evo-ui-table tr.is-dimmed,
+.evo-ui-list-item.is-dimmed,
+.evo-ui-table tr.is-dimmed a.evo-ui-table-link,
+.evo-ui-list-item.is-dimmed a.evo-ui-table-link,
+.evo-ui-table tr.is-dimmed .evo-ui-list-item__meta dd,
+.evo-ui-list-item.is-dimmed .evo-ui-list-item__meta dd {
+    color: var(--evo-ui-muted);
+}
+
 .evo-ui .evo-ui-table a.evo-ui-table-link:hover,
 .evo-ui .evo-ui-table a.evo-ui-table-link:focus-visible,
 .evo-ui .evo-ui-list a.evo-ui-table-link:hover,
@@ -5753,6 +5762,10 @@ select.evo-ui-select--multiple {
 
 .evo-ui-table__title-column {
     width: auto;
+}
+
+.evo-ui-table__title-text {
+    font-weight: 700;
 }
 
 .evo-ui-table__number-column {
@@ -6323,6 +6336,8 @@ select.evo-ui-select--multiple {
 .evo-ui-row-actions a.evo-ui-row-action--info,
 .evo-ui-row-actions button.evo-ui-row-action--info {
     color: var(--evo-ui-info);
+    background: var(--evo-ui-info-soft);
+    border: 1px solid color-mix(in oklch, var(--evo-ui-info) 44%, var(--evo-ui-border));
 }
 
 .evo-ui-row-actions a.evo-ui-row-action--success,

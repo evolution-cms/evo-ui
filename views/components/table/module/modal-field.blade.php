@@ -21,6 +21,26 @@
     $fieldTab = (string) ($field['tab'] ?? $defaultModalTab);
     $gridRow = trim((string) ($field['grid_row'] ?? ''));
     $fieldStyle = preg_match('/^\d+(?:\s*\/\s*\d+)?$/', $gridRow) ? 'grid-row: ' . $gridRow . ';' : '';
+    $visibleIf = is_array($field['visible_if'] ?? null) ? $field['visible_if'] : [];
+    $visibleIfField = (string) ($visibleIf['field'] ?? '');
+    $visibleIfExpected = $visibleIf['value'] ?? true;
+    $visibilityExpression = '';
+
+    if ($modalTabs->isNotEmpty() && $fieldTab !== '') {
+        $visibilityExpression = 'selectedModalTab === ' . json_encode($fieldTab, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    if ($visibleIfField !== '') {
+        $fieldExpression = 'fieldVisible('
+            . json_encode($visibleIfField, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            . ', '
+            . json_encode($visibleIfExpected, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            . ')';
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && ' . $fieldExpression
+            : $fieldExpression;
+    }
+
     $colorFallback = (string) ($field['default'] ?? '#64748B');
     $colorFallback = preg_match('/^#[0-9a-f]{6}$/i', $colorFallback) ? strtoupper($colorFallback) : '#64748B';
 @endphp
@@ -36,8 +56,8 @@
         @if($fieldStyle !== '')
             style="{{ $fieldStyle }}"
         @endif
-        @if($modalTabs->isNotEmpty() && $fieldTab !== '')
-            x-show="selectedModalTab === @js($fieldTab)"
+        @if($visibilityExpression !== '')
+            x-show="{{ $visibilityExpression }}"
             x-cloak
         @endif
     >
@@ -52,8 +72,8 @@
         @if($fieldStyle !== '')
             style="{{ $fieldStyle }}"
         @endif
-        @if($modalTabs->isNotEmpty() && $fieldTab !== '')
-            x-show="selectedModalTab === @js($fieldTab)"
+        @if($visibilityExpression !== '')
+            x-show="{{ $visibilityExpression }}"
             x-cloak
         @endif
     >

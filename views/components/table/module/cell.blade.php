@@ -29,6 +29,9 @@
 
         return is_scalar($displayValue) || $displayValue === null ? (string) $displayValue : '';
     };
+
+    $textColor = is_array($value) ? (string) data_get($value, 'color', '') : '';
+    $textStyle = preg_match('/^#[0-9a-f]{6}$/i', $textColor) ? 'color: ' . strtoupper($textColor) . ';' : '';
 ?>
 
 <td class="{{ $cellClass }}">
@@ -109,6 +112,9 @@
             <?php endif; ?>
         </span>
     <?php else: ?>
-        {{ $toText($value) }}
+        <?php $textValue = $toText($value); ?>
+        <?php if ($textValue !== ''): ?>
+            <span <?php if ($textStyle !== ''): ?>style="{{ $textStyle }}"<?php endif; ?>>{{ $textValue }}</span>
+        <?php endif; ?>
     <?php endif; ?>
 </td>
