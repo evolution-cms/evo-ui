@@ -262,7 +262,7 @@ class ModuleTable extends Component
             return;
         }
 
-        $this->validate($this->modalRules(), [], $this->modalValidationAttributes());
+        $this->validateModalData();
 
         if (($method = $this->modalConfig('save_provider')) && method_exists($this->provider(), $method)) {
             $savedId = $this->callProvider((string) $method, $this->modalData, $this->modalRecordId, $this->modalMode);
@@ -292,7 +292,7 @@ class ModuleTable extends Component
             data_set($this->modalData, (string) $field, $value);
         }
 
-        $this->validate($this->modalRules(), [], $this->modalValidationAttributes());
+        $this->validateModalData();
         $method = (string) ($action['save_provider'] ?? $this->modalConfig('save_provider', 'saveModal'));
 
         if (!method_exists($this->provider(), $method)) {
@@ -1572,6 +1572,17 @@ class ModuleTable extends Component
         }
 
         return $rules;
+    }
+
+    protected function validateModalData(): void
+    {
+        $rules = $this->modalRules();
+
+        if ($rules === []) {
+            return;
+        }
+
+        $this->validate($rules, [], $this->modalValidationAttributes());
     }
 
     /** @return array<string, string> */
