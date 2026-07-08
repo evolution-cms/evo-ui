@@ -1049,6 +1049,7 @@ evo_ui_group('design-tokens', function (): void {
             '--color-primary: oklch' => 'Primary palette must use OKLCH tokens.',
             '--color-success: oklch' => 'Success palette must use OKLCH tokens.',
             '--color-warning: oklch' => 'Warning palette must use OKLCH tokens.',
+            '--color-warning: oklch(70.5% 0.213 47.604);' => 'Warning palette must use the shared orange warning tone.',
             '--color-error: oklch' => 'Error palette must use OKLCH tokens.',
             'color-mix(in oklch' => 'Derived colors must use OKLCH color mixing.',
         ] as $marker => $message) {
