@@ -1692,8 +1692,13 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('$showSubmit', $modal, 'Modal form must support read-only/action detail modals without a submit button.');
         evo_ui_assert_contains('x-on:submit.prevent', $modal, 'Read-only modal submit must be prevented without saving.');
         evo_ui_assert_contains('EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())', $modal, 'Modal submit must sync rich editors before saving.');
+        evo_ui_assert_contains('$fieldNameClass', $modalField, 'Modal fields must expose stable name classes for consumer-specific layout hooks.');
+        evo_ui_assert_contains('$fieldTypeClass', $modalField, 'Modal fields must expose stable type classes for shared field styling.');
         evo_ui_assert_contains('$type === \'static\'', $modalField, 'Modal fields must support top-level static read-only fields.');
         evo_ui_assert_contains('$type === \'code\'', $modalField, 'Modal fields must support top-level code/log fields.');
+        evo_ui_assert_contains('$type === \'code-plain\'', $modalField, 'Modal fields must support plain read-only code payloads.');
+        evo_ui_assert_contains('$type === \'meta-line\'', $modalField, 'Modal fields must support compact read-only metadata lines.');
+        evo_ui_assert_contains('$type === \'timeline\'', $modalField, 'Modal fields must support read-only timeline content.');
         evo_ui_assert_contains('$type === \'badge\'', $modalField, 'Modal fields must support top-level badge fields.');
         evo_ui_assert_contains("in_array(\$type, ['color', 'color-picker'], true)", $modalField, 'Modal fields must support color picker fields.');
         evo_ui_assert_contains('$type === \'choices\'', $modalField, 'Modal fields must support choices fields.');
@@ -2115,6 +2120,8 @@ evo_ui_group('forms', function (): void {
     evo_ui_test('modal fields support choices, media, editor, builder and color contracts', function (): void {
         $modalField = evo_ui_read('views/components/table/module/modal-field.blade.php');
         $modal = evo_ui_read('views/components/table/module/form-modal.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+        $docs = evo_ui_read('docs/en/components/form-fields.md');
         $js = evo_ui_read('resources/js/evo-ui.js');
 
         foreach ([
@@ -2153,6 +2160,19 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains('window.EvoUI.browseImageField = function (inputId)', $js, 'Runtime must expose image picker bridge.');
         evo_ui_assert_contains('normalizeLegacyEditorInlineScript', $js, 'Runtime must normalize repeated legacy rich editor inline scripts.');
         evo_ui_assert_contains('typeof $2 !== "undefined" && $2 && typeof $2 === "object"', $js, 'Runtime must refresh TinyMCE config selector before repeated init calls.');
+
+        foreach ([
+            '.evo-ui-field--type-code-plain' => 'Plain code modal fields must have a shared layout hook.',
+            '.evo-ui-code-block--plain' => 'Plain code modal fields must remove the framed code surface.',
+            '.evo-ui-meta-line' => 'Metadata line modal fields must expose a shared root class.',
+            '.evo-ui-timeline-field' => 'Timeline modal fields must expose a shared root class.',
+            '### code-plain' => 'Plain code modal fields must be documented.',
+            '### meta-line' => 'Metadata line modal fields must be documented.',
+            '### timeline' => 'Timeline modal fields must be documented.',
+        ] as $marker => $message) {
+            $haystack = str_starts_with($marker, '### ') ? $docs : $css;
+            evo_ui_assert_contains($marker, $haystack, $message);
+        }
     });
 
     evo_ui_test('custom field registry resolves view, name and type overrides', function (): void {
