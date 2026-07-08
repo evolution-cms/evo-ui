@@ -1543,6 +1543,16 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('$withActionKey', $list, 'List row actions must support action-key arguments like table rows.');
     });
 
+    evo_ui_test('module modal skips Livewire validation when no field rules are configured', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+
+        evo_ui_assert_contains('protected function validateModalData(): void', $moduleTable, 'ModuleTable must centralize modal validation.');
+        evo_ui_assert_contains('$rules = $this->modalRules();', $moduleTable, 'ModuleTable modal validation must read configured field rules.');
+        evo_ui_assert_contains('if ($rules === []) {' . PHP_EOL . '            return;' . PHP_EOL . '        }', $moduleTable, 'ModuleTable must skip Livewire validation when modal rules are empty.');
+        evo_ui_assert_contains('$this->validate($rules, [], $this->modalValidationAttributes());', $moduleTable, 'ModuleTable must still validate when modal rules exist.');
+        evo_ui_assert_not_contains('$this->validate($this->modalRules(), [], $this->modalValidationAttributes());', $moduleTable, 'ModuleTable must not call Livewire validation with an empty rules array.');
+    });
+
     evo_ui_test('module table exposes filtering, sorting, pagination and view state methods', function (): void {
         $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
         $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
@@ -2119,6 +2129,12 @@ evo_ui_group('forms', function (): void {
             '$modalNotices' => 'Modal form must support configured notice blocks.',
             'evo-ui-modal__notices' => 'Modal notices must render in a dedicated container.',
             'placeholder="{{ $placeholder }}"' => 'Top-level modal fields must render configured placeholders.',
+            'visible_if_all' => 'Modal fields must support multiple visibility conditions.',
+            "->implode(' && ')" => 'Multiple visibility conditions must be combined with AND logic.',
+            'visible_if_any' => 'Modal fields must support alternative visibility conditions.',
+            "->implode(' || ')" => 'Alternative visibility conditions must be combined with OR logic.',
+            'addon_prefix' => 'Modal text fields must support input add-on prefixes.',
+            'evo-ui-input-group__addon' => 'Modal input add-ons must render a visible prefix.',
             'EvoUI.browseImageField' => 'Image fields must open through the shared media bridge.',
             'EvoUI.browseMediaField' => 'File fields must open through the shared media bridge.',
             'EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())' => 'Modal submit must sync editors before save.',

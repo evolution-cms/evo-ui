@@ -7,6 +7,7 @@
     $help = $field['help'] ?? $field['description'] ?? null;
     $helpText = $help ? __((string) $help) : '';
     $placeholder = !empty($field['placeholder']) ? __((string) $field['placeholder']) : '';
+    $addonPrefix = (string) ($field['addon_prefix'] ?? '');
     $fieldIdSuffix = (string) ($field['id_suffix'] ?? '');
     $fieldId = 'evo-modal-' . preg_replace('/[^a-z0-9_-]/i', '-', trim($controller->preset . '-' . $name . '-' . $fieldIdSuffix, '-'));
     $section = preg_replace('/[^a-z0-9_-]/i', '-', (string) ($field['section'] ?? ''));
@@ -22,6 +23,12 @@
     $gridRow = trim((string) ($field['grid_row'] ?? ''));
     $fieldStyle = preg_match('/^\d+(?:\s*\/\s*\d+)?$/', $gridRow) ? 'grid-row: ' . $gridRow . ';' : '';
     $visibleIf = is_array($field['visible_if'] ?? null) ? $field['visible_if'] : [];
+    $visibleIfAll = collect((array) ($field['visible_if_all'] ?? []))
+        ->filter(fn ($condition) => is_array($condition) && !empty($condition['field']))
+        ->values();
+    $visibleIfAny = collect((array) ($field['visible_if_any'] ?? []))
+        ->filter(fn ($condition) => is_array($condition) && !empty($condition['field']))
+        ->values();
     $visibleIfField = (string) ($visibleIf['field'] ?? '');
     $visibleIfExpected = $visibleIf['value'] ?? true;
     $visibilityExpression = '';
@@ -39,6 +46,32 @@
         $visibilityExpression = $visibilityExpression !== ''
             ? '(' . $visibilityExpression . ') && ' . $fieldExpression
             : $fieldExpression;
+    }
+
+    if ($visibleIfAll->isNotEmpty()) {
+        $fieldExpression = $visibleIfAll
+            ->map(fn ($condition) => 'fieldVisible('
+                . json_encode((string) ($condition['field'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ', '
+                . json_encode($condition['value'] ?? true, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ')')
+            ->implode(' && ');
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && (' . $fieldExpression . ')'
+            : '(' . $fieldExpression . ')';
+    }
+
+    if ($visibleIfAny->isNotEmpty()) {
+        $fieldExpression = $visibleIfAny
+            ->map(fn ($condition) => 'fieldVisible('
+                . json_encode((string) ($condition['field'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ', '
+                . json_encode($condition['value'] ?? true, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ')')
+            ->implode(' || ');
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && (' . $fieldExpression . ')'
+            : '(' . $fieldExpression . ')';
     }
 
     $colorFallback = (string) ($field['default'] ?? '#64748B');
@@ -912,10 +945,19 @@
             @php
                 $inputType = in_array($type, ['email', 'number', 'date', 'datetime-local'], true) ? $type : 'text';
             @endphp
-            @if(!empty($field['live']))
-                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @endif>
+            @if($addonPrefix !== '')
+                <span class="evo-ui-input-group" style="display: flex; width: 100%;">
+                    <span class="evo-ui-input-group__addon" style="display: inline-flex; align-items: center; padding: 0 0.875rem; border: 1px solid var(--evo-ui-border); border-right: 0; border-radius: var(--evo-ui-radius-sm) 0 0 var(--evo-ui-radius-sm); background: color-mix(in oklch, var(--evo-ui-muted) 9%, transparent); color: var(--evo-ui-muted);">{{ $addonPrefix }}</span>
+                    @if(!empty($field['live']))
+                        <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" style="flex: 1; min-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0;" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
+                    @else
+                        <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" style="flex: 1; min-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0;" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
+                    @endif
+                </span>
+            @elseif(!empty($field['live']))
+                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
             @else
-                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @endif>
+                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
             @endif
         @endif
 
