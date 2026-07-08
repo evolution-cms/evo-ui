@@ -11,7 +11,11 @@
     $fieldIdSuffix = (string) ($field['id_suffix'] ?? '');
     $fieldId = 'evo-modal-' . preg_replace('/[^a-z0-9_-]/i', '-', trim($controller->preset . '-' . $name . '-' . $fieldIdSuffix, '-'));
     $section = preg_replace('/[^a-z0-9_-]/i', '-', (string) ($field['section'] ?? ''));
+    $fieldNameClass = 'evo-ui-field--name-' . preg_replace('/[^a-z0-9_-]/i', '-', $name);
+    $fieldTypeClass = 'evo-ui-field--type-' . preg_replace('/[^a-z0-9_-]/i', '-', $type);
     $fieldClass = trim('evo-ui-field evo-ui-field--modal ' .
+        $fieldNameClass . ' ' .
+        $fieldTypeClass . ' ' .
         (($field['span'] ?? '') === 'full' ? 'evo-ui-field--full ' : '') .
         (!$showLabel ? 'evo-ui-field--no-label ' : '') .
         ($section !== '' ? 'evo-ui-field--section-' . $section : ''));
@@ -139,6 +143,51 @@
                     : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             @endphp
             <pre id="{{ $fieldId }}" class="evo-ui-code-block">{{ $codeValue }}</pre>
+        @elseif($type === 'code-plain')
+            @php
+                $codeValue = is_scalar($value) || $value === null
+                    ? (string) $value
+                    : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            @endphp
+            <pre id="{{ $fieldId }}" class="evo-ui-code-block evo-ui-code-block--plain">{{ $codeValue }}</pre>
+        @elseif($type === 'meta-line')
+            @php
+                $items = collect((array) $value)
+                    ->map(fn ($item) => is_array($item) ? $item : ['label' => '', 'value' => $item])
+                    ->filter(fn ($item) => array_key_exists('value', $item) && $item['value'] !== null && $item['value'] !== '')
+                    ->values();
+            @endphp
+            <div id="{{ $fieldId }}" class="evo-ui-meta-line">
+                @foreach($items as $item)
+                    <span class="evo-ui-meta-line__item">
+                        @if(!empty($item['label']))
+                            <span class="evo-ui-meta-line__label">{{ __((string) $item['label']) }}</span>
+                        @endif
+                        <span class="evo-ui-meta-line__value">{{ is_scalar($item['value']) ? (string) $item['value'] : json_encode($item['value'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</span>
+                    </span>
+                @endforeach
+            </div>
+        @elseif($type === 'timeline')
+            @php
+                $items = collect((array) $value)
+                    ->map(fn ($item) => is_array($item) ? $item : ['body' => $item])
+                    ->filter(fn ($item) => !empty($item['body']) || !empty($item['text']) || !empty($item['message']))
+                    ->values();
+            @endphp
+            <div id="{{ $fieldId }}" class="evo-ui-timeline-field">
+                @foreach($items as $item)
+                    @php
+                        $itemTime = (string) ($item['time'] ?? $item['date'] ?? $item['created_at'] ?? '');
+                        $itemBody = (string) ($item['body'] ?? $item['text'] ?? $item['message'] ?? '');
+                    @endphp
+                    <article class="evo-ui-timeline-field__item">
+                        @if($itemTime !== '')
+                            <time>{{ $itemTime }}</time>
+                        @endif
+                        <p>{{ $itemBody }}</p>
+                    </article>
+                @endforeach
+            </div>
         @elseif($type === 'badge')
             <div id="{{ $fieldId }}" class="evo-ui-static-field">
                 <x-evo::badge :value="$value" />

@@ -4613,6 +4613,20 @@ select.evo-ui-select--multiple {
     justify-items: end;
 }
 
+.evo-ui-field--type-code-plain {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+}
+
+.evo-ui-field--type-code-plain .evo-ui-field__label {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.evo-ui-field--type-code-plain .evo-ui-field__label > span {
+    justify-items: start;
+}
+
 .evo-ui-static-field {
     min-width: 0;
     padding: 8px 10px;
@@ -4638,6 +4652,66 @@ select.evo-ui-select--multiple {
     line-height: 1.55;
     white-space: pre-wrap;
     overflow: auto;
+}
+
+.evo-ui-code-block--plain {
+    max-height: min(56vh, 520px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.evo-ui-meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    min-width: 0;
+    color: var(--evo-ui-text);
+}
+
+.evo-ui-meta-line__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
+}
+
+.evo-ui-meta-line__label {
+    color: var(--evo-ui-muted);
+    font-weight: 600;
+}
+
+.evo-ui-meta-line__value {
+    color: var(--evo-ui-primary);
+    overflow-wrap: anywhere;
+}
+
+.evo-ui-timeline-field {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.evo-ui-timeline-field__item {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 14px 16px;
+    border-left: 3px solid var(--evo-ui-primary);
+    border-radius: var(--evo-ui-radius);
+    background: color-mix(in oklch, var(--evo-ui-primary) 12%, transparent);
+}
+
+.evo-ui-timeline-field__item time {
+    color: var(--evo-ui-primary);
+    font-size: 14px;
+}
+
+.evo-ui-timeline-field__item p {
+    margin: 0;
+    color: var(--evo-ui-text);
+    line-height: 1.5;
 }
 
 .evo-ui-field--no-label {

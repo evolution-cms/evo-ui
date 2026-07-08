@@ -365,6 +365,49 @@ controls, but block semantics and frontend rendering stay in the consumer.
 
 Display-only fields are not persisted when `save => false`.
 
+### code-plain
+
+```php
+['name' => 'raw_payload', 'type' => 'code-plain', 'label' => false]
+```
+
+Use for read-only modal payloads or logs that should keep code typography
+without the default framed code surface. Scalar values render directly; arrays
+and objects render as pretty JSON.
+
+### meta-line
+
+```php
+[
+    'name' => 'run_meta',
+    'type' => 'meta-line',
+    'value' => [
+        ['label' => 'Status', 'value' => 'valid'],
+        ['label' => 'Started at', 'value' => '2026-07-07 23:28:44'],
+    ],
+]
+```
+
+Use in read-only table modals for compact status metadata. Consumers pass an
+array of `label` and `value` pairs; empty values are skipped.
+
+### timeline
+
+```php
+[
+    'name' => 'comments',
+    'type' => 'timeline',
+    'value' => [
+        ['time' => '2026-07-07 23:28:44', 'body' => 'Import finished successfully.'],
+    ],
+]
+```
+
+Use for chronological read-only notes in table modals, such as observations,
+worker messages, audit comments or manager explanations. Items may use `time`,
+`date` or `created_at` for the timestamp and `body`, `text` or `message` for the
+content.
+
 ### custom fields
 
 Register a custom field view when a module needs a reusable local extension:
