@@ -18,6 +18,7 @@
     'sort' => '',
     'direction' => 'asc',
     'selectedId' => null,
+    'refreshTab' => '',
 ])
 
 @php
@@ -51,6 +52,14 @@
         'wire:loading.class' => 'is-loading',
         'wire:target' => $wireTarget,
     ]);
+
+    $refreshTab = trim((string) $refreshTab);
+
+    if ($refreshTab !== '') {
+        $surfaceAttributes = $surfaceAttributes->merge([
+            'x-on:evo-ui:module-tab.refresh.window' => 'if ($event.detail.tab === ' . \Illuminate\Support\Js::from($refreshTab) . ') { $wire.$refresh(); }',
+        ]);
+    }
 
     if ($reorderEnabled) {
         $surfaceAttributes = $surfaceAttributes->merge([

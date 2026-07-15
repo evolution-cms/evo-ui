@@ -1481,6 +1481,16 @@ evo_ui_group('state', function (): void {
         );
     });
 
+    evo_ui_test('module table refreshes only for its owning module tab', function (): void {
+        $moduleTable = evo_ui_read('views/livewire/module-table.blade.php');
+        $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
+
+        evo_ui_assert_contains(":refresh-tab=\"\$controller->context['tab'] ?? ''\"", $moduleTable, 'ModuleTable must pass the consumer-provided tab key to its table surface.');
+        evo_ui_assert_contains('x-on:evo-ui:module-tab.refresh.window', $moduleTableView, 'ModuleTable surface must listen for shared module tab refresh requests.');
+        evo_ui_assert_contains('$event.detail.tab === ', $moduleTableView, 'ModuleTable surface must match refresh requests to its owning tab.');
+        evo_ui_assert_contains('$wire.$refresh();', $moduleTableView, 'ModuleTable surface must re-query its provider on matching refresh requests.');
+    });
+
     evo_ui_test('module tab active state uses primary accent', function (): void {
         $css = evo_ui_read('resources/css/evo-ui.css');
 

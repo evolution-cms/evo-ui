@@ -39,7 +39,10 @@
             this.activeTab = tab;
 
             if (@js($model !== '')) {
-                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => this.$wire.$refresh());
+                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
+                    this.$dispatch('evo-ui:module-tab.refresh', { tab });
+                    this.$wire.$refresh();
+                });
                 return;
             }
 
