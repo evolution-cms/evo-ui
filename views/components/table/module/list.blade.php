@@ -79,6 +79,10 @@
                     'aria-selected' => $isSelected ? 'true' : 'false',
                     'class' => $itemClass,
                 ]);
+                $providerRowAttributes = $controller->rowAttributes($row);
+                $itemAttributes = $itemAttributes
+                    ->class($providerRowAttributes['class'] ?? '')
+                    ->merge(array_diff_key($providerRowAttributes, ['class' => true]));
 
                 if ($opensModal && $rowId > 0) {
                     $itemAttributes = $itemAttributes->merge(['data-evo-modal-dblclick' => $rowId]);

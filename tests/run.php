@@ -1648,6 +1648,8 @@ evo_ui_group('module-table', function (): void {
     });
 
     evo_ui_test('module table renders typed cells and list parity markers', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $table = evo_ui_read('views/components/table/module.blade.php');
         $cell = evo_ui_read('views/components/table/module/cell.blade.php');
         $list = evo_ui_read('views/components/table/module/list.blade.php');
 
@@ -1668,6 +1670,12 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('evo-ui-reorder-rail--table', $list, 'List view position controls must use the shared table rail.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $cell, 'Table position cells must not show persisted position values as visible chips.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $list, 'List position controls must not show persisted position values as visible chips.');
+        evo_ui_assert_contains('public function rowAttributes(array $row): array', $moduleTable, 'ModuleTable must expose sanitized provider row attributes.');
+        evo_ui_assert_contains("in_array(\$key, ['class', 'style'], true)", $moduleTable, 'Provider rows may expose inert class and style attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'data-')", $moduleTable, 'Provider rows may expose data attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'aria-')", $moduleTable, 'Provider rows may expose ARIA attributes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $table, 'Table rows must merge provider classes with EvoUI row state classes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $list, 'List rows must merge provider classes with EvoUI list state classes.');
     });
 
     evo_ui_test('module table supports inline editing and provider hooks', function (): void {
