@@ -1663,7 +1663,9 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains("\$meta['type'] === 'markdown'", $list, 'List meta must preserve Markdown cell rendering.');
         evo_ui_assert_contains('Str::inlineMarkdown', $list, 'Markdown list meta must use the framework inline Markdown renderer.');
         evo_ui_assert_contains('evo-ui-table-cell--', $cell, 'Module table cells must expose type-based cell classes, including date/text fallback types.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $key }}"', $cell, 'Module table cells must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-list-item', $list, 'List view must render evo-ui list items.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $meta[\'key\'] }}"', $list, 'List meta rows must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-table-link', $list, 'List view must reuse table link atoms.');
         evo_ui_assert_contains('evo-ui-position-control', $list, 'List view must support position controls.');
         evo_ui_assert_contains('evo-ui-position-control--rail', $list, 'List view position controls must use the shared rail variant.');
