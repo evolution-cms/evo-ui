@@ -21,7 +21,7 @@
     x-data="{
         activeTab: @if($model !== '') $wire.entangle(@js($model)).live @else @js($active) @endif,
         pendingTab: null,
-        pendingReload: false,
+        pendingRefresh: false,
         showUnsavedPrompt: false,
         isDirty() {
             return window.EvoUI?.form?.isDirty
@@ -35,24 +35,24 @@
                 this.$wire.set(@js($model), tab);
             }
         },
-        reloadModuleTab(tab) {
+        refreshModuleTab(tab) {
             this.activeTab = tab;
 
             if (@js($model !== '')) {
-                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => window.location.reload());
+                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => this.$wire.$refresh());
                 return;
             }
 
-            window.location.reload();
+            this.$dispatch('evo-ui:module-tab.refresh', { tab });
         },
-        requestModuleTabReload(tab) {
+        requestModuleTabRefresh(tab) {
             if (!this.isDirty()) {
-                this.reloadModuleTab(tab);
+                this.refreshModuleTab(tab);
                 return;
             }
 
             this.pendingTab = tab;
-            this.pendingReload = true;
+            this.pendingRefresh = true;
             this.showUnsavedPrompt = true;
         },
         requestModuleTab(tab) {
@@ -66,17 +66,17 @@
             }
 
             this.pendingTab = tab;
-            this.pendingReload = false;
+            this.pendingRefresh = false;
             this.showUnsavedPrompt = true;
         },
         closeUnsavedPrompt() {
             this.showUnsavedPrompt = false;
             this.pendingTab = null;
-            this.pendingReload = false;
+            this.pendingRefresh = false;
         },
         applyPendingNavigation() {
             const tab = this.pendingTab;
-            const reload = this.pendingReload;
+            const refresh = this.pendingRefresh;
 
             this.closeUnsavedPrompt();
 
@@ -84,8 +84,8 @@
                 return;
             }
 
-            if (reload) {
-                this.reloadModuleTab(tab);
+            if (refresh) {
+                this.refreshModuleTab(tab);
                 return;
             }
 
@@ -136,7 +136,7 @@
                     x-bind:class="{ 'tab-active is-active': activeTab === @js($key) }"
                     x-bind:aria-selected="activeTab === @js($key) ? 'true' : 'false'"
                     x-on:click="requestModuleTab(@js($key))"
-                    x-on:dblclick.stop.prevent="requestModuleTabReload(@js($key))"
+                    x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"
                     @foreach($data as $name => $value)
                         @if($value === true || $value === '')
                             {{ $name }}
