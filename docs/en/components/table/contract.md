@@ -242,6 +242,7 @@ Supported column types:
 | `chips` | Tags, categories, feature lists. |
 | `badge` | Status, type, priority, counters. |
 | `icon` | Boolean or symbolic status. |
+| `markdown` | Safe inline emphasis, code and links without embedded HTML. |
 | `date` | Date/time labels. |
 | `position` | Reorderable position badge with up/down controls. |
 

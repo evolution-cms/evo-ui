@@ -256,6 +256,8 @@
                                                 <x-evo::icon :name="$iconValue" />
                                                 <span class="evo-ui-sr-only">{{ $iconLabel }}</span>
                                             </span>
+                                        <?php elseif ($meta['type'] === 'markdown'): ?>
+                                            <span>{!! \Illuminate\Support\Str::inlineMarkdown((string) $meta['value'], ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</span>
                                         <?php else: ?>
                                             <span>{{ $meta['value'] }}</span>
                                         <?php endif; ?>

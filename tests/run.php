@@ -1629,10 +1629,15 @@ evo_ui_group('module-table', function (): void {
         $cell = evo_ui_read('views/components/table/module/cell.blade.php');
         $list = evo_ui_read('views/components/table/module/list.blade.php');
 
-        foreach (["'link'", "'image'", "'chips'", "'badge'", "'icon'", "'position'"] as $type) {
+        foreach (["'link'", "'image'", "'chips'", "'badge'", "'icon'", "'markdown'", "'position'"] as $type) {
             evo_ui_assert_contains($type, $cell, 'Module table cell must support type marker: ' . $type);
         }
 
+        evo_ui_assert_contains('Str::inlineMarkdown', $cell, 'Markdown table cells must use the framework inline Markdown renderer.');
+        evo_ui_assert_contains("'html_input' => 'strip'", $cell, 'Markdown table cells must strip embedded HTML.');
+        evo_ui_assert_contains("'allow_unsafe_links' => false", $cell, 'Markdown table cells must reject unsafe links.');
+        evo_ui_assert_contains("\$meta['type'] === 'markdown'", $list, 'List meta must preserve Markdown cell rendering.');
+        evo_ui_assert_contains('Str::inlineMarkdown', $list, 'Markdown list meta must use the framework inline Markdown renderer.');
         evo_ui_assert_contains('evo-ui-table-cell--', $cell, 'Module table cells must expose type-based cell classes, including date/text fallback types.');
         evo_ui_assert_contains('evo-ui-list-item', $list, 'List view must render evo-ui list items.');
         evo_ui_assert_contains('evo-ui-table-link', $list, 'List view must reuse table link atoms.');
