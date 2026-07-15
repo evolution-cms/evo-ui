@@ -111,6 +111,11 @@
                 <span class="evo-ui-sr-only">{{ $label }}</span>
             <?php endif; ?>
         </span>
+    <?php elseif ($type === 'markdown'): ?>
+        <?php $textValue = $toText($value); ?>
+        <?php if ($textValue !== ''): ?>
+            <span>{!! \Illuminate\Support\Str::inlineMarkdown($textValue, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</span>
+        <?php endif; ?>
     <?php else: ?>
         <?php $textValue = $toText($value); ?>
         <?php if ($textValue !== ''): ?>
