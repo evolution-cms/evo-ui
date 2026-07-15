@@ -164,7 +164,12 @@ Dirty-state behavior is shared: form surfaces dispatch `evo-ui:form.saved`,
 `evo-ui:form.saving` and `evo-ui:form.reset` events. Use
 `x-evo::module-tab-shell` for the canonical tab switcher with a shared
 unsaved-changes prompt, Save/Discard actions and `EvoUI.form.waitForClean`
-navigation bridge.
+navigation bridge. Double-clicking any module tab refreshes its Livewire content
+without reloading the manager frame; dirty forms use the same Save/Discard guard
+before refreshing. Alpine-only consumers may handle the
+`evo-ui:module-tab.refresh` event to refresh their tab content. Nested
+`evo-ui.module-table` components re-query their providers when consumers pass the
+owning tab key through `:context="['tab' => 'your-tab']"`.
 
 The consuming module may decide which tab keys exist and what each tab renders,
 but it should not duplicate `pendingTab`, `showUnsavedPrompt`, `saveAndSwitch`

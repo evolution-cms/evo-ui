@@ -21,6 +21,7 @@
     x-data="{
         activeTab: @if($model !== '') $wire.entangle(@js($model)).live @else @js($active) @endif,
         pendingTab: null,
+        pendingRefresh: false,
         showUnsavedPrompt: false,
         isDirty() {
             return window.EvoUI?.form?.isDirty
@@ -34,6 +35,29 @@
                 this.$wire.set(@js($model), tab);
             }
         },
+        refreshModuleTab(tab) {
+            this.activeTab = tab;
+
+            if (@js($model !== '')) {
+                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
+                    this.$dispatch('evo-ui:module-tab.refresh', { tab });
+                    this.$wire.$refresh();
+                });
+                return;
+            }
+
+            this.$dispatch('evo-ui:module-tab.refresh', { tab });
+        },
+        requestModuleTabRefresh(tab) {
+            if (!this.isDirty()) {
+                this.refreshModuleTab(tab);
+                return;
+            }
+
+            this.pendingTab = tab;
+            this.pendingRefresh = true;
+            this.showUnsavedPrompt = true;
+        },
         requestModuleTab(tab) {
             if (this.activeTab === tab) {
                 return;
@@ -45,18 +69,30 @@
             }
 
             this.pendingTab = tab;
+            this.pendingRefresh = false;
             this.showUnsavedPrompt = true;
         },
         closeUnsavedPrompt() {
             this.showUnsavedPrompt = false;
             this.pendingTab = null;
+            this.pendingRefresh = false;
         },
         applyPendingNavigation() {
-            if (this.pendingTab) {
-                this.setActiveModuleTab(this.pendingTab);
-            }
+            const tab = this.pendingTab;
+            const refresh = this.pendingRefresh;
 
             this.closeUnsavedPrompt();
+
+            if (!tab) {
+                return;
+            }
+
+            if (refresh) {
+                this.refreshModuleTab(tab);
+                return;
+            }
+
+            this.setActiveModuleTab(tab);
         },
         discardAndSwitch() {
             this.applyPendingNavigation();
@@ -103,6 +139,7 @@
                     x-bind:class="{ 'tab-active is-active': activeTab === @js($key) }"
                     x-bind:aria-selected="activeTab === @js($key) ? 'true' : 'false'"
                     x-on:click="requestModuleTab(@js($key))"
+                    x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"
                     @foreach($data as $name => $value)
                         @if($value === true || $value === '')
                             {{ $name }}
