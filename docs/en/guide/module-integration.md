@@ -164,7 +164,8 @@ Dirty-state behavior is shared: form surfaces dispatch `evo-ui:form.saved`,
 `evo-ui:form.saving` and `evo-ui:form.reset` events. Use
 `x-evo::module-tab-shell` for the canonical tab switcher with a shared
 unsaved-changes prompt, Save/Discard actions and `EvoUI.form.waitForClean`
-navigation bridge.
+navigation bridge. Double-clicking any module tab reloads the module with that
+tab selected; dirty forms use the same Save/Discard guard before reloading.
 
 The consuming module may decide which tab keys exist and what each tab renders,
 but it should not duplicate `pendingTab`, `showUnsavedPrompt`, `saveAndSwitch`

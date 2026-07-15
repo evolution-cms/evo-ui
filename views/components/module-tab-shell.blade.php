@@ -21,6 +21,7 @@
     x-data="{
         activeTab: @if($model !== '') $wire.entangle(@js($model)).live @else @js($active) @endif,
         pendingTab: null,
+        pendingReload: false,
         showUnsavedPrompt: false,
         isDirty() {
             return window.EvoUI?.form?.isDirty
@@ -34,6 +35,26 @@
                 this.$wire.set(@js($model), tab);
             }
         },
+        reloadModuleTab(tab) {
+            this.activeTab = tab;
+
+            if (@js($model !== '')) {
+                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => window.location.reload());
+                return;
+            }
+
+            window.location.reload();
+        },
+        requestModuleTabReload(tab) {
+            if (!this.isDirty()) {
+                this.reloadModuleTab(tab);
+                return;
+            }
+
+            this.pendingTab = tab;
+            this.pendingReload = true;
+            this.showUnsavedPrompt = true;
+        },
         requestModuleTab(tab) {
             if (this.activeTab === tab) {
                 return;
@@ -45,18 +66,30 @@
             }
 
             this.pendingTab = tab;
+            this.pendingReload = false;
             this.showUnsavedPrompt = true;
         },
         closeUnsavedPrompt() {
             this.showUnsavedPrompt = false;
             this.pendingTab = null;
+            this.pendingReload = false;
         },
         applyPendingNavigation() {
-            if (this.pendingTab) {
-                this.setActiveModuleTab(this.pendingTab);
-            }
+            const tab = this.pendingTab;
+            const reload = this.pendingReload;
 
             this.closeUnsavedPrompt();
+
+            if (!tab) {
+                return;
+            }
+
+            if (reload) {
+                this.reloadModuleTab(tab);
+                return;
+            }
+
+            this.setActiveModuleTab(tab);
         },
         discardAndSwitch() {
             this.applyPendingNavigation();
@@ -103,6 +136,7 @@
                     x-bind:class="{ 'tab-active is-active': activeTab === @js($key) }"
                     x-bind:aria-selected="activeTab === @js($key) ? 'true' : 'false'"
                     x-on:click="requestModuleTab(@js($key))"
+                    x-on:dblclick.stop.prevent="requestModuleTabReload(@js($key))"
                     @foreach($data as $name => $value)
                         @if($value === true || $value === '')
                             {{ $name }}
