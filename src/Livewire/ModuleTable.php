@@ -1427,6 +1427,31 @@ class ModuleTable extends Component
             ->implode(' ');
     }
 
+    /**
+     * Return provider-defined presentation attributes for a rendered row.
+     *
+     * Only inert HTML attributes are accepted. Event handlers, Livewire
+     * directives, and arbitrary element attributes remain owned by EvoUI.
+     *
+     * @param array<string, mixed> $row Provider row payload
+     * @return array<string, bool|int|float|string|null>
+     * @since 1.1.0
+     */
+    public function rowAttributes(array $row): array
+    {
+        return collect((array) data_get($row, 'row_attributes', []))
+            ->filter(function (mixed $value, mixed $key): bool {
+                if (!is_string($key) || (!is_scalar($value) && $value !== null)) {
+                    return false;
+                }
+
+                return in_array($key, ['class', 'style'], true)
+                    || str_starts_with($key, 'data-')
+                    || str_starts_with($key, 'aria-');
+            })
+            ->all();
+    }
+
     /** @return array<int, array<string, mixed>> */
     public function sortableColumns(): array
     {

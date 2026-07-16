@@ -1648,6 +1648,8 @@ evo_ui_group('module-table', function (): void {
     });
 
     evo_ui_test('module table renders typed cells and list parity markers', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $table = evo_ui_read('views/components/table/module.blade.php');
         $cell = evo_ui_read('views/components/table/module/cell.blade.php');
         $list = evo_ui_read('views/components/table/module/list.blade.php');
 
@@ -1661,13 +1663,21 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains("\$meta['type'] === 'markdown'", $list, 'List meta must preserve Markdown cell rendering.');
         evo_ui_assert_contains('Str::inlineMarkdown', $list, 'Markdown list meta must use the framework inline Markdown renderer.');
         evo_ui_assert_contains('evo-ui-table-cell--', $cell, 'Module table cells must expose type-based cell classes, including date/text fallback types.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $key }}"', $cell, 'Module table cells must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-list-item', $list, 'List view must render evo-ui list items.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $meta[\'key\'] }}"', $list, 'List meta rows must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-table-link', $list, 'List view must reuse table link atoms.');
         evo_ui_assert_contains('evo-ui-position-control', $list, 'List view must support position controls.');
         evo_ui_assert_contains('evo-ui-position-control--rail', $list, 'List view position controls must use the shared rail variant.');
         evo_ui_assert_contains('evo-ui-reorder-rail--table', $list, 'List view position controls must use the shared table rail.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $cell, 'Table position cells must not show persisted position values as visible chips.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $list, 'List position controls must not show persisted position values as visible chips.');
+        evo_ui_assert_contains('public function rowAttributes(array $row): array', $moduleTable, 'ModuleTable must expose sanitized provider row attributes.');
+        evo_ui_assert_contains("in_array(\$key, ['class', 'style'], true)", $moduleTable, 'Provider rows may expose inert class and style attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'data-')", $moduleTable, 'Provider rows may expose data attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'aria-')", $moduleTable, 'Provider rows may expose ARIA attributes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $table, 'Table rows must merge provider classes with EvoUI row state classes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $list, 'List rows must merge provider classes with EvoUI list state classes.');
     });
 
     evo_ui_test('module table supports inline editing and provider hooks', function (): void {

@@ -34,7 +34,7 @@
     $textStyle = preg_match('/^#[0-9a-f]{6}$/i', $textColor) ? 'color: ' . strtoupper($textColor) . ';' : '';
 ?>
 
-<td class="{{ $cellClass }}">
+<td class="{{ $cellClass }}" data-evo-column-key="{{ $key }}">
     <?php if (!empty($column['editable']) && $type === 'image'): ?>
         <x-evo::table.module.inline-image :row="$row" :column="$column" :display-value="$value" />
     <?php elseif (!empty($column['editable'])): ?>

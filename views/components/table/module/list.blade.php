@@ -79,6 +79,10 @@
                     'aria-selected' => $isSelected ? 'true' : 'false',
                     'class' => $itemClass,
                 ]);
+                $providerRowAttributes = $controller->rowAttributes($row);
+                $itemAttributes = $itemAttributes
+                    ->class($providerRowAttributes['class'] ?? '')
+                    ->merge(array_diff_key($providerRowAttributes, ['class' => true]));
 
                 if ($opensModal && $rowId > 0) {
                     $itemAttributes = $itemAttributes->merge(['data-evo-modal-dblclick' => $rowId]);
@@ -199,7 +203,7 @@
                         <dl class="evo-ui-list-item__meta">
                             <?php foreach ($metaItems as $meta): ?>
                                 <?php $metaIcon = $meta['icon']; ?>
-                                <div>
+                                <div data-evo-column-key="{{ $meta['key'] }}">
                                     <?php if ($metaIcon): ?>
                                         <dt title="{{ $meta['label'] }}" aria-label="{{ $meta['label'] }}">
                                             <x-evo::icon :name="$metaIcon" />
