@@ -40,6 +40,14 @@
     $reorderEnabled = method_exists($controller, 'reorderEnabled') && $controller->reorderEnabled();
     $titleInTableHeader = ($config['title_placement'] ?? null) === 'table_header';
     $viewKey = 'evo-ui-table-view-' . str_replace(['.', '/', '\\'], '-', (string) ($config['key'] ?? 'module'));
+    $urlState = [
+        'q' => $controller->search,
+        'page' => $page,
+        'sort' => $sort,
+        'dir' => $direction,
+        'f' => $controller->filterState,
+        'view' => $viewMode,
+    ];
     $surfaceAttributes = new \Illuminate\View\ComponentAttributeBag([
         'class' => $surfaceClass,
         'data-evo-table' => $config['key'] ?? 'module',
@@ -48,7 +56,8 @@
         'data-evo-table-per-page' => $perPage,
         'data-evo-table-per-page-cookie' => $perPageCookieName,
         'data-evo-table-per-page-options' => implode(',', $perPageOptions),
-        'data-evo-table-url-defaults' => json_encode($urlDefaults, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        'data-evo-table-url-defaults' => rawurlencode(json_encode($urlDefaults, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
+        'data-evo-table-url-state' => rawurlencode(json_encode($urlState, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
         'wire:loading.class' => 'is-loading',
         'wire:target' => $wireTarget,
     ]);
@@ -159,7 +168,9 @@
                                     'aria-selected' => $selectedId === $rowId ? 'true' : 'false',
                                     'class' => $rowClass,
                                 ]);
-                                $providerRowAttributes = $controller->rowAttributes($row);
+                                $providerRowAttributes = method_exists($controller, 'rowAttributes')
+                                    ? $controller->rowAttributes($row)
+                                    : [];
                                 $rowAttributes = $rowAttributes
                                     ->class($providerRowAttributes['class'] ?? '')
                                     ->merge(array_diff_key($providerRowAttributes, ['class' => true]));

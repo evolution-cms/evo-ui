@@ -79,7 +79,9 @@
                     'aria-selected' => $isSelected ? 'true' : 'false',
                     'class' => $itemClass,
                 ]);
-                $providerRowAttributes = $controller->rowAttributes($row);
+                $providerRowAttributes = method_exists($controller, 'rowAttributes')
+                    ? $controller->rowAttributes($row)
+                    : [];
                 $itemAttributes = $itemAttributes
                     ->class($providerRowAttributes['class'] ?? '')
                     ->merge(array_diff_key($providerRowAttributes, ['class' => true]));

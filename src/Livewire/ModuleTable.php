@@ -2265,7 +2265,10 @@ class ModuleTable extends Component
             return range(1, $lastPage);
         }
 
-        $pages = collect([1, 2, $this->page - 1, $this->page, $this->page + 1, $lastPage - 1, $lastPage])
+        $edgePages = [1, 2, $lastPage - 1, $lastPage];
+        $currentPages = [$this->page - 1, $this->page, $this->page + 1];
+
+        $pages = collect(array_merge($edgePages, $currentPages))
             ->filter(fn ($page) => $page >= 1 && $page <= $lastPage)
             ->unique()
             ->sort()
