@@ -1591,6 +1591,9 @@ evo_ui_group('module-table', function (): void {
             evo_ui_assert_contains('function ' . $method, $moduleTable, 'ModuleTable must expose method: ' . $method);
         }
 
+        evo_ui_assert_contains("\$id !== 0 && (\$allowed === [] || in_array(\$id, \$allowed, true))", $moduleTable, 'Multi-select filters must preserve configured negative sentinel identifiers.');
+        evo_ui_assert_contains("\$item !== 0 && (\$allowed === [] || in_array(\$item, \$allowed, true))", $moduleTable, 'Stored multi-select filters must preserve configured negative sentinel identifiers.');
+
         evo_ui_assert_contains('wire:model.live="perPage"', $pagination, 'Pagination must bind per-page state.');
         evo_ui_assert_contains("\$title = isset(\$config['title'])", $toolbar, 'Module table toolbar must support a config title.');
         evo_ui_assert_contains('evo-ui-table-title', $toolbar, 'Module table toolbar must render the table title atom.');

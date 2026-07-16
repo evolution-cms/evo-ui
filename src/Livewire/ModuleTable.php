@@ -572,7 +572,7 @@ class ModuleTable extends Component
         $allowed = collect($this->optionsFor($state))->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->filterState[$state] = collect($values)
             ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0 && ($allowed === [] || in_array($id, $allowed, true)))
+            ->filter(fn ($id) => $id !== 0 && ($allowed === [] || in_array($id, $allowed, true)))
             ->unique()
             ->sort()
             ->values()
@@ -1942,9 +1942,10 @@ class ModuleTable extends Component
             $type = (string) ($filter['type'] ?? '');
 
             if ($type === 'multi-select') {
+                $allowed = collect($this->optionsFor($state))->pluck('id')->map(fn ($id) => (int) $id)->all();
                 $filters[$state] = collect((array) $value)
                     ->map(fn ($item) => (int) $item)
-                    ->filter(fn ($item) => $item > 0)
+                    ->filter(fn ($item) => $item !== 0 && ($allowed === [] || in_array($item, $allowed, true)))
                     ->unique()
                     ->sort()
                     ->values()
