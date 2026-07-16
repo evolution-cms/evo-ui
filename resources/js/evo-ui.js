@@ -2017,12 +2017,26 @@
         }
     }
 
-    function parseTableUrlDefaults(surface) {
+    function parseTableUrlData(surface, attribute) {
+        var value = surface.getAttribute(attribute) || '{}';
+
         try {
-            return JSON.parse(surface.getAttribute('data-evo-table-url-defaults') || '{}') || {};
+            return JSON.parse(value) || {};
         } catch (error) {
-            return {};
+            try {
+                return JSON.parse(decodeURIComponent(value)) || {};
+            } catch (decodeError) {
+                return {};
+            }
         }
+    }
+
+    function parseTableUrlDefaults(surface) {
+        return parseTableUrlData(surface, 'data-evo-table-url-defaults');
+    }
+
+    function parseTableUrlState(surface) {
+        return parseTableUrlData(surface, 'data-evo-table-url-state');
     }
 
     function flattenTableFilterDefaults(prefix, value, result) {
@@ -2042,14 +2056,27 @@
     }
 
     function currentHashParams() {
-        var hash = window.location.hash || '';
-        var index = hash.indexOf('?');
+        var targetWindow = window;
+        var hash;
+        var index;
+
+        try {
+            if (window.parent && window.parent !== window && (window.parent.location.hash || '').indexOf('?') !== -1) {
+                targetWindow = window.parent;
+            }
+        } catch (error) {
+            targetWindow = window;
+        }
+
+        hash = targetWindow.location.hash || '';
+        index = hash.indexOf('?');
 
         if (index === -1) {
             return null;
         }
 
         return {
+            targetWindow: targetWindow,
             prefix: hash.slice(0, index + 1),
             params: new URLSearchParams(hash.slice(index + 1))
         };
@@ -2058,19 +2085,27 @@
     function replaceHashParams(parts) {
         var next = parts.prefix + parts.params.toString();
 
-        if (next === window.location.hash) {
+        var targetWindow = parts.targetWindow || window;
+
+        if (next === targetWindow.location.hash) {
             return;
         }
 
-        window.history.replaceState(window.history.state, document.title, window.location.pathname + window.location.search + next);
+        targetWindow.history.replaceState(
+            targetWindow.history.state,
+            targetWindow.document.title,
+            targetWindow.location.pathname + targetWindow.location.search + next
+        );
     }
 
     function cleanDefaultTableUrlState(surface) {
         var parts = currentHashParams();
         var defaults = parseTableUrlDefaults(surface);
+        var current = parseTableUrlState(surface);
         var params;
         var changed = false;
         var filterDefaults;
+        var currentFilters;
 
         if (!parts) {
             return;
@@ -2097,6 +2132,15 @@
             }
         });
 
+        if (
+            params.has('page')
+            && Object.prototype.hasOwnProperty.call(current, 'page')
+            && String(current.page || 1) === String(defaults.page || 1)
+        ) {
+            params.delete('page');
+            changed = true;
+        }
+
         if (params.has('dir')) {
             var currentSort = params.get('sort') || defaults.sort || '';
             var defaultDirection = currentSort === (defaults.sort || '') ? (defaults.dir || 'asc') : 'asc';
@@ -2115,7 +2159,33 @@
             }
         });
 
-        Array.prototype.slice.call(params.keys()).forEach(function (key) {
+        currentFilters = current.f && typeof current.f === 'object' ? current.f : {};
+        Object.keys(defaults.f || {}).forEach(function (state) {
+            var currentValue;
+            var defaultValue;
+            var prefix;
+
+            if (!Object.prototype.hasOwnProperty.call(currentFilters, state)) {
+                return;
+            }
+
+            currentValue = currentFilters[state];
+            defaultValue = defaults.f[state];
+
+            if (JSON.stringify(currentValue) !== JSON.stringify(defaultValue)) {
+                return;
+            }
+
+            prefix = 'f[' + state + ']';
+            Array.from(params.keys()).forEach(function (key) {
+                if (key === prefix || key.indexOf(prefix + '[') === 0) {
+                    params.delete(key);
+                    changed = true;
+                }
+            });
+        });
+
+        Array.from(params.keys()).forEach(function (key) {
             if (key.indexOf('f[') === 0 && String(params.get(key) || '') === '') {
                 params.delete(key);
                 changed = true;
@@ -2125,6 +2195,24 @@
         if (changed) {
             replaceHashParams(parts);
         }
+    }
+
+    function scheduleDefaultTableUrlStateCleanup(surface) {
+        if (!surface) {
+            return;
+        }
+
+        if (surface.__evoTableUrlCleanupTimer) {
+            window.clearTimeout(surface.__evoTableUrlCleanupTimer);
+        }
+
+        surface.__evoTableUrlCleanupTimer = window.setTimeout(function () {
+            surface.__evoTableUrlCleanupTimer = null;
+
+            if (surface.isConnected) {
+                cleanDefaultTableUrlState(surface);
+            }
+        }, 0);
     }
 
     function tableSupportsView(surface, view) {
@@ -2194,7 +2282,7 @@
     function initResponsiveTableView(surface) {
         if (!surface || surface.__evoResponsiveTableInitialized) {
             syncTablePerPagePreference(surface);
-            cleanDefaultTableUrlState(surface);
+            scheduleDefaultTableUrlStateCleanup(surface);
             syncResponsiveTableView(surface);
             return;
         }
@@ -2212,7 +2300,7 @@
         });
 
         syncTablePerPagePreference(surface);
-        cleanDefaultTableUrlState(surface);
+        scheduleDefaultTableUrlStateCleanup(surface);
         syncResponsiveTableView(surface);
     }
 
@@ -2222,6 +2310,11 @@
 
     function init(rootElement) {
         var target = rootElement || document;
+        var containingTable = target.closest ? target.closest('[data-evo-table]') : null;
+
+        if (containingTable && containingTable !== target) {
+            initResponsiveTableView(containingTable);
+        }
 
         if (target.matches && target.matches('[data-evo-layout]')) {
             initLayout(target);

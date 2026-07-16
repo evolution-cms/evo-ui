@@ -1639,12 +1639,50 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains("'urlDefaults' => \$this->urlDefaultState()", $moduleTable, 'Module table payload must expose URL defaults.');
         evo_ui_assert_contains('data-evo-table-url-defaults', $moduleTableView, 'Module table surface must expose URL defaults for client cleanup.');
         evo_ui_assert_contains('cleanDefaultTableUrlState(surface)', $js, 'Module table JavaScript must remove default URL table state.');
+        evo_ui_assert_contains('scheduleDefaultTableUrlStateCleanup(surface)', $js, 'Module table URL cleanup must run after Livewire finishes morphing the table state.');
         evo_ui_assert_contains('protected function urlDefaultState(): array', $moduleTable, 'Module table must expose URL default state.');
         evo_ui_assert_contains("\$keys = ['q', 'page', 'sort', 'dir', 'f', 'view']", $moduleTable, 'URL state detection must not treat perPage as shareable table state.');
         evo_ui_assert_not_contains("#[Url(as: 'perPage'", $moduleTable, 'Per-page preference must not be written into the URL.');
         evo_ui_assert_contains('data-evo-table-per-page-cookie', $moduleTableView, 'Module table surface must expose a cookie key for first-render per-page preferences.');
         evo_ui_assert_contains('syncTablePerPagePreference(surface)', $js, 'Module table JavaScript must sync per-page preferences before responsive view checks.');
         evo_ui_assert_contains('evo-ui.table.per-page.', $js, 'Module table JavaScript must keep per-page preferences in localStorage.');
+    });
+
+    evo_ui_test('module table replaces pagination atomically after page changes', function (): void {
+        $pagination = evo_ui_read('views/components/table/pagination.blade.php');
+
+        evo_ui_assert_contains('wire:replace wire:key="table-pager-{{ $currentPage }}-{{ (int) $lastPage }}"', $pagination, 'Pagination must be replaced as one keyed block after the current page changes.');
+    });
+
+    evo_ui_test('module table removes stale nested URL filters after clearing', function (): void {
+        $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
+        $js = evo_ui_read('resources/js/evo-ui.js');
+
+        evo_ui_assert_contains('data-evo-table-url-state', $moduleTableView, 'Module table surface must expose current URL state for stale nested filter cleanup.');
+        evo_ui_assert_contains('rawurlencode(json_encode($urlDefaults', $moduleTableView, 'Module table URL defaults must survive manager attribute escaping.');
+        evo_ui_assert_contains('rawurlencode(json_encode($urlState', $moduleTableView, 'Module table current URL state must survive manager attribute escaping.');
+        evo_ui_assert_contains('parseTableUrlState(surface)', $js, 'Module table JavaScript must compare URL defaults with the current table state.');
+        evo_ui_assert_contains('JSON.parse(decodeURIComponent(value))', $js, 'Module table JavaScript must decode safely transported URL state.');
+        evo_ui_assert_contains('window.parent.location.hash', $js, 'Embedded module tables must clean the manager parent hash URL.');
+        evo_ui_assert_contains('targetWindow.history.replaceState', $js, 'Module table URL cleanup must update the window that owns the hash route.');
+        evo_ui_assert_contains("target.closest('[data-evo-table]')", $js, 'Livewire child morphs must re-run URL cleanup for their owning table surface.');
+        evo_ui_assert_contains("params.delete('page')", $js, 'Filter changes that reset pagination must remove the stale page parameter.');
+        evo_ui_assert_contains("key.indexOf(prefix + '[') === 0", $js, 'Module table JavaScript must remove stale nested filter query entries.');
+        evo_ui_assert_contains('Array.from(params.keys())', $js, 'Module table JavaScript must enumerate URLSearchParams iterators reliably.');
+    });
+
+    evo_ui_test('module table pagination keeps symmetric navigation controls', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $pagination = evo_ui_read('views/components/table/pagination.blade.php');
+
+        evo_ui_assert_contains("wire:click=\"firstPage\"", $pagination, 'Pagination must expose first-page navigation.');
+        evo_ui_assert_contains("wire:click=\"previousPage\"", $pagination, 'Pagination must expose previous-page navigation.');
+        evo_ui_assert_contains("wire:click=\"nextPage\"", $pagination, 'Pagination must expose next-page navigation.');
+        evo_ui_assert_contains("wire:click=\"goLastPage\"", $pagination, 'Pagination must expose last-page navigation.');
+        evo_ui_assert_contains('wire:key="table-page-next"', $pagination, 'Next-page navigation must keep a stable Livewire morph key.');
+        evo_ui_assert_contains('wire:key="table-page-last"', $pagination, 'Last-page navigation must keep a stable Livewire morph key.');
+        evo_ui_assert_contains('$lastPage - 1', $moduleTable, 'Long pagination ranges must include the penultimate page.');
+        evo_ui_assert_contains('$lastPage]', $moduleTable, 'Long pagination ranges must include the last page.');
     });
 
     evo_ui_test('module table renders typed cells and list parity markers', function (): void {
@@ -1673,6 +1711,8 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $cell, 'Table position cells must not show persisted position values as visible chips.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $list, 'List position controls must not show persisted position values as visible chips.');
         evo_ui_assert_contains('public function rowAttributes(array $row): array', $moduleTable, 'ModuleTable must expose sanitized provider row attributes.');
+        evo_ui_assert_contains("method_exists(\$controller, 'rowAttributes')", $table, 'Table rows must remain compatible with older ModuleTable controllers during staged package updates.');
+        evo_ui_assert_contains("method_exists(\$controller, 'rowAttributes')", $list, 'List rows must remain compatible with older ModuleTable controllers during staged package updates.');
         evo_ui_assert_contains("in_array(\$key, ['class', 'style'], true)", $moduleTable, 'Provider rows may expose inert class and style attributes.');
         evo_ui_assert_contains("str_starts_with(\$key, 'data-')", $moduleTable, 'Provider rows may expose data attributes.');
         evo_ui_assert_contains("str_starts_with(\$key, 'aria-')", $moduleTable, 'Provider rows may expose ARIA attributes.');

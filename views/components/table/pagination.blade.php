@@ -22,11 +22,11 @@
         </label>
     </div>
 
-    <div class="evo-ui-pager">
-        <button type="button" wire:click="firstPage" @disabled($page <= 1) title="@lang('evo::global.first_page')" aria-label="@lang('evo::global.first_page')">
+    <div class="evo-ui-pager" wire:replace wire:key="table-pager-{{ $currentPage }}-{{ (int) $lastPage }}">
+        <button type="button" wire:key="table-page-first" wire:click="firstPage" @disabled($page <= 1) title="@lang('evo::global.first_page')" aria-label="@lang('evo::global.first_page')">
             <x-evo::icon name="chevrons-left" />
         </button>
-        <button type="button" wire:click="previousPage" @disabled($page <= 1) title="@lang('evo::global.previous')" aria-label="@lang('evo::global.previous')">
+        <button type="button" wire:key="table-page-previous" wire:click="previousPage" @disabled($page <= 1) title="@lang('evo::global.previous')" aria-label="@lang('evo::global.previous')">
             <x-evo::icon name="chevron-left" />
         </button>
 
@@ -53,10 +53,10 @@
             @endif
         @endforeach
 
-        <button type="button" wire:click="nextPage" @disabled($page >= $lastPage) title="@lang('evo::global.next')" aria-label="@lang('evo::global.next')">
+        <button type="button" wire:key="table-page-next" wire:click="nextPage" @disabled($page >= $lastPage) title="@lang('evo::global.next')" aria-label="@lang('evo::global.next')">
             <x-evo::icon name="chevron-right" />
         </button>
-        <button type="button" wire:click="goLastPage" @disabled($page >= $lastPage) title="@lang('evo::global.last_page')" aria-label="@lang('evo::global.last_page')">
+        <button type="button" wire:key="table-page-last" wire:click="goLastPage" @disabled($page >= $lastPage) title="@lang('evo::global.last_page')" aria-label="@lang('evo::global.last_page')">
             <x-evo::icon name="chevrons-right" />
         </button>
     </div>
