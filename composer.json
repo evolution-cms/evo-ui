@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "evolution-cms/evolution": "^3.5.7",
         "livewire/livewire": "^4.0"
     },
