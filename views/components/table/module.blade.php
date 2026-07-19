@@ -66,7 +66,7 @@
 
     if ($refreshTab !== '') {
         $surfaceAttributes = $surfaceAttributes->merge([
-            'x-on:evo-ui:module-tab.refresh.window' => 'if ($event.detail.tab === ' . \Illuminate\Support\Js::from($refreshTab) . ') { $wire.$refresh(); }',
+            'x-on:evo-ui:module-tab-refresh.window' => 'if ($event.detail.tab === ' . \Illuminate\Support\Js::from($refreshTab) . ') { $wire.$refresh(); }',
         ]);
     }
 

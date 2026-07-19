@@ -40,13 +40,13 @@
 
             if (@js($model !== '')) {
                 Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
-                    this.$dispatch('evo-ui:module-tab.refresh', { tab });
+                    this.$dispatch('evo-ui:module-tab-refresh', { tab });
                     this.$wire.$refresh();
                 });
                 return;
             }
 
-            this.$dispatch('evo-ui:module-tab.refresh', { tab });
+            this.$dispatch('evo-ui:module-tab-refresh', { tab });
         },
         requestModuleTabRefresh(tab) {
             if (!this.isDirty()) {
