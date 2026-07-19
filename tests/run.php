@@ -1459,7 +1459,7 @@ evo_ui_group('state', function (): void {
             'requestModuleTabRefresh(tab)' => 'Module tab shell must centralize double-click refresh requests.',
             'refreshModuleTab(tab)' => 'Module tab shell must refresh the selected tab.',
             'this.$wire.$refresh()' => 'Livewire module tabs must refresh content without reloading the frame.',
-            "this.\$dispatch('evo-ui:module-tab.refresh', { tab })" => 'Alpine-only module tabs must expose a content refresh event.',
+            "this.\$dispatch('evo-ui:module-tab-refresh', { tab })" => 'Module tabs must expose an Alpine-safe content refresh event.',
             'x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"' => 'Module tabs must refresh on double click.',
             'showUnsavedPrompt' => 'Module tab shell must own the unsaved prompt state.',
             'window.EvoUI.form.isDirty()' => 'Module tab shell must use the shared dirty-state detector.',
@@ -1479,6 +1479,11 @@ evo_ui_group('state', function (): void {
             $shell,
             'Module tab shell must not reload the containing manager frame.'
         );
+        evo_ui_assert_not_contains(
+            'evo-ui:module-tab.refresh',
+            $shell,
+            'Module tab refresh events must not use dots because Alpine parses them as modifiers.'
+        );
     });
 
     evo_ui_test('module table refreshes only for its owning module tab', function (): void {
@@ -1486,9 +1491,10 @@ evo_ui_group('state', function (): void {
         $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
 
         evo_ui_assert_contains(":refresh-tab=\"\$controller->context['tab'] ?? ''\"", $moduleTable, 'ModuleTable must pass the consumer-provided tab key to its table surface.');
-        evo_ui_assert_contains('x-on:evo-ui:module-tab.refresh.window', $moduleTableView, 'ModuleTable surface must listen for shared module tab refresh requests.');
+        evo_ui_assert_contains('x-on:evo-ui:module-tab-refresh.window', $moduleTableView, 'ModuleTable surface must listen for Alpine-safe module tab refresh requests.');
         evo_ui_assert_contains('$event.detail.tab === ', $moduleTableView, 'ModuleTable surface must match refresh requests to its owning tab.');
         evo_ui_assert_contains('$wire.$refresh();', $moduleTableView, 'ModuleTable surface must re-query its provider on matching refresh requests.');
+        evo_ui_assert_not_contains('x-on:evo-ui:module-tab.refresh.window', $moduleTableView, 'ModuleTable must not use a dotted custom event name in x-on.');
     });
 
     evo_ui_test('module tab active state uses primary accent', function (): void {
