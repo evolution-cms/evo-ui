@@ -14,7 +14,6 @@ use Illuminate\Routing\RouteCollectionInterface;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
-use Livewire\Livewire;
 use Livewire\LivewireServiceProvider;
 
 class EvoUIServiceProvider extends ServiceProvider
@@ -48,7 +47,8 @@ class EvoUIServiceProvider extends ServiceProvider
         $this->mergeConfigFrom($this->root . '/config/evo-ui.php', 'evo-ui');
         $this->registerBladeComponentNamespace();
         $this->registerLivewireDefaults();
-        $this->registerLivewireComponents();
+        $this->registerEvoUIComponents();
+        $this->app->make(EvoUI::class)->bootComponents();
         $this->registerManagerEndpointRoute();
 
         $this->publishes([
@@ -155,12 +155,20 @@ class EvoUIServiceProvider extends ServiceProvider
         app('livewire')->setPersistentMiddleware(config('app.middleware.mgr', []));
     }
 
-    protected function registerLivewireComponents(): void
+    /**
+     * Declare the components provided by EvoUI through its public component registry.
+     *
+     * @return void
+     * @since 1.1.0
+     */
+    protected function registerEvoUIComponents(): void
     {
-        Livewire::component('evo-ui.table', \EvoUI\Livewire\Table::class);
-        Livewire::component('evo-ui.form', \EvoUI\Livewire\Form::class);
-        Livewire::component('evo-ui.module-table', \EvoUI\Livewire\ModuleTable::class);
-        Livewire::component('evo-ui.issue-workspace', \EvoUI\Livewire\IssueWorkspace::class);
+        $evoUI = $this->app->make(EvoUI::class);
+
+        $evoUI->registerComponent('evo-ui.table', \EvoUI\Livewire\Table::class);
+        $evoUI->registerComponent('evo-ui.form', \EvoUI\Livewire\Form::class);
+        $evoUI->registerComponent('evo-ui.module-table', \EvoUI\Livewire\ModuleTable::class);
+        $evoUI->registerComponent('evo-ui.issue-workspace', \EvoUI\Livewire\IssueWorkspace::class);
     }
 
     protected function registerManagerEndpointRoute(): void

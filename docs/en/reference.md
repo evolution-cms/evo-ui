@@ -8,6 +8,8 @@ on when reading docs or running release checks.
 | Signal | Meaning |
 | --- | --- |
 | `EvoUIServiceProvider` | Registers Blade components, Livewire components, config, assets, and foundation bindings. |
+| `EvoUI::registerComponent()` | Declares a reactive component without exposing the underlying runtime to consumer packages. |
+| `EvoUI\Components\Component` | Runtime-neutral base class for reactive components owned by consumer packages. |
 | `EvoGate` | Lightweight manager authorization bridge used by Livewire screens. |
 | `AuthorizationException` | Exception raised when a form/table action is not allowed. |
 | `Encrypter` | Compatibility binding for Livewire encrypted payload expectations. |

@@ -158,10 +158,39 @@ evo_ui_group('package', function () use ($root): void {
         evo_ui_assert_contains('use Livewire\\LivewireServiceProvider;', $provider, 'Livewire provider must be imported.');
         evo_ui_assert_contains('$this->registerLivewireProvider();', $provider, 'Livewire provider must be registered before EvoUI bridges Livewire.');
         evo_ui_assert_contains('$this->app->register(LivewireServiceProvider::class);', $provider, 'EvoUI must register Livewire as its runtime dependency.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.table'", $provider, 'Table Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.form'", $provider, 'Form Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.module-table'", $provider, 'Module table Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.issue-workspace'", $provider, 'Issue workspace Livewire component must be registered.');
+        evo_ui_assert_contains('$this->registerEvoUIComponents();', $provider, 'EvoUI components must be declared through the shared registry.');
+        evo_ui_assert_contains('$this->app->make(EvoUI::class)->bootComponents();', $provider, 'Queued components must be flushed after EvoUI declares its defaults.');
+        evo_ui_assert_not_contains('Livewire::component(', $provider, 'The provider must delegate component registration to the EvoUI service.');
+
+        $service = evo_ui_read('src/EvoUI.php');
+        evo_ui_assert_contains('public function registerComponent(string $name, string $class): void', $service, 'EvoUI must expose the consumer component boundary.');
+        evo_ui_assert_contains('public function bootComponents(): void', $service, 'EvoUI must expose the component runtime boot hook.');
+        evo_ui_assert_contains('Livewire::component($name, $class);', $service, 'Only EvoUI must bridge registered components to Livewire.');
+
+        $component = evo_ui_read('src/Components/Component.php');
+        evo_ui_assert_contains('abstract class Component extends \\Livewire\\Component', $component, 'Consumers must receive an EvoUI-owned base component.');
+    });
+
+    evo_ui_test('component registry queues declarations and registers late consumers', function (): void {
+        if (!class_exists('Livewire\\Livewire', false)) {
+            eval('namespace Livewire; class Livewire { public static array $components = []; public static function component(string $name, string $class): void { self::$components[$name] = $class; } }');
+        }
+
+        require_once evo_ui_path('src/EvoUI.php');
+        \Livewire\Livewire::$components = [];
+
+        $evoUI = new \EvoUI\EvoUI();
+        $evoUI->registerComponent('queued.component', \stdClass::class);
+
+        evo_ui_assert_same([], \Livewire\Livewire::$components, 'Components declared before boot must stay queued.');
+
+        $evoUI->bootComponents();
+
+        evo_ui_assert_same(\stdClass::class, \Livewire\Livewire::$components['queued.component'] ?? null, 'Boot must flush queued components.');
+
+        $evoUI->registerComponent('late.component', \RuntimeException::class);
+
+        evo_ui_assert_same(\RuntimeException::class, \Livewire\Livewire::$components['late.component'] ?? null, 'Components declared after boot must register immediately.');
     });
 });
 
