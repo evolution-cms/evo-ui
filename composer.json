@@ -20,6 +20,7 @@
     "require": {
         "php": "^8.4",
         "evolution-cms/evolution": "^3.5.7",
+        "league/commonmark": "^2.8",
         "livewire/livewire": "^4.0"
     },
     "support": {
