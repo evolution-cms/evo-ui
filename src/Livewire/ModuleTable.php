@@ -3,6 +3,7 @@
 namespace EvoUI\Livewire;
 
 use EvoUI\Contracts\ModuleTableProvider;
+use EvoUI\EvoUI as EvoUIRegistry;
 use EvoUI\Support\RichTextEditor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
@@ -1105,6 +1106,21 @@ class ModuleTable extends Component
         }
 
         return $fields;
+    }
+
+    /**
+     * Resolve an optional package-owned Blade view for a module modal field.
+     *
+     * Module providers may select a registered field type or provide a direct view,
+     * matching the extension contract already available to standalone EvoUI forms.
+     *
+     * @param array<string, mixed> $field Modal field descriptor
+     * @return string|null Registered custom view or null for the built-in renderer
+     * @since 1.2.0
+     */
+    public function modalCustomFieldView(array $field): ?string
+    {
+        return app(EvoUIRegistry::class)->formFieldView($field);
     }
 
     /** @param array<string, mixed> $field */

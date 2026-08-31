@@ -23,6 +23,7 @@
     $value = data_get($controller->modalData, $name, '');
     $errorKey = 'modalData.' . $name;
     $hasError = $errors->has($errorKey);
+    $customView = $controller->modalCustomFieldView($field);
     $fieldTab = (string) ($field['tab'] ?? $defaultModalTab);
     $gridRow = trim((string) ($field['grid_row'] ?? ''));
     $fieldStyle = preg_match('/^\d+(?:\s*\/\s*\d+)?$/', $gridRow) ? 'grid-row: ' . $gridRow . ';' : '';
@@ -129,7 +130,15 @@
             @endif
         </label>
 
-        @if($type === 'static')
+        @if($customView)
+            @include($customView, [
+                'controller' => $controller,
+                'field' => $field,
+                'fieldId' => $fieldId,
+                'model' => $model,
+                'value' => $value,
+            ])
+        @elseif($type === 'static')
             @php
                 $staticValue = is_scalar($value) || $value === null
                     ? (string) $value

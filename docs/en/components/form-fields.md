@@ -419,6 +419,10 @@ app(\EvoUI\EvoUI::class)->registerFormField(
 );
 ```
 
+The same registry resolves custom field types in standalone forms and
+`ModuleTable` create/edit modals. A modal custom view receives the controller,
+field descriptor, field id, Livewire model path and current value.
+
 Custom fields must still follow evo-ui spacing, labels, help and validation
 patterns. Promote a custom field into evo-ui only after it is useful for more
 than one module.

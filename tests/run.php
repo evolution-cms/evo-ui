@@ -1810,6 +1810,8 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())', $modal, 'Modal submit must sync rich editors before saving.');
         evo_ui_assert_contains('$fieldNameClass', $modalField, 'Modal fields must expose stable name classes for consumer-specific layout hooks.');
         evo_ui_assert_contains('$fieldTypeClass', $modalField, 'Modal fields must expose stable type classes for shared field styling.');
+        evo_ui_assert_contains('$controller->modalCustomFieldView($field)', $modalField, 'Modal fields must resolve package-owned custom views.');
+        evo_ui_assert_contains('@include($customView', $modalField, 'Modal fields must render resolved package-owned views.');
         evo_ui_assert_contains('$type === \'static\'', $modalField, 'Modal fields must support top-level static read-only fields.');
         evo_ui_assert_contains('$type === \'code\'', $modalField, 'Modal fields must support top-level code/log fields.');
         evo_ui_assert_contains('$type === \'code-plain\'', $modalField, 'Modal fields must support plain read-only code payloads.');
@@ -2294,6 +2296,7 @@ evo_ui_group('forms', function (): void {
     evo_ui_test('custom field registry resolves view, name and type overrides', function (): void {
         $evoUi = evo_ui_read('src/EvoUI.php');
         $form = evo_ui_read('src/Livewire/Form.php');
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
 
         evo_ui_assert_contains('public function registerFormField', $evoUi, 'EvoUI must expose custom form field registration.');
         evo_ui_assert_contains('public function formFieldView', $evoUi, 'EvoUI must expose custom form field view resolution.');
@@ -2302,6 +2305,10 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains('$this->formFields[$type]', $evoUi, 'Custom field views must resolve by field type.');
         evo_ui_assert_contains('public function customFieldView(array $field): ?string', $form, 'Form controller must expose custom view lookup to Blade.');
         evo_ui_assert_contains('app(EvoUI::class)->formFieldView($field)', $form, 'Form controller must delegate custom view lookup to EvoUI.');
+        evo_ui_assert_contains('public function modalCustomFieldView(array $field): ?string', $moduleTable, 'Module table modals must expose custom view lookup.');
+        evo_ui_assert_contains('app(EvoUIRegistry::class)->formFieldView($field)', $moduleTable, 'Module table modals must delegate custom field resolution to EvoUI.');
+        $docs = evo_ui_read('docs/en/components/form-fields.md');
+        evo_ui_assert_contains('The same registry resolves custom field types in standalone forms and', $docs, 'Custom field docs must cover module table modals.');
     });
 
     evo_ui_test('form casting covers config-map, csv, datetime and resource parent values', function (): void {
