@@ -1957,6 +1957,71 @@
         }, 60);
     }
 
+    function replaceModuleTabSearchParameter(targetWindow, parameter, tab) {
+        try {
+            var url = new URL(targetWindow.location.href);
+
+            if (url.searchParams.get(parameter) === tab) {
+                return;
+            }
+
+            url.searchParams.set(parameter, tab);
+            targetWindow.history.replaceState(
+                targetWindow.history.state,
+                targetWindow.document.title,
+                url.pathname + url.search + url.hash
+            );
+        } catch (error) {
+            // Embedded manager windows can deny location access.
+        }
+    }
+
+    function replaceModuleTabHashParameter(targetWindow, parameter, tab) {
+        try {
+            var hash = targetWindow.location.hash || '';
+            var queryIndex = hash.indexOf('?');
+
+            if (queryIndex === -1) {
+                return;
+            }
+
+            var prefix = hash.slice(0, queryIndex + 1);
+            var params = new URLSearchParams(hash.slice(queryIndex + 1));
+
+            if (params.get(parameter) === tab) {
+                return;
+            }
+
+            params.set(parameter, tab);
+            targetWindow.history.replaceState(
+                targetWindow.history.state,
+                targetWindow.document.title,
+                targetWindow.location.pathname + targetWindow.location.search + prefix + params.toString()
+            );
+        } catch (error) {
+            // Parent manager access is best-effort for embedded consumers.
+        }
+    }
+
+    function syncModuleTabUrl(parameter, tab) {
+        parameter = String(parameter || '').trim();
+        tab = String(tab || '').trim();
+
+        if (!/^[a-z][a-z0-9_-]*$/i.test(parameter) || tab === '') {
+            return;
+        }
+
+        replaceModuleTabSearchParameter(window, parameter, tab);
+
+        try {
+            if (window.parent && window.parent !== window) {
+                replaceModuleTabHashParameter(window.parent, parameter, tab);
+            }
+        } catch (error) {
+            // Cross-origin parents are intentionally ignored.
+        }
+    }
+
     function tableResponsiveStorageKey(surface) {
         var key = surface.getAttribute('data-evo-table') || surface.getAttribute('wire:key') || 'default';
 
@@ -3302,6 +3367,9 @@
     };
     window.EvoUI.manager = {
         open: openManagerLink
+    };
+    window.EvoUI.moduleTabs = {
+        syncUrl: syncModuleTabUrl
     };
 
     window.setParent = function (id, title) {

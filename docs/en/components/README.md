@@ -293,6 +293,7 @@ Parameters:
 | --- | --- | --- | --- |
 | `tabs` | array | `[]` | Module tab config. Supports `key`, `argument`, `label`, `icon`, `permission`, `hidden` and `data`. |
 | `model` | string | `activeTab` | Livewire property entangled with the selected tab. |
+| `urlParameter` | string|null | `null` | Optional query key updated in both the iframe URL and Evolution Manager hash when the active tab changes. |
 | `label` | string|null | null | Accessible label for the tablist. |
 | `panelClass` | string | empty | Extra classes for the tab content wrapper. |
 | `surface` | bool | true | Wrap slot content in `evo-ui-surface`. |

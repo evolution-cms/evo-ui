@@ -1480,6 +1480,8 @@ evo_ui_group('state', function (): void {
             'data-evo-module-tab-shell' => 'Module tab shell must expose a stable root marker.',
             'data-evo-module-tab-model' => 'Module tab shell must expose the bound Livewire model marker.',
             '$wire.entangle(@js($model)).live' => 'Module tab shell must entangle the active tab with Livewire.',
+            "'urlParameter' => null" => 'Module tab URL persistence must remain opt-in for existing consumers.',
+            'window.EvoUI?.moduleTabs?.syncUrl(@js($urlParameter), tab);' => 'Opted-in module tabs must synchronize their active key with the manager URL.',
             'setActiveModuleTab(tab)' => 'Module tab shell must explicitly sync tab changes back to Livewire.',
             'this.$wire.set(@js($model), tab);' => 'Module tab shell must force a Livewire update when switching tabs.',
             'requestModuleTab(tab)' => 'Module tab shell must centralize tab change requests.',
@@ -1513,6 +1515,12 @@ evo_ui_group('state', function (): void {
             $shell,
             'Module tab refresh events must not use dots because Alpine parses them as modifiers.'
         );
+
+        $js = evo_ui_read('resources/js/evo-ui.js');
+        evo_ui_assert_contains('function syncModuleTabUrl(parameter, tab)', $js, 'EvoUI must expose one shared module-tab URL synchronizer.');
+        evo_ui_assert_contains('replaceModuleTabSearchParameter(window, parameter, tab);', $js, 'Module tabs must update their iframe query state.');
+        evo_ui_assert_contains('replaceModuleTabHashParameter(window.parent, parameter, tab);', $js, 'Module tabs must update the Evolution Manager hash query when embedded.');
+        evo_ui_assert_contains('syncUrl: syncModuleTabUrl', $js, 'The URL synchronizer must be available to the module-tab shell.');
     });
 
     evo_ui_test('module table refreshes only for its owning module tab', function (): void {
