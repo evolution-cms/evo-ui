@@ -14,7 +14,7 @@ Canonical implementation docs are English-first and live under
 - [Deutsch](de/README.md)
 - [Français](fr/README.md)
 - [Polski](pl/README.md)
-- [Русский, legacy extra](ru/README.md)
+- [ru — український fallback](ru/README.md)
 
 ## Locale Status
 
@@ -25,7 +25,11 @@ Canonical implementation docs are English-first and live under
 | `pl` | `complete` | Localized release entrypoints and core reference pages. |
 | `de` | `complete` | Localized release entrypoints and core reference pages. |
 | `fr` | `complete` | Localized release entrypoints and core reference pages. |
-| `ru` | `legacy` | README-only legacy extra; not part of the release locale gate. |
+| `ru` | `fallback` | Every localized entrypoint links to the Ukrainian source. |
+
+Ukrainian defines localization completeness. All supported UI dictionaries
+must have the same keys and interpolation placeholders. Russian uses the
+Ukrainian dictionary directly, without a separate translation set.
 
 ## English Canonical Docs
 

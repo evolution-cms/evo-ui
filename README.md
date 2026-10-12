@@ -1,5 +1,13 @@
 # evo-ui
 
+[![Version](https://img.shields.io/packagist/v/evolution-cms/evo-ui)](https://packagist.org/packages/evolution-cms/evo-ui)
+[![CMS](https://img.shields.io/badge/CMS-Evolution-green)](https://evo.im/)
+[![PHP](https://img.shields.io/packagist/dependency-v/evolution-cms/evo-ui/php)](composer.json)
+[![License](https://img.shields.io/github/license/evolution-cms/evo-ui)](LICENSE)
+[![Issues](https://img.shields.io/github/issues/evolution-cms/evo-ui)](https://github.com/evolution-cms/evo-ui/issues)
+[![Stars](https://img.shields.io/github/stars/evolution-cms/evo-ui)](https://github.com/evolution-cms/evo-ui/stargazers)
+[![Downloads](https://img.shields.io/packagist/dt/evolution-cms/evo-ui)](https://packagist.org/packages/evolution-cms/evo-ui)
+
 evo-ui is the Livewire + DaisyUI foundation for modern Evolution CMS manager
 modules. It is a technical package, not a standalone manager module.
 
@@ -21,6 +29,10 @@ screens without pulling legacy manager CSS, jQuery, Bootstrap, `main.js`,
 - Provider-backed issue/workspace surface used by `dIssues`.
 - Shared Blade components for buttons, icons, tabs, modals, cards, badges,
   choices, image fields, rich editors, and table cells.
+- Guarded module tabs with an optional `navigationAside` slot for status badges
+  and other navigation accessories.
+- Gradual wide-workspace typography and readable field descriptions, with a
+  shared sanitizer for administrator-authored inline HTML.
 
 ## Consumers
 
@@ -28,15 +40,15 @@ screens without pulling legacy manager CSS, jQuery, Bootstrap, `main.js`,
   sLang integration surfaces.
 - `dIssues`: issue tables, settings forms, kanban/list issue workspace and
   conversation preview.
-- Planned next consumers: `sLang`, `sSeo`, and other manager modules that need
-  the same Livewire runtime.
+- `sTask`, `sSettings`, `sLang`, `sSeo`, and `dDocs` also use EvoUI in their
+  migrated manager surfaces; maintained branches may still have legacy screens.
 
 ## Install In A Module
 
 ```json
 {
   "require": {
-    "evolution-cms/evo-ui": "^1.0"
+    "evolution-cms/evo-ui": "^1.2"
   }
 }
 ```
@@ -45,12 +57,12 @@ Render an evo-ui-owned manager document:
 
 ```blade
 <x-evo::layout :title="$pageTitle">
-    <x-evo::module-tabs :items="$tabs" :active="$activeTab" />
-
-    <livewire:evo-ui.module-table
-        preset="vendor.module.items"
-        :context="['moduleUrl' => $moduleUrl]"
-    />
+    <x-evo::module-tab-shell :tabs="$tabs" model="activeTab">
+        <livewire:evo-ui.module-table
+            preset="vendor.module.items"
+            :context="['moduleUrl' => $moduleUrl]"
+        />
+    </x-evo::module-tab-shell>
 </x-evo::layout>
 ```
 
@@ -68,28 +80,42 @@ falls back to copying the files.
 
 ## Documentation
 
-Start from [`docs/`](docs/README.md).
+Start from [`docs/`](docs/README.md). The `navigationAside` slot and
+`DescriptionHtml` helper are new in the forthcoming 1.3 release; consumers
+using them must require `^1.3` after that release is published.
 
-- [`docs/module-integration.md`](docs/module-integration.md): module shell,
+- [`docs/en/guide/module-integration.md`](docs/en/guide/module-integration.md): module shell,
   assets, provider registration and examples.
-- [`docs/module-table-contract.md`](docs/module-table-contract.md): table,
+- [`docs/en/components/module-table-contract.md`](docs/en/components/module-table-contract.md): table,
   list, filters, modal and provider contracts.
-- [`docs/components.md`](docs/components.md): component catalogue and usage.
-- [`docs/consumers.md`](docs/consumers.md): how `sArticles` and `dIssues`
+- [`docs/en/components/README.md`](docs/en/components/README.md): component catalogue and usage.
+- [`docs/en/guide/consumers.md`](docs/en/guide/consumers.md): how `sArticles` and `dIssues`
   currently consume evo-ui.
-- [`docs/release-checklist.md`](docs/release-checklist.md): first-release
+- [`docs/en/guide/release-checklist.md`](docs/en/guide/release-checklist.md): first-release
   readiness checklist.
-- [`docs/roadmap.md`](docs/roadmap.md): useful base components to add before
+- [`docs/en/guide/roadmap.md`](docs/en/guide/roadmap.md): useful base components to add before
   migrating `sLang` and `sSeo`.
 
 Localized entrypoints:
 
 - [`docs/en/`](docs/en/README.md)
-- [`docs/ua/`](docs/ua/README.md)
+- [`docs/uk/`](docs/uk/README.md)
 - [`docs/ru/`](docs/ru/README.md)
 - [`docs/de/`](docs/de/README.md)
 - [`docs/fr/`](docs/fr/README.md)
 - [`docs/pl/`](docs/pl/README.md)
+
+## Localization
+
+UI dictionaries are available in Ukrainian, English, German, French and Polish.
+Ukrainian is the completeness reference: every supported dictionary must have
+the same keys and interpolation placeholders. Russian intentionally loads the
+Ukrainian dictionary instead of maintaining separate translations. Russian
+documentation entrypoints link to their Ukrainian counterparts, so corrections
+have a single source.
+
+Update every localized documentation page affected by a public API change.
+The localization consistency checks run as part of `composer test`.
 
 ## Tests
 

@@ -2340,6 +2340,9 @@ evo_ui_group('forms', function (): void {
 });
 
 evo_ui_group('navigation-aside', function (): void {
+    evo_ui_test('all package locales stay consistent with Ukrainian', function (): void {
+        require __DIR__ . '/localization.php';
+    });
     evo_ui_test('optional navigation content stays inside the tab bar', function (): void {
         $shell = evo_ui_read('views/components/module-tab-shell.blade.php');
         $aside = strpos($shell, '{{ $navigationAside }}');
