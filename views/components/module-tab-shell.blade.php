@@ -6,10 +6,12 @@
     'panelClass' => '',
     'surface' => true,
     'id' => null,
+    'urlParameter' => null,
 ])
 
 @php
     $model = (string) $model;
+    $urlParameter = trim((string) $urlParameter);
     $modalTitleId = \Illuminate\Support\Str::slug((string) ($id ?: 'evo-ui-module-tabs-' . $model . '-unsaved-title'));
 @endphp
 
@@ -28,8 +30,14 @@
                 ? window.EvoUI.form.isDirty()
                 : document.querySelector('[data-evo-form-dirty=&quot;true&quot;]') !== null;
         },
+        syncModuleTabUrl(tab) {
+            if (@js($urlParameter !== '')) {
+                window.EvoUI?.moduleTabs?.syncUrl(@js($urlParameter), tab);
+            }
+        },
         setActiveModuleTab(tab) {
             this.activeTab = tab;
+            this.syncModuleTabUrl(tab);
 
             if (@js($model !== '')) {
                 this.$wire.set(@js($model), tab);
@@ -37,6 +45,7 @@
         },
         refreshModuleTab(tab) {
             this.activeTab = tab;
+            this.syncModuleTabUrl(tab);
 
             if (@js($model !== '')) {
                 Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
