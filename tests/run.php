@@ -2339,6 +2339,19 @@ evo_ui_group('forms', function (): void {
     });
 });
 
+evo_ui_group('navigation-aside', function (): void {
+    evo_ui_test('optional navigation content stays inside the tab bar', function (): void {
+        $shell = evo_ui_read('views/components/module-tab-shell.blade.php');
+        $aside = strpos($shell, '{{ $navigationAside }}');
+        $navEnd = strpos($shell, '</nav>');
+        evo_ui_assert($aside !== false && $navEnd !== false && $aside < $navEnd, 'Navigation aside must render inside nav, before panel content.');
+        evo_ui_assert_contains('@isset($navigationAside)', $shell, 'Existing consumers must not render an empty aside.');
+    });
+    evo_ui_test('HTML descriptions preserve formatting and reject executable markup', function (): void {
+        require __DIR__ . '/description-html.php';
+    });
+});
+
 if (evo_ui_exit_code($failed) !== 0) {
     echo "FAIL {$failed} tests / {$assertions} assertions\n";
     exit(1);

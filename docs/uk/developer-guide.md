@@ -58,3 +58,20 @@ composer drift
 Generic UI behavior тестується в evo-ui. Module-specific business behavior
 тестується в consumer module.
 
+
+## Додаткові елементи навігації та описи полів
+
+`module-tab-shell` приймає необов'язковий слот `navigationAside` для мітки стану або іншого елемента. EvoUI розміщує його справа й по центру висоти; вкладки зберігають власну горизонтальну прокрутку. Модуль не повинен задавати слоту абсолютні координати.
+
+```blade
+<x-evo::module-tab-shell :tabs="$tabs" model="activeTab">
+    <x-slot:navigationAside>
+        <x-evo::badge :label="$statusLabel" icon="activity" />
+    </x-slot:navigationAside>
+    <!-- Module content -->
+</x-evo::module-tab-shell>
+```
+
+`EvoUI\Support\DescriptionHtml::render($description)` повертає очищений HTML опису, заданого адміністратором. Підтримуються відносні посилання, HTTP(S), mailto, tel, базове виділення, код і перенесення рядків. Елементи, що виконують скрипти, та довільні атрибути видаляються. Виводьте як HTML лише результат очищення.
+
+На широких екранах типографіка поступово збільшується від ширини робочої області модуля 2048 CSS-пікселів і має верхню межу. Враховується ширина iframe, масштаб системи та браузера; фізична роздільність 4K не є критерієм. Вузькі екрани зберігають наявні розміри тексту.
