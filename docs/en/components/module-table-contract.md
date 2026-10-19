@@ -54,6 +54,61 @@ Explicit URL parameters (`q`, `page`, `sort`, `dir`, `perPage`, `f`, `view`)
 take priority over session state, so bookmarked or shared manager URLs still
 open exactly as requested.
 
+## Responsive First Render
+
+With the unreleased responsive first-render API, a tab owner can provide the container
+width before mounting a module table. This avoids rendering a table and then
+requesting list view in a second Livewire round trip.
+
+Declare a `public int $tableWidth = 0` property on the parent component and opt
+in on the shared shell:
+
+```blade
+<x-evo::module-tab-shell model="activeTab" responsive-width-model="tableWidth">
+    <x-evo::table.livewire
+        :preset="$activePreset"
+        :context="['tab' => $activeTab, 'responsive_width' => $tableWidth]"
+        :wire-key="$activePreset"
+    />
+</x-evo::module-tab-shell>
+```
+
+The shell measures its single visible table surface, or the shell itself when
+there is no unambiguous table, using `$root` rather than the clicked tab button.
+The width update is deferred into the same request as tab navigation/refresh.
+For a custom shell, call `EvoUI.moduleTabs.tableWidth(container)` and defer the
+parent width property update before switching tabs.
+
+`responsive_width` is a hint for `ModuleTable::mount()`, not a URL parameter or
+part of the table storage key. A positive integer width below `responsive_list`
+(default `1200` CSS pixels) selects list view when both table and list are
+configured. Setting `responsive_list` to `0` disables automatic switching.
+Invalid or absent hints leave the existing first-render behavior in place.
+
+Explicit URL view choices and saved manual choices take priority. A manual
+selection stays manual even when selecting an already active automatic view.
+Session state records `view_origin` as `default`, `auto` or `manual`; old stored
+views without this field are treated as manual. Automatic resize calls use
+`switchView($view, true)` and cannot overwrite a manual choice. Existing
+`switchView($view)` calls remain manual selections.
+
+When `EvoSessionProxy` is loaded, ModuleTable mirrors its updated session
+namespace into the native session as well. This prevents the CMS shutdown
+reconciliation from discarding a just-saved view preference. Other keys in
+that namespace are preserved, including other tables and custom storage keys.
+
+The shared table surface emits `data-evo-table-view-origin` from the controller
+and `data-evo-responsive-list` from the preset. Consumers with a custom table
+surface must forward both attributes as well, so browser resize handling can
+distinguish automatic views from manual choices. Legacy surfaces without the
+origin marker keep the one-argument responsive call for compatibility.
+
+The browser still checks the actual mounted surface on resize. Unusual layouts
+or consumers without a width hint can require a fallback request. Initial
+document loading has no measured hint yet and retains that fallback. Each
+table keeps its own allowed views and manual preference; no EX42-specific
+logic or provider behavior is involved.
+
 ## Row Shape
 
 Every row is an array. Required:

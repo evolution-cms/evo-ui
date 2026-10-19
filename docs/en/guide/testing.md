@@ -17,6 +17,13 @@ Run from the `evo-ui` package root:
 composer test
 ```
 
+For responsive table changes, also run `composer test:responsive` (PHP and
+Node.js). It exercises first-render hints, explicit/session choices, resize
+fallback and container measurement. In a consumer, verify a cold narrow tab
+switch makes one request, manual table/list choices survive remounts, and a
+wide container still renders the table. Initial document load may still need
+the responsive fallback because it has no measured width hint yet.
+
 Run PHP syntax checks before release or when PHP files changed:
 
 ```bash

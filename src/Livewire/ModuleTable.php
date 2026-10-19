@@ -5,6 +5,7 @@ namespace EvoUI\Livewire;
 use EvoUI\Contracts\ModuleTableProvider;
 use EvoUI\EvoUI as EvoUIRegistry;
 use EvoUI\Support\RichTextEditor;
+use EvoUI\Support\ResponsiveTableView;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Url;
@@ -36,6 +37,7 @@ class ModuleTable extends Component
 
     #[Url(as: 'view', history: true, except: 'table')]
     public string $viewMode = 'table';
+    public string $viewOrigin = 'default';
 
     public ?int $selectedId = null;
     public bool $modalOpen = false;
@@ -59,10 +61,15 @@ class ModuleTable extends Component
         $this->syncConfigState();
         $this->fillDefaultFilters();
         $this->restoreSessionState();
+        $this->applyInitialResponsiveView();
     }
 
     public function updated(string $name): void
     {
+        if ($name === 'viewMode') {
+            $this->viewOrigin = 'manual';
+        }
+
         if (in_array($name, ['search', 'perPage', 'filterState'], true)) {
             $this->resetPageState();
         }
@@ -100,15 +107,21 @@ class ModuleTable extends Component
         $this->dispatchClientState();
     }
 
-    public function switchView(string $viewMode): void
+    public function switchView(string $viewMode, bool $automatic = false): void
     {
-        $next = in_array($viewMode, $this->tableViews(), true) ? $viewMode : 'table';
+        if ($automatic && $this->viewOrigin === 'manual') {
+            return;
+        }
 
-        if ($this->viewMode === $next) {
+        $next = in_array($viewMode, $this->tableViews(), true) ? $viewMode : 'table';
+        $origin = $automatic ? 'auto' : 'manual';
+
+        if ($this->viewMode === $next && $this->viewOrigin === $origin) {
             return;
         }
 
         $this->viewMode = $next;
+        $this->viewOrigin = $origin;
         $this->dispatchClientState();
     }
 
@@ -965,6 +978,7 @@ class ModuleTable extends Component
             'sort' => $this->sort,
             'direction' => $this->direction,
             'view' => $this->viewMode,
+            'view_origin' => $this->viewOrigin,
         ];
     }
 
@@ -2007,9 +2021,37 @@ class ModuleTable extends Component
         $this->restoreTableState($state);
     }
 
+    protected function applyInitialResponsiveView(): void
+    {
+        if (in_array(request()->query('view'), $this->tableViews(), true)) {
+            $this->viewOrigin = 'manual';
+        }
+
+        if ($this->viewOrigin === 'manual') {
+            return;
+        }
+
+        $view = ResponsiveTableView::initialView(
+            $this->context['responsive_width'] ?? null,
+            $this->tableViews(),
+            (int) $this->tableConfig('responsive_list', 1200)
+        );
+
+        if ($view !== null) {
+            $this->viewMode = $view;
+            $this->viewOrigin = 'auto';
+        }
+    }
+
     protected function persistServerState(): void
     {
         session()->put($this->storageKey(), $this->persistedState());
+
+        if (class_exists(\EvoSessionProxy::class, false)) {
+            // The CMS proxy reconciles Laravel state from the native session at shutdown.
+            $namespace = explode('.', $this->storageKey(), 2)[0];
+            $_SESSION[$namespace] = session()->get($namespace);
+        }
     }
 
     /** @param array<string, mixed> $state */
@@ -2027,6 +2069,9 @@ class ModuleTable extends Component
 
             if (in_array($view, $this->tableViews(), true)) {
                 $this->viewMode = $view;
+                // Older sessions do not distinguish automatic and explicit selections.
+                $this->viewOrigin = in_array($state['view_origin'] ?? '', ['default', 'auto', 'manual'], true)
+                    ? $state['view_origin'] : 'manual';
             }
         }
 

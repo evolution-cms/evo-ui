@@ -52,6 +52,8 @@
         'class' => $surfaceClass,
         'data-evo-table' => $config['key'] ?? 'module',
         'data-evo-table-view' => $viewMode,
+        'data-evo-table-view-origin' => $controller->viewOrigin ?? 'default',
+        'data-evo-responsive-list' => (int) ($config['responsive_list'] ?? 1200),
         'data-evo-table-storage-key' => $storageKey,
         'data-evo-table-per-page' => $perPage,
         'data-evo-table-per-page-cookie' => $perPageCookieName,
