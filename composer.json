@@ -47,6 +47,7 @@
     },
     "scripts": {
         "test": "php tests/run.php",
+        "test:responsive": ["@php tests/responsive-table-view.php", "node tests/responsive-table-view.js"],
         "drift": "php tests/consumer-drift.php",
         "release-gate": "php tests/consumer-drift.php --release-gate"
     },

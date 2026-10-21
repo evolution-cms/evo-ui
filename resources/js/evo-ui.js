@@ -2022,6 +2022,19 @@
         }
     }
 
+    function moduleTableWidth(root) {
+        if (!root || typeof root.getBoundingClientRect !== 'function') {
+            return 0;
+        }
+
+        var tables = Array.prototype.filter.call(root.querySelectorAll('[data-evo-table]'), function (table) {
+            return table.getBoundingClientRect().width > 0;
+        });
+        var width = (tables.length === 1 ? tables[0] : root).getBoundingClientRect().width;
+
+        return Number.isFinite(width) && width > 0 ? Math.floor(width) : 0;
+    }
+
     function tableResponsiveStorageKey(surface) {
         var key = surface.getAttribute('data-evo-table') || surface.getAttribute('wire:key') || 'default';
 
@@ -2312,7 +2325,11 @@
             }
         }
 
-        Promise.resolve(component.call('switchView', view)).finally(function () {
+        var result = surface.hasAttribute('data-evo-table-view-origin')
+            ? component.call('switchView', view, true)
+            : component.call('switchView', view);
+
+        Promise.resolve(result).finally(function () {
             surface.__evoResponsiveViewPending = '';
         });
     }
@@ -2323,6 +2340,11 @@
         var width = surface.getBoundingClientRect().width || window.innerWidth || 0;
         var storageKey = tableResponsiveStorageKey(surface);
         var autoView = '';
+        var origin = surface.getAttribute('data-evo-table-view-origin') || '';
+
+        if (threshold <= 0 || origin === 'manual' || surface.__evoResponsiveManualChoice) {
+            return;
+        }
 
         if (!tableSupportsView(surface, 'list') || !tableSupportsView(surface, 'table')) {
             return;
@@ -2332,6 +2354,10 @@
             autoView = window.sessionStorage.getItem(storageKey) || '';
         } catch (error) {
             autoView = '';
+        }
+
+        if (origin === 'auto' && current === 'list') {
+            autoView = 'list';
         }
 
         if (width > 0 && width < threshold && current !== 'list') {
@@ -2356,6 +2382,7 @@
 
         surface.querySelectorAll('[wire\\:click^="switchView("]').forEach(function (button) {
             button.addEventListener('click', function () {
+                surface.__evoResponsiveManualChoice = true;
                 try {
                     window.sessionStorage.removeItem(tableResponsiveStorageKey(surface));
                 } catch (error) {
@@ -3369,7 +3396,8 @@
         open: openManagerLink
     };
     window.EvoUI.moduleTabs = {
-        syncUrl: syncModuleTabUrl
+        syncUrl: syncModuleTabUrl,
+        tableWidth: moduleTableWidth
     };
 
     window.setParent = function (id, title) {

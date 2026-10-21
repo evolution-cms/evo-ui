@@ -2355,6 +2355,13 @@ evo_ui_group('navigation-aside', function (): void {
     });
 });
 
+evo_ui_group('responsive-table-view', function (): void {
+    evo_ui_test('first render and explicit view choices obey responsive context', function (): void {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/responsive-table-view.php') . ' 2>&1', $output, $exit);
+        evo_ui_assert_same(0, $exit, implode(PHP_EOL, $output));
+    });
+});
+
 if (evo_ui_exit_code($failed) !== 0) {
     echo "FAIL {$failed} tests / {$assertions} assertions\n";
     exit(1);

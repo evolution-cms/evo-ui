@@ -2,6 +2,7 @@
     'tabs' => [],
     'label' => null,
     'model' => 'activeTab',
+    'responsiveWidthModel' => '',
     'active' => null,
     'panelClass' => '',
     'surface' => true,
@@ -35,7 +36,14 @@
                 window.EvoUI?.moduleTabs?.syncUrl(@js($urlParameter), tab);
             }
         },
+        captureTableWidth() {
+            if (@js($responsiveWidthModel !== '' && $model !== '')) {
+                const width = window.EvoUI?.moduleTabs?.tableWidth(this.$root) || 0;
+                this.$wire.set(@js($responsiveWidthModel), width, false);
+            }
+        },
         setActiveModuleTab(tab) {
+            this.captureTableWidth();
             this.activeTab = tab;
             this.syncModuleTabUrl(tab);
 
@@ -44,6 +52,7 @@
             }
         },
         refreshModuleTab(tab) {
+            this.captureTableWidth();
             this.activeTab = tab;
             this.syncModuleTabUrl(tab);
 

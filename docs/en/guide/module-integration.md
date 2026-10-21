@@ -177,6 +177,12 @@ or unsaved modal markup. dDocs is the documented exception: its documentation
 workspace uses a sidebar/tree viewer UX and should not be forced into upper
 module tabs.
 
+For dynamically mounted tables, the unreleased
+[`responsive-width-model` contract](../components/module-table-contract.md#responsive-first-render)
+can pass a measured width with navigation and avoid a second responsive-view
+request. Consumers provide a parent width property and forward it through the
+table context; view precedence and responsive policy remain owned by EvoUI.
+
 ## Module Table Preset
 
 Create a table config in the consuming module:
