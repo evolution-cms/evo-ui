@@ -52,9 +52,14 @@
             }
         },
         refreshModuleTab(tab) {
+            this.syncModuleTabUrl(tab);
+            if (@js($urlParameter !== '') && new URLSearchParams(window.location.search).get(@js($urlParameter)) === tab) {
+                window.location.reload();
+                return;
+            }
+
             this.captureTableWidth();
             this.activeTab = tab;
-            this.syncModuleTabUrl(tab);
 
             if (@js($model !== '')) {
                 Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
@@ -75,6 +80,17 @@
             this.pendingTab = tab;
             this.pendingRefresh = true;
             this.showUnsavedPrompt = true;
+        },
+        requestModuleTabClick(event, tab) {
+            if (event.currentTarget.tagName === 'A') {
+                if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                event.preventDefault();
+            }
+
+            this.requestModuleTab(tab);
         },
         requestModuleTab(tab) {
             if (this.activeTab === tab) {
@@ -144,19 +160,25 @@
                     $key = (string) ($tab['key'] ?? $tab['argument'] ?? '');
                     $data = (array) ($tab['data'] ?? []);
                     $permission = (string) ($tab['permission'] ?? '');
+                    $href = trim((string) ($tab['href'] ?? ''));
+                    $isLink = $href !== '' && $href !== '#';
+                    $tag = $isLink ? 'a' : 'button';
+                    $tabAttributes = new \Illuminate\View\ComponentAttributeBag($isLink
+                        ? ['href' => e($href), 'x-on:keydown.space.prevent' => '$el.click()']
+                        : ['type' => 'button']);
                 @endphp
 
                 @continue($key === '')
                 @continue((bool) ($tab['hidden'] ?? false))
                 @continue($permission !== '' && function_exists('evo') && !evo()->hasPermission($permission, 'mgr'))
 
-                <button
-                    type="button"
+                <{{ $tag }}
+                    {{ $tabAttributes }}
                     role="tab"
                     class="tab evo-ui-nav-tab"
                     x-bind:class="{ 'tab-active is-active': activeTab === @js($key) }"
                     x-bind:aria-selected="activeTab === @js($key) ? 'true' : 'false'"
-                    x-on:click="requestModuleTab(@js($key))"
+                    x-on:click="requestModuleTabClick($event, @js($key))"
                     x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"
                     @foreach($data as $name => $value)
                         @if($value === true || $value === '')
@@ -172,7 +194,7 @@
                         @endif
                         <span>{!! __((string) ($tab['label'] ?? $key)) !!}</span>
                     </span>
-                </button>
+                </{{ $tag }}>
             @endforeach
         </div>
         @isset($navigationAside)
