@@ -1489,7 +1489,9 @@ evo_ui_group('state', function (): void {
             'pendingRefresh' => 'Module tab shell must track deferred refreshes.',
             'requestModuleTabRefresh(tab)' => 'Module tab shell must centralize double-click refresh requests.',
             'refreshModuleTab(tab)' => 'Module tab shell must refresh the selected tab.',
-            'this.$wire.$refresh()' => 'Livewire module tabs must refresh content without reloading the frame.',
+            'this.$wire.$refresh()' => 'Tabs without URL state must retain in-place refresh.',
+            'new URLSearchParams(window.location.search).get(@js($urlParameter)) === tab' => 'Module reloads must keep the selected tab in the URL.',
+            'window.location.reload()' => 'Double-click must reload the module document when its tab URL is ready.',
             "this.\$dispatch('evo-ui:module-tab-refresh', { tab })" => 'Module tabs must expose an Alpine-safe content refresh event.',
             'x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"' => 'Module tabs must refresh on double click.',
             'showUnsavedPrompt' => 'Module tab shell must own the unsaved prompt state.',
@@ -1506,9 +1508,9 @@ evo_ui_group('state', function (): void {
         }
 
         evo_ui_assert_not_contains(
-            'window.location.reload()',
+            'window.parent.location.reload()',
             $shell,
-            'Module tab shell must not reload the containing manager frame.'
+            'Module tab shell must not reload the parent manager.'
         );
         evo_ui_assert_not_contains(
             'evo-ui:module-tab.refresh',

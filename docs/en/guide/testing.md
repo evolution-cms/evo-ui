@@ -17,6 +17,9 @@ Run from the `evo-ui` package root:
 composer test
 ```
 
+Run `composer test:module-tabs` (Node.js) for link gestures, in-place switching
+and the unsaved-form guard in the shared module tab shell.
+
 For responsive table changes, also run `composer test:responsive` (PHP and
 Node.js). It exercises first-render hints, explicit/session choices, resize
 fallback and container measurement. In a consumer, verify a cold narrow tab
