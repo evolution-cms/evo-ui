@@ -119,7 +119,10 @@
                     </div>
                 @endif
 
-                <table class="evo-ui-table evo-ui-table--module">
+                <table @class([
+                    'evo-ui-table evo-ui-table--module',
+                    'evo-ui-table--equal-columns' => ($config['equal_columns'] ?? false) === true,
+                ])>
                     <thead>
                         <tr>
                             @foreach($columns as $column)
