@@ -92,6 +92,7 @@ Common keys:
 | `title` | translation key | Optional toolbar title. |
 | `title_icon` | icon name | Optional toolbar title icon. |
 | `title_placement` | string | Use `table_header` when the title must attach to the table frame. |
+| `equal_columns` | bool | Set to `true` to divide the available width equally among data columns in table view. The row actions column keeps its own width. Defaults to `false`. |
 | `per_page` | int | Default row count. |
 | `per_page_options` | int[] | Options shown in the footer selector. |
 | `views` | array | `['table']` or `['table', 'list']`. |

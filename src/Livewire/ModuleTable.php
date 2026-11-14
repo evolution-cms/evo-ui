@@ -1081,7 +1081,7 @@ class ModuleTable extends Component
     /** @return array<int, array<string, mixed>> */
     public function modalActions(): array
     {
-        return collect((array) $this->modalConfig('actions', []))
+        $actions = collect((array) $this->modalConfig('actions', []))
             ->filter(fn ($action) => is_array($action) && !empty($action['key']))
             ->filter(function (array $action) {
                 $modes = $action['modes'] ?? $action['mode'] ?? null;
@@ -1103,6 +1103,14 @@ class ModuleTable extends Component
             })
             ->values()
             ->all();
+
+        $provider = $this->provider();
+
+        if (method_exists($provider, 'modalActions')) {
+            return (array) $this->callProvider('modalActions', $actions, $this->modalData, $this->modalRecordId, $this->modalMode);
+        }
+
+        return $actions;
     }
 
     /** @return array<int, array<string, mixed>> */

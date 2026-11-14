@@ -48,7 +48,7 @@ screens without pulling legacy manager CSS, jQuery, Bootstrap, `main.js`,
 ```json
 {
   "require": {
-    "evolution-cms/evo-ui": "^1.2"
+    "evolution-cms/evo-ui": "*"
   }
 }
 ```

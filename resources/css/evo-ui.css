@@ -5701,6 +5701,20 @@ select.evo-ui-select--multiple {
     background: var(--evo-ui-control-bg);
 }
 
+.evo-ui-table--equal-columns {
+    table-layout: fixed;
+}
+
+.evo-ui-table--equal-columns > thead > tr > th:not(.evo-ui-table__actions) {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+}
+
+.evo-ui-table--equal-columns > tbody > tr > td {
+    overflow-wrap: anywhere;
+}
+
 .evo-ui .evo-ui-table a.evo-ui-table-link,
 .evo-ui .evo-ui-list a.evo-ui-table-link {
     color: var(--evo-ui-text);
