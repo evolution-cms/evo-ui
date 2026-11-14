@@ -60,12 +60,12 @@ function evo_ui_assert_same(mixed $expected, mixed $actual, string $message): vo
 
 function evo_ui_assert_contains(string $needle, string $haystack, string $message): void
 {
-    evo_ui_assert(str_contains($haystack, $needle), $message);
+    evo_ui_assert(str_contains($haystack, str_replace("\r\n", "\n", $needle)), $message);
 }
 
 function evo_ui_assert_not_contains(string $needle, string $haystack, string $message): void
 {
-    evo_ui_assert(!str_contains($haystack, $needle), $message);
+    evo_ui_assert(!str_contains($haystack, str_replace("\r\n", "\n", $needle)), $message);
 }
 
 function evo_ui_assert_order(string $first, string $second, string $haystack, string $message): void
@@ -116,7 +116,7 @@ function evo_ui_read(string $path): string
     $absolute = evo_ui_path($path);
     evo_ui_assert(is_file($absolute), 'Expected file to exist: ' . $path);
 
-    return (string) file_get_contents($absolute);
+    return str_replace("\r\n", "\n", (string) file_get_contents($absolute));
 }
 
 /** @return array<string, mixed> */
@@ -996,8 +996,10 @@ evo_ui_group('assets', function (): void {
         evo_ui_assert_contains('savedFeedbackTimer', $form, 'Form saved feedback must auto-reset through a timer.');
         evo_ui_assert_contains("this.savedFeedback = true;", $form, 'Form saved handler must enable saved feedback.');
         evo_ui_assert_contains("this.savedFeedback = false;", $form, 'Form dirty handler must clear saved feedback.');
-        evo_ui_assert_contains("x-bind:title=\"savedFeedback ? @js(__('evo::global.form_saved'))", $form, 'Save button must expose saved feedback through title.');
-        evo_ui_assert_contains("x-bind:aria-label=\"savedFeedback ? @js(__('evo::global.form_saved'))", $form, 'Save button must expose saved feedback through aria-label.');
+        evo_ui_assert_contains('$savedLabel = __(\'evo::global.form_saved\');', $form, 'Saved feedback must use the localized saved label.');
+        evo_ui_assert_contains('$savedTitleExpression = \'savedFeedback ? \' . \\Illuminate\\Support\\Js::from($savedLabel)', $form, 'The bound label must switch to the saved label when feedback is active.');
+        evo_ui_assert_contains(':x-bind:title="$savedTitleExpression"', $form, 'Save button must expose saved feedback through title.');
+        evo_ui_assert_contains(':x-bind:aria-label="$savedTitleExpression"', $form, 'Save button must expose saved feedback through aria-label.');
         evo_ui_assert_contains('x-bind:disabled="!dirty || savedFeedback"', $form, 'Save button must be disabled while clean or showing saved feedback.');
         evo_ui_assert_contains("x-bind:class=\"{ 'is-disabled': !dirty || savedFeedback, 'is-saved': savedFeedback }\"", $form, 'Save button must expose a saved visual state without custom markup.');
         evo_ui_assert_contains('<x-evo::icon :name="$action[\'icon\'] ?? \'check\'" class="evo-ui-btn__icon" x-show="!savedFeedback" />', $form, 'Save button must show the normal icon before save.');
@@ -1175,10 +1177,10 @@ evo_ui_group('design-tokens', function (): void {
         foreach ([
             'font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;',
             'font-size: 14px;',
-            '--evo-ui-issue-page-title-font-size: 20px;',
-            '--evo-ui-issue-title-font-size: 14px;',
-            '--evo-ui-issue-list-title-font-size: 13px;',
-            '--evo-ui-issue-body-font-size: 12px;',
+            '--evo-ui-issue-page-title-font-size: 21px;',
+            '--evo-ui-issue-title-font-size: 15px;',
+            '--evo-ui-issue-list-title-font-size: 14px;',
+            '--evo-ui-issue-body-font-size: 13px;',
             '.evo-ui-issue-card',
             '.evo-ui-issue-list-item',
             '.evo-ui-list-item',
@@ -2200,7 +2202,7 @@ evo_ui_group('forms', function (): void {
         $sectionView = evo_ui_read('views/components/form/section.blade.php');
         $css = evo_ui_read('resources/css/evo-ui.css');
         evo_ui_assert_contains('savedFeedback', $formView, 'Form saves must use in-button saved feedback state.');
-        evo_ui_assert_contains('x-bind:aria-label="savedFeedback ? @js(__(\'evo::global.form_saved\'))', $formView, 'Form save button must expose the saved state through accessible text.');
+        evo_ui_assert_contains(':x-bind:aria-label="$savedTitleExpression"', $formView, 'Form save button must expose the saved state through accessible text.');
         evo_ui_assert_contains('name="circle-check"', $formView, 'Form save button must switch icon for saved feedback.');
         evo_ui_assert_contains('<span class="evo-ui-btn__label">@lang($action[\'label\'] ?? \'evo::global.action_save\')</span>', $formView, 'Form save button visible label must stay stable to avoid width shifts.');
         evo_ui_assert_not_contains('x-text="savedFeedback ?', $formView, 'Form save button must not change visible text during saved feedback.');
