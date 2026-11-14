@@ -158,10 +158,39 @@ evo_ui_group('package', function () use ($root): void {
         evo_ui_assert_contains('use Livewire\\LivewireServiceProvider;', $provider, 'Livewire provider must be imported.');
         evo_ui_assert_contains('$this->registerLivewireProvider();', $provider, 'Livewire provider must be registered before EvoUI bridges Livewire.');
         evo_ui_assert_contains('$this->app->register(LivewireServiceProvider::class);', $provider, 'EvoUI must register Livewire as its runtime dependency.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.table'", $provider, 'Table Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.form'", $provider, 'Form Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.module-table'", $provider, 'Module table Livewire component must be registered.');
-        evo_ui_assert_contains("Livewire::component('evo-ui.issue-workspace'", $provider, 'Issue workspace Livewire component must be registered.');
+        evo_ui_assert_contains('$this->registerEvoUIComponents();', $provider, 'EvoUI components must be declared through the shared registry.');
+        evo_ui_assert_contains('$this->app->make(EvoUI::class)->bootComponents();', $provider, 'Queued components must be flushed after EvoUI declares its defaults.');
+        evo_ui_assert_not_contains('Livewire::component(', $provider, 'The provider must delegate component registration to the EvoUI service.');
+
+        $service = evo_ui_read('src/EvoUI.php');
+        evo_ui_assert_contains('public function registerComponent(string $name, string $class): void', $service, 'EvoUI must expose the consumer component boundary.');
+        evo_ui_assert_contains('public function bootComponents(): void', $service, 'EvoUI must expose the component runtime boot hook.');
+        evo_ui_assert_contains('Livewire::component($name, $class);', $service, 'Only EvoUI must bridge registered components to Livewire.');
+
+        $component = evo_ui_read('src/Components/Component.php');
+        evo_ui_assert_contains('abstract class Component extends \\Livewire\\Component', $component, 'Consumers must receive an EvoUI-owned base component.');
+    });
+
+    evo_ui_test('component registry queues declarations and registers late consumers', function (): void {
+        if (!class_exists('Livewire\\Livewire', false)) {
+            eval('namespace Livewire; class Livewire { public static array $components = []; public static function component(string $name, string $class): void { self::$components[$name] = $class; } }');
+        }
+
+        require_once evo_ui_path('src/EvoUI.php');
+        \Livewire\Livewire::$components = [];
+
+        $evoUI = new \EvoUI\EvoUI();
+        $evoUI->registerComponent('queued.component', \stdClass::class);
+
+        evo_ui_assert_same([], \Livewire\Livewire::$components, 'Components declared before boot must stay queued.');
+
+        $evoUI->bootComponents();
+
+        evo_ui_assert_same(\stdClass::class, \Livewire\Livewire::$components['queued.component'] ?? null, 'Boot must flush queued components.');
+
+        $evoUI->registerComponent('late.component', \RuntimeException::class);
+
+        evo_ui_assert_same(\RuntimeException::class, \Livewire\Livewire::$components['late.component'] ?? null, 'Components declared after boot must register immediately.');
     });
 });
 
@@ -1049,6 +1078,7 @@ evo_ui_group('design-tokens', function (): void {
             '--color-primary: oklch' => 'Primary palette must use OKLCH tokens.',
             '--color-success: oklch' => 'Success palette must use OKLCH tokens.',
             '--color-warning: oklch' => 'Warning palette must use OKLCH tokens.',
+            '--color-warning: oklch(70.5% 0.213 47.604);' => 'Warning palette must use the shared orange warning tone.',
             '--color-error: oklch' => 'Error palette must use OKLCH tokens.',
             'color-mix(in oklch' => 'Derived colors must use OKLCH color mixing.',
         ] as $marker => $message) {
@@ -1450,10 +1480,20 @@ evo_ui_group('state', function (): void {
             'data-evo-module-tab-shell' => 'Module tab shell must expose a stable root marker.',
             'data-evo-module-tab-model' => 'Module tab shell must expose the bound Livewire model marker.',
             '$wire.entangle(@js($model)).live' => 'Module tab shell must entangle the active tab with Livewire.',
+            "'urlParameter' => null" => 'Module tab URL persistence must remain opt-in for existing consumers.',
+            'window.EvoUI?.moduleTabs?.syncUrl(@js($urlParameter), tab);' => 'Opted-in module tabs must synchronize their active key with the manager URL.',
             'setActiveModuleTab(tab)' => 'Module tab shell must explicitly sync tab changes back to Livewire.',
             'this.$wire.set(@js($model), tab);' => 'Module tab shell must force a Livewire update when switching tabs.',
             'requestModuleTab(tab)' => 'Module tab shell must centralize tab change requests.',
             'pendingTab' => 'Module tab shell must track deferred navigation.',
+            'pendingRefresh' => 'Module tab shell must track deferred refreshes.',
+            'requestModuleTabRefresh(tab)' => 'Module tab shell must centralize double-click refresh requests.',
+            'refreshModuleTab(tab)' => 'Module tab shell must refresh the selected tab.',
+            'this.$wire.$refresh()' => 'Tabs without URL state must retain in-place refresh.',
+            'new URLSearchParams(window.location.search).get(@js($urlParameter)) === tab' => 'Module reloads must keep the selected tab in the URL.',
+            'window.location.reload()' => 'Double-click must reload the module document when its tab URL is ready.',
+            "this.\$dispatch('evo-ui:module-tab-refresh', { tab })" => 'Module tabs must expose an Alpine-safe content refresh event.',
+            'x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"' => 'Module tabs must refresh on double click.',
             'showUnsavedPrompt' => 'Module tab shell must own the unsaved prompt state.',
             'window.EvoUI.form.isDirty()' => 'Module tab shell must use the shared dirty-state detector.',
             "document.querySelector('[data-evo-form]')?.requestSubmit();" => 'Module tab shell must submit the active evo-ui form before switching.',
@@ -1466,6 +1506,34 @@ evo_ui_group('state', function (): void {
         ] as $marker => $message) {
             evo_ui_assert_contains($marker, $shell, $message);
         }
+
+        evo_ui_assert_not_contains(
+            'window.parent.location.reload()',
+            $shell,
+            'Module tab shell must not reload the parent manager.'
+        );
+        evo_ui_assert_not_contains(
+            'evo-ui:module-tab.refresh',
+            $shell,
+            'Module tab refresh events must not use dots because Alpine parses them as modifiers.'
+        );
+
+        $js = evo_ui_read('resources/js/evo-ui.js');
+        evo_ui_assert_contains('function syncModuleTabUrl(parameter, tab)', $js, 'EvoUI must expose one shared module-tab URL synchronizer.');
+        evo_ui_assert_contains('replaceModuleTabSearchParameter(window, parameter, tab);', $js, 'Module tabs must update their iframe query state.');
+        evo_ui_assert_contains('replaceModuleTabHashParameter(window.parent, parameter, tab);', $js, 'Module tabs must update the Evolution Manager hash query when embedded.');
+        evo_ui_assert_contains('syncUrl: syncModuleTabUrl', $js, 'The URL synchronizer must be available to the module-tab shell.');
+    });
+
+    evo_ui_test('module table refreshes only for its owning module tab', function (): void {
+        $moduleTable = evo_ui_read('views/livewire/module-table.blade.php');
+        $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
+
+        evo_ui_assert_contains(":refresh-tab=\"\$controller->context['tab'] ?? ''\"", $moduleTable, 'ModuleTable must pass the consumer-provided tab key to its table surface.');
+        evo_ui_assert_contains('x-on:evo-ui:module-tab-refresh.window', $moduleTableView, 'ModuleTable surface must listen for Alpine-safe module tab refresh requests.');
+        evo_ui_assert_contains('$event.detail.tab === ', $moduleTableView, 'ModuleTable surface must match refresh requests to its owning tab.');
+        evo_ui_assert_contains('$wire.$refresh();', $moduleTableView, 'ModuleTable surface must re-query its provider on matching refresh requests.');
+        evo_ui_assert_not_contains('x-on:evo-ui:module-tab.refresh.window', $moduleTableView, 'ModuleTable must not use a dotted custom event name in x-on.');
     });
 
     evo_ui_test('module tab active state uses primary accent', function (): void {
@@ -1543,6 +1611,16 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('$withActionKey', $list, 'List row actions must support action-key arguments like table rows.');
     });
 
+    evo_ui_test('module modal skips Livewire validation when no field rules are configured', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+
+        evo_ui_assert_contains('protected function validateModalData(): void', $moduleTable, 'ModuleTable must centralize modal validation.');
+        evo_ui_assert_contains('$rules = $this->modalRules();', $moduleTable, 'ModuleTable modal validation must read configured field rules.');
+        evo_ui_assert_contains('if ($rules === []) {' . PHP_EOL . '            return;' . PHP_EOL . '        }', $moduleTable, 'ModuleTable must skip Livewire validation when modal rules are empty.');
+        evo_ui_assert_contains('$this->validate($rules, [], $this->modalValidationAttributes());', $moduleTable, 'ModuleTable must still validate when modal rules exist.');
+        evo_ui_assert_not_contains('$this->validate($this->modalRules(), [], $this->modalValidationAttributes());', $moduleTable, 'ModuleTable must not call Livewire validation with an empty rules array.');
+    });
+
     evo_ui_test('module table exposes filtering, sorting, pagination and view state methods', function (): void {
         $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
         $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
@@ -1557,6 +1635,9 @@ evo_ui_group('module-table', function (): void {
         foreach (['applyMultiFilter', 'applySelectFilter', 'applyDateRangeFilter', 'setSort', 'switchView'] as $method) {
             evo_ui_assert_contains('function ' . $method, $moduleTable, 'ModuleTable must expose method: ' . $method);
         }
+
+        evo_ui_assert_contains("\$id !== 0 && (\$allowed === [] || in_array(\$id, \$allowed, true))", $moduleTable, 'Multi-select filters must preserve configured negative sentinel identifiers.');
+        evo_ui_assert_contains("\$item !== 0 && (\$allowed === [] || in_array(\$item, \$allowed, true))", $moduleTable, 'Stored multi-select filters must preserve configured negative sentinel identifiers.');
 
         evo_ui_assert_contains('wire:model.live="perPage"', $pagination, 'Pagination must bind per-page state.');
         evo_ui_assert_contains("\$title = isset(\$config['title'])", $toolbar, 'Module table toolbar must support a config title.');
@@ -1575,6 +1656,11 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('.evo-ui-table-title', $css, 'Table title must have a shared evo-ui style.');
         evo_ui_assert_contains('.evo-ui-table-toolbar--table-header', $css, 'Attached table title toolbar must have shared evo-ui CSS.');
         evo_ui_assert_contains('.evo-ui-table-wrap--with-toolbar', $css, 'Attached table title toolbar must reuse the table surface frame.');
+        evo_ui_assert_contains('.evo-ui-table tr.is-dimmed', $css, 'Dimmed table rows must use shared muted styling.');
+        evo_ui_assert_contains('.evo-ui-list-item.is-dimmed', $css, 'Dimmed list rows must use shared muted styling.');
+        evo_ui_assert_contains('.evo-ui-row-actions button.evo-ui-row-action--info', $css, 'Info row actions must expose a shared tone style.');
+        evo_ui_assert_contains('background: var(--evo-ui-info-soft);', $css, 'Info row actions must use the same soft info surface as icon toolbar buttons.');
+        evo_ui_assert_contains('color: var(--evo-ui-muted);', $css, 'Dimmed rows must inherit the shared muted text token.');
         evo_ui_assert_contains(".evo-ui .tab-content {\n    box-sizing: border-box;", $css, 'Module tab content must keep stable padding and sizing.');
         evo_ui_assert_contains(".evo-ui .evo-ui-tabs {\n    width: 100%;\n    min-height: 0;", $css, 'Module tab wrapper must not force viewport height and create false scrollbars.');
         evo_ui_assert_contains("min-height: 0;\n    padding: 18px 20px;", $css, 'Module tab content must not force viewport height and create false scrollbars.');
@@ -1601,6 +1687,7 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains("'urlDefaults' => \$this->urlDefaultState()", $moduleTable, 'Module table payload must expose URL defaults.');
         evo_ui_assert_contains('data-evo-table-url-defaults', $moduleTableView, 'Module table surface must expose URL defaults for client cleanup.');
         evo_ui_assert_contains('cleanDefaultTableUrlState(surface)', $js, 'Module table JavaScript must remove default URL table state.');
+        evo_ui_assert_contains('scheduleDefaultTableUrlStateCleanup(surface)', $js, 'Module table URL cleanup must run after Livewire finishes morphing the table state.');
         evo_ui_assert_contains('protected function urlDefaultState(): array', $moduleTable, 'Module table must expose URL default state.');
         evo_ui_assert_contains("\$keys = ['q', 'page', 'sort', 'dir', 'f', 'view']", $moduleTable, 'URL state detection must not treat perPage as shareable table state.');
         evo_ui_assert_not_contains("#[Url(as: 'perPage'", $moduleTable, 'Per-page preference must not be written into the URL.');
@@ -1609,22 +1696,76 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('evo-ui.table.per-page.', $js, 'Module table JavaScript must keep per-page preferences in localStorage.');
     });
 
+    evo_ui_test('module table replaces pagination atomically after page changes', function (): void {
+        $pagination = evo_ui_read('views/components/table/pagination.blade.php');
+
+        evo_ui_assert_contains('wire:replace wire:key="table-pager-{{ $currentPage }}-{{ (int) $lastPage }}"', $pagination, 'Pagination must be replaced as one keyed block after the current page changes.');
+    });
+
+    evo_ui_test('module table removes stale nested URL filters after clearing', function (): void {
+        $moduleTableView = evo_ui_read('views/components/table/module.blade.php');
+        $js = evo_ui_read('resources/js/evo-ui.js');
+
+        evo_ui_assert_contains('data-evo-table-url-state', $moduleTableView, 'Module table surface must expose current URL state for stale nested filter cleanup.');
+        evo_ui_assert_contains('rawurlencode(json_encode($urlDefaults', $moduleTableView, 'Module table URL defaults must survive manager attribute escaping.');
+        evo_ui_assert_contains('rawurlencode(json_encode($urlState', $moduleTableView, 'Module table current URL state must survive manager attribute escaping.');
+        evo_ui_assert_contains('parseTableUrlState(surface)', $js, 'Module table JavaScript must compare URL defaults with the current table state.');
+        evo_ui_assert_contains('JSON.parse(decodeURIComponent(value))', $js, 'Module table JavaScript must decode safely transported URL state.');
+        evo_ui_assert_contains('window.parent.location.hash', $js, 'Embedded module tables must clean the manager parent hash URL.');
+        evo_ui_assert_contains('targetWindow.history.replaceState', $js, 'Module table URL cleanup must update the window that owns the hash route.');
+        evo_ui_assert_contains("target.closest('[data-evo-table]')", $js, 'Livewire child morphs must re-run URL cleanup for their owning table surface.');
+        evo_ui_assert_contains("params.delete('page')", $js, 'Filter changes that reset pagination must remove the stale page parameter.');
+        evo_ui_assert_contains("key.indexOf(prefix + '[') === 0", $js, 'Module table JavaScript must remove stale nested filter query entries.');
+        evo_ui_assert_contains('Array.from(params.keys())', $js, 'Module table JavaScript must enumerate URLSearchParams iterators reliably.');
+    });
+
+    evo_ui_test('module table pagination keeps symmetric navigation controls', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $pagination = evo_ui_read('views/components/table/pagination.blade.php');
+
+        evo_ui_assert_contains("wire:click=\"firstPage\"", $pagination, 'Pagination must expose first-page navigation.');
+        evo_ui_assert_contains("wire:click=\"previousPage\"", $pagination, 'Pagination must expose previous-page navigation.');
+        evo_ui_assert_contains("wire:click=\"nextPage\"", $pagination, 'Pagination must expose next-page navigation.');
+        evo_ui_assert_contains("wire:click=\"goLastPage\"", $pagination, 'Pagination must expose last-page navigation.');
+        evo_ui_assert_contains('wire:key="table-page-next"', $pagination, 'Next-page navigation must keep a stable Livewire morph key.');
+        evo_ui_assert_contains('wire:key="table-page-last"', $pagination, 'Last-page navigation must keep a stable Livewire morph key.');
+        evo_ui_assert_contains('$lastPage - 1', $moduleTable, 'Long pagination ranges must include the penultimate page.');
+        evo_ui_assert_contains('$lastPage]', $moduleTable, 'Long pagination ranges must include the last page.');
+    });
+
     evo_ui_test('module table renders typed cells and list parity markers', function (): void {
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
+        $table = evo_ui_read('views/components/table/module.blade.php');
         $cell = evo_ui_read('views/components/table/module/cell.blade.php');
         $list = evo_ui_read('views/components/table/module/list.blade.php');
 
-        foreach (["'link'", "'image'", "'chips'", "'badge'", "'icon'", "'position'"] as $type) {
+        foreach (["'link'", "'image'", "'chips'", "'badge'", "'icon'", "'markdown'", "'position'"] as $type) {
             evo_ui_assert_contains($type, $cell, 'Module table cell must support type marker: ' . $type);
         }
 
+        evo_ui_assert_contains('Str::inlineMarkdown', $cell, 'Markdown table cells must use the framework inline Markdown renderer.');
+        evo_ui_assert_contains("'html_input' => 'strip'", $cell, 'Markdown table cells must strip embedded HTML.');
+        evo_ui_assert_contains("'allow_unsafe_links' => false", $cell, 'Markdown table cells must reject unsafe links.');
+        evo_ui_assert_contains("\$meta['type'] === 'markdown'", $list, 'List meta must preserve Markdown cell rendering.');
+        evo_ui_assert_contains('Str::inlineMarkdown', $list, 'Markdown list meta must use the framework inline Markdown renderer.');
         evo_ui_assert_contains('evo-ui-table-cell--', $cell, 'Module table cells must expose type-based cell classes, including date/text fallback types.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $key }}"', $cell, 'Module table cells must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-list-item', $list, 'List view must render evo-ui list items.');
+        evo_ui_assert_contains('data-evo-column-key="{{ $meta[\'key\'] }}"', $list, 'List meta rows must expose their provider column key.');
         evo_ui_assert_contains('evo-ui-table-link', $list, 'List view must reuse table link atoms.');
         evo_ui_assert_contains('evo-ui-position-control', $list, 'List view must support position controls.');
         evo_ui_assert_contains('evo-ui-position-control--rail', $list, 'List view position controls must use the shared rail variant.');
         evo_ui_assert_contains('evo-ui-reorder-rail--table', $list, 'List view position controls must use the shared table rail.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $cell, 'Table position cells must not show persisted position values as visible chips.');
         evo_ui_assert_not_contains('evo-ui-position-control__value evo-ui-dnd-badge', $list, 'List position controls must not show persisted position values as visible chips.');
+        evo_ui_assert_contains('public function rowAttributes(array $row): array', $moduleTable, 'ModuleTable must expose sanitized provider row attributes.');
+        evo_ui_assert_contains("method_exists(\$controller, 'rowAttributes')", $table, 'Table rows must remain compatible with older ModuleTable controllers during staged package updates.');
+        evo_ui_assert_contains("method_exists(\$controller, 'rowAttributes')", $list, 'List rows must remain compatible with older ModuleTable controllers during staged package updates.');
+        evo_ui_assert_contains("in_array(\$key, ['class', 'style'], true)", $moduleTable, 'Provider rows may expose inert class and style attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'data-')", $moduleTable, 'Provider rows may expose data attributes.');
+        evo_ui_assert_contains("str_starts_with(\$key, 'aria-')", $moduleTable, 'Provider rows may expose ARIA attributes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $table, 'Table rows must merge provider classes with EvoUI row state classes.');
+        evo_ui_assert_contains("->class(\$providerRowAttributes['class'] ?? '')", $list, 'List rows must merge provider classes with EvoUI list state classes.');
     });
 
     evo_ui_test('module table supports inline editing and provider hooks', function (): void {
@@ -1677,8 +1818,15 @@ evo_ui_group('module-table', function (): void {
         evo_ui_assert_contains('$showSubmit', $modal, 'Modal form must support read-only/action detail modals without a submit button.');
         evo_ui_assert_contains('x-on:submit.prevent', $modal, 'Read-only modal submit must be prevented without saving.');
         evo_ui_assert_contains('EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())', $modal, 'Modal submit must sync rich editors before saving.');
+        evo_ui_assert_contains('$fieldNameClass', $modalField, 'Modal fields must expose stable name classes for consumer-specific layout hooks.');
+        evo_ui_assert_contains('$fieldTypeClass', $modalField, 'Modal fields must expose stable type classes for shared field styling.');
+        evo_ui_assert_contains('$controller->modalCustomFieldView($field)', $modalField, 'Modal fields must resolve package-owned custom views.');
+        evo_ui_assert_contains('@include($customView', $modalField, 'Modal fields must render resolved package-owned views.');
         evo_ui_assert_contains('$type === \'static\'', $modalField, 'Modal fields must support top-level static read-only fields.');
         evo_ui_assert_contains('$type === \'code\'', $modalField, 'Modal fields must support top-level code/log fields.');
+        evo_ui_assert_contains('$type === \'code-plain\'', $modalField, 'Modal fields must support plain read-only code payloads.');
+        evo_ui_assert_contains('$type === \'meta-line\'', $modalField, 'Modal fields must support compact read-only metadata lines.');
+        evo_ui_assert_contains('$type === \'timeline\'', $modalField, 'Modal fields must support read-only timeline content.');
         evo_ui_assert_contains('$type === \'badge\'', $modalField, 'Modal fields must support top-level badge fields.');
         evo_ui_assert_contains("in_array(\$type, ['color', 'color-picker'], true)", $modalField, 'Modal fields must support color picker fields.');
         evo_ui_assert_contains('$type === \'choices\'', $modalField, 'Modal fields must support choices fields.');
@@ -1922,7 +2070,7 @@ evo_ui_group('forms', function (): void {
         foreach ([
             'evo-ui-dashboard-card--span-' => 'Dashboard card must expose span classes.',
             'data-evo-dashboard-card-span' => 'Dashboard card must expose the selected span marker.',
-            '$allowedSpans = [3, 4, 6, 8, 12]' => 'Dashboard card must clamp supported spans.',
+            '$allowedSpans = [2, 3, 4, 6, 8, 12]' => 'Dashboard card must clamp supported spans.',
             'evo-ui-dashboard-card__stats' => 'Dashboard card must render standard stat rows.',
             '<x-evo::badge :value="$badge" />' => 'Dashboard card must reuse shared badge rendering.',
         ] as $marker => $message) {
@@ -1933,9 +2081,10 @@ evo_ui_group('forms', function (): void {
             '.evo-ui-dashboard__cards {' => 'Dashboard card group CSS must exist.',
             '.evo-ui-dashboard__cards--divided {' => 'Dashboard divided spacing CSS must exist.',
             'padding-block-end: var(--evo-ui-space-4, 1rem);' => 'Dashboard card group must reserve standard spacing before body content.',
+            '.evo-ui-dashboard-card--span-2 {' => 'Dashboard sixth-width span CSS must exist.',
             '.evo-ui-dashboard-card--span-6 {' => 'Dashboard half-width span CSS must exist.',
             'flex: 0 1 calc(50% - (var(--evo-ui-dashboard-gap) * 0.5));' => 'Dashboard span-6 must be half width minus gap.',
-            '.evo-ui-dashboard-card--span-3,' . PHP_EOL . '    .evo-ui-dashboard-card--span-4,' => 'Dashboard spans must collapse together on narrow screens.',
+            '.evo-ui-dashboard-card--span-2,' . PHP_EOL . '    .evo-ui-dashboard-card--span-3,' => 'Dashboard spans must collapse together on narrow screens.',
             'flex-basis: 100%;' => 'Dashboard spans must fall back to full width on narrow screens.',
         ] as $marker => $message) {
             evo_ui_assert_contains($marker, $css, $message);
@@ -2099,6 +2248,8 @@ evo_ui_group('forms', function (): void {
     evo_ui_test('modal fields support choices, media, editor, builder and color contracts', function (): void {
         $modalField = evo_ui_read('views/components/table/module/modal-field.blade.php');
         $modal = evo_ui_read('views/components/table/module/form-modal.blade.php');
+        $css = evo_ui_read('resources/css/evo-ui.css');
+        $docs = evo_ui_read('docs/en/components/form-fields.md');
         $js = evo_ui_read('resources/js/evo-ui.js');
 
         foreach ([
@@ -2113,6 +2264,12 @@ evo_ui_group('forms', function (): void {
             '$modalNotices' => 'Modal form must support configured notice blocks.',
             'evo-ui-modal__notices' => 'Modal notices must render in a dedicated container.',
             'placeholder="{{ $placeholder }}"' => 'Top-level modal fields must render configured placeholders.',
+            'visible_if_all' => 'Modal fields must support multiple visibility conditions.',
+            "->implode(' && ')" => 'Multiple visibility conditions must be combined with AND logic.',
+            'visible_if_any' => 'Modal fields must support alternative visibility conditions.',
+            "->implode(' || ')" => 'Alternative visibility conditions must be combined with OR logic.',
+            'addon_prefix' => 'Modal text fields must support input add-on prefixes.',
+            'evo-ui-input-group__addon' => 'Modal input add-ons must render a visible prefix.',
             'EvoUI.browseImageField' => 'Image fields must open through the shared media bridge.',
             'EvoUI.browseMediaField' => 'File fields must open through the shared media bridge.',
             'EvoUI.syncRichEditors($el, $wire).then(() => $wire.saveModal())' => 'Modal submit must sync editors before save.',
@@ -2131,11 +2288,25 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains('window.EvoUI.browseImageField = function (inputId)', $js, 'Runtime must expose image picker bridge.');
         evo_ui_assert_contains('normalizeLegacyEditorInlineScript', $js, 'Runtime must normalize repeated legacy rich editor inline scripts.');
         evo_ui_assert_contains('typeof $2 !== "undefined" && $2 && typeof $2 === "object"', $js, 'Runtime must refresh TinyMCE config selector before repeated init calls.');
+
+        foreach ([
+            '.evo-ui-field--type-code-plain' => 'Plain code modal fields must have a shared layout hook.',
+            '.evo-ui-code-block--plain' => 'Plain code modal fields must remove the framed code surface.',
+            '.evo-ui-meta-line' => 'Metadata line modal fields must expose a shared root class.',
+            '.evo-ui-timeline-field' => 'Timeline modal fields must expose a shared root class.',
+            '### code-plain' => 'Plain code modal fields must be documented.',
+            '### meta-line' => 'Metadata line modal fields must be documented.',
+            '### timeline' => 'Timeline modal fields must be documented.',
+        ] as $marker => $message) {
+            $haystack = str_starts_with($marker, '### ') ? $docs : $css;
+            evo_ui_assert_contains($marker, $haystack, $message);
+        }
     });
 
     evo_ui_test('custom field registry resolves view, name and type overrides', function (): void {
         $evoUi = evo_ui_read('src/EvoUI.php');
         $form = evo_ui_read('src/Livewire/Form.php');
+        $moduleTable = evo_ui_read('src/Livewire/ModuleTable.php');
 
         evo_ui_assert_contains('public function registerFormField', $evoUi, 'EvoUI must expose custom form field registration.');
         evo_ui_assert_contains('public function formFieldView', $evoUi, 'EvoUI must expose custom form field view resolution.');
@@ -2144,6 +2315,10 @@ evo_ui_group('forms', function (): void {
         evo_ui_assert_contains('$this->formFields[$type]', $evoUi, 'Custom field views must resolve by field type.');
         evo_ui_assert_contains('public function customFieldView(array $field): ?string', $form, 'Form controller must expose custom view lookup to Blade.');
         evo_ui_assert_contains('app(EvoUI::class)->formFieldView($field)', $form, 'Form controller must delegate custom view lookup to EvoUI.');
+        evo_ui_assert_contains('public function modalCustomFieldView(array $field): ?string', $moduleTable, 'Module table modals must expose custom view lookup.');
+        evo_ui_assert_contains('app(EvoUIRegistry::class)->formFieldView($field)', $moduleTable, 'Module table modals must delegate custom field resolution to EvoUI.');
+        $docs = evo_ui_read('docs/en/components/form-fields.md');
+        evo_ui_assert_contains('The same registry resolves custom field types in standalone forms and', $docs, 'Custom field docs must cover module table modals.');
     });
 
     evo_ui_test('form casting covers config-map, csv, datetime and resource parent values', function (): void {
@@ -2163,6 +2338,29 @@ evo_ui_group('forms', function (): void {
         ] as $marker => $message) {
             evo_ui_assert_contains($marker, $form, $message);
         }
+    });
+});
+
+evo_ui_group('navigation-aside', function (): void {
+    evo_ui_test('all package locales stay consistent with Ukrainian', function (): void {
+        require __DIR__ . '/localization.php';
+    });
+    evo_ui_test('optional navigation content stays inside the tab bar', function (): void {
+        $shell = evo_ui_read('views/components/module-tab-shell.blade.php');
+        $aside = strpos($shell, '{{ $navigationAside }}');
+        $navEnd = strpos($shell, '</nav>');
+        evo_ui_assert($aside !== false && $navEnd !== false && $aside < $navEnd, 'Navigation aside must render inside nav, before panel content.');
+        evo_ui_assert_contains('@isset($navigationAside)', $shell, 'Existing consumers must not render an empty aside.');
+    });
+    evo_ui_test('HTML descriptions preserve formatting and reject executable markup', function (): void {
+        require __DIR__ . '/description-html.php';
+    });
+});
+
+evo_ui_group('responsive-table-view', function (): void {
+    evo_ui_test('first render and explicit view choices obey responsive context', function (): void {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/responsive-table-view.php') . ' 2>&1', $output, $exit);
+        evo_ui_assert_same(0, $exit, implode(PHP_EOL, $output));
     });
 });
 

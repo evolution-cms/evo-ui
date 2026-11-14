@@ -18,6 +18,7 @@
     'sort' => '',
     'direction' => 'asc',
     'selectedId' => null,
+    'refreshTab' => '',
 ])
 
 @php
@@ -39,18 +40,37 @@
     $reorderEnabled = method_exists($controller, 'reorderEnabled') && $controller->reorderEnabled();
     $titleInTableHeader = ($config['title_placement'] ?? null) === 'table_header';
     $viewKey = 'evo-ui-table-view-' . str_replace(['.', '/', '\\'], '-', (string) ($config['key'] ?? 'module'));
+    $urlState = [
+        'q' => $controller->search,
+        'page' => $page,
+        'sort' => $sort,
+        'dir' => $direction,
+        'f' => $controller->filterState,
+        'view' => $viewMode,
+    ];
     $surfaceAttributes = new \Illuminate\View\ComponentAttributeBag([
         'class' => $surfaceClass,
         'data-evo-table' => $config['key'] ?? 'module',
         'data-evo-table-view' => $viewMode,
+        'data-evo-table-view-origin' => $controller->viewOrigin ?? 'default',
+        'data-evo-responsive-list' => (int) ($config['responsive_list'] ?? 1200),
         'data-evo-table-storage-key' => $storageKey,
         'data-evo-table-per-page' => $perPage,
         'data-evo-table-per-page-cookie' => $perPageCookieName,
         'data-evo-table-per-page-options' => implode(',', $perPageOptions),
-        'data-evo-table-url-defaults' => json_encode($urlDefaults, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        'data-evo-table-url-defaults' => rawurlencode(json_encode($urlDefaults, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
+        'data-evo-table-url-state' => rawurlencode(json_encode($urlState, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
         'wire:loading.class' => 'is-loading',
         'wire:target' => $wireTarget,
     ]);
+
+    $refreshTab = trim((string) $refreshTab);
+
+    if ($refreshTab !== '') {
+        $surfaceAttributes = $surfaceAttributes->merge([
+            'x-on:evo-ui:module-tab-refresh.window' => 'if ($event.detail.tab === ' . \Illuminate\Support\Js::from($refreshTab) . ') { $wire.$refresh(); }',
+        ]);
+    }
 
     if ($reorderEnabled) {
         $surfaceAttributes = $surfaceAttributes->merge([
@@ -153,6 +173,12 @@
                                     'aria-selected' => $selectedId === $rowId ? 'true' : 'false',
                                     'class' => $rowClass,
                                 ]);
+                                $providerRowAttributes = method_exists($controller, 'rowAttributes')
+                                    ? $controller->rowAttributes($row)
+                                    : [];
+                                $rowAttributes = $rowAttributes
+                                    ->class($providerRowAttributes['class'] ?? '')
+                                    ->merge(array_diff_key($providerRowAttributes, ['class' => true]));
 
                                 if ($opensModal && $rowId > 0) {
                                     $rowAttributes = $rowAttributes->merge(['data-evo-modal-dblclick' => $rowId]);

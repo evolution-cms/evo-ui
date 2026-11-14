@@ -3,6 +3,8 @@
 | Signal | Bedeutung |
 | --- | --- |
 | `EvoUIServiceProvider` | Registriert Komponenten, config, assets und foundation bindings. |
+| `EvoUI::registerComponent()` | Registriert eine reaktive Komponente, ohne den internen Runtime fuer Consumer offenzulegen. |
+| `EvoUI\Components\Component` | Runtime-neutrale Basisklasse fuer reaktive Komponenten von Consumer-Paketen. |
 | `EvoGate` | Manager authorization bridge. |
 | `AuthorizationException` | Fehlende Berechtigung fuer form/table action. |
 | `Encrypter` | Compatibility binding fuer Livewire payloads. |

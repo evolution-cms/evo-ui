@@ -160,17 +160,41 @@ $tabs = [
 ];
 ```
 
+Set a tab's `href` to its full navigation destination to support middle-click,
+Ctrl/Cmd-click and the browser's link context menu. An ordinary click still
+switches the tab in place and checks for unsaved changes. Tabs without a usable
+`href` (including a `#` placeholder) remain buttons.
+
+The consumer supplies a trusted URL that opens the selected tab directly.
+For modules that use the manager's fragment routing, pass the manager URL
+with the action, module ID and tab in the fragment; the manager adds the
+current session token when it loads the module. The shell does not construct
+module routes or change their permission checks.
+
 Dirty-state behavior is shared: form surfaces dispatch `evo-ui:form.saved`,
 `evo-ui:form.saving` and `evo-ui:form.reset` events. Use
 `x-evo::module-tab-shell` for the canonical tab switcher with a shared
 unsaved-changes prompt, Save/Discard actions and `EvoUI.form.waitForClean`
-navigation bridge.
+navigation bridge. With `url-parameter` configured, double-clicking a tab reloads
+the module document once its URL identifies that tab. The parent manager and
+its other tabs stay open. Without a tab in the URL, the shell refreshes the
+content in place. Both paths use the same Save/Discard guard for dirty forms.
+Alpine-only consumers may handle the `evo-ui:module-tab-refresh` event on an
+in-place refresh. Nested
+`evo-ui.module-table` components re-query their providers when consumers pass the
+owning tab key through `:context="['tab' => 'your-tab']"`.
 
 The consuming module may decide which tab keys exist and what each tab renders,
 but it should not duplicate `pendingTab`, `showUnsavedPrompt`, `saveAndSwitch`
 or unsaved modal markup. dDocs is the documented exception: its documentation
 workspace uses a sidebar/tree viewer UX and should not be forced into upper
 module tabs.
+
+For dynamically mounted tables, the unreleased
+[`responsive-width-model` contract](../components/module-table-contract.md#responsive-first-render)
+can pass a measured width with navigation and avoid a second responsive-view
+request. Consumers provide a parent width property and forward it through the
+table context; view precedence and responsive policy remain owned by EvoUI.
 
 ## Module Table Preset
 

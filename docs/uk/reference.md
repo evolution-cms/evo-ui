@@ -8,6 +8,8 @@ release checks.
 | Signal | Значення |
 | --- | --- |
 | `EvoUIServiceProvider` | Реєструє Blade, Livewire, config, assets і foundation bindings. |
+| `EvoUI::registerComponent()` | Оголошує реактивний компонент без залежності пакета-споживача від внутрішнього runtime. |
+| `EvoUI\Components\Component` | Runtime-neutral базовий клас для реактивних компонентів пакетів-споживачів. |
 | `EvoGate` | Lightweight manager authorization bridge. |
 | `AuthorizationException` | Помилка, коли form/table action недоступна. |
 | `Encrypter` | Compatibility binding для Livewire payload expectations. |

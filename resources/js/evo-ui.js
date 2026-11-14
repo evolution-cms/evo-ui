@@ -1957,6 +1957,84 @@
         }, 60);
     }
 
+    function replaceModuleTabSearchParameter(targetWindow, parameter, tab) {
+        try {
+            var url = new URL(targetWindow.location.href);
+
+            if (url.searchParams.get(parameter) === tab) {
+                return;
+            }
+
+            url.searchParams.set(parameter, tab);
+            targetWindow.history.replaceState(
+                targetWindow.history.state,
+                targetWindow.document.title,
+                url.pathname + url.search + url.hash
+            );
+        } catch (error) {
+            // Embedded manager windows can deny location access.
+        }
+    }
+
+    function replaceModuleTabHashParameter(targetWindow, parameter, tab) {
+        try {
+            var hash = targetWindow.location.hash || '';
+            var queryIndex = hash.indexOf('?');
+
+            if (queryIndex === -1) {
+                return;
+            }
+
+            var prefix = hash.slice(0, queryIndex + 1);
+            var params = new URLSearchParams(hash.slice(queryIndex + 1));
+
+            if (params.get(parameter) === tab) {
+                return;
+            }
+
+            params.set(parameter, tab);
+            targetWindow.history.replaceState(
+                targetWindow.history.state,
+                targetWindow.document.title,
+                targetWindow.location.pathname + targetWindow.location.search + prefix + params.toString()
+            );
+        } catch (error) {
+            // Parent manager access is best-effort for embedded consumers.
+        }
+    }
+
+    function syncModuleTabUrl(parameter, tab) {
+        parameter = String(parameter || '').trim();
+        tab = String(tab || '').trim();
+
+        if (!/^[a-z][a-z0-9_-]*$/i.test(parameter) || tab === '') {
+            return;
+        }
+
+        replaceModuleTabSearchParameter(window, parameter, tab);
+
+        try {
+            if (window.parent && window.parent !== window) {
+                replaceModuleTabHashParameter(window.parent, parameter, tab);
+            }
+        } catch (error) {
+            // Cross-origin parents are intentionally ignored.
+        }
+    }
+
+    function moduleTableWidth(root) {
+        if (!root || typeof root.getBoundingClientRect !== 'function') {
+            return 0;
+        }
+
+        var tables = Array.prototype.filter.call(root.querySelectorAll('[data-evo-table]'), function (table) {
+            return table.getBoundingClientRect().width > 0;
+        });
+        var width = (tables.length === 1 ? tables[0] : root).getBoundingClientRect().width;
+
+        return Number.isFinite(width) && width > 0 ? Math.floor(width) : 0;
+    }
+
     function tableResponsiveStorageKey(surface) {
         var key = surface.getAttribute('data-evo-table') || surface.getAttribute('wire:key') || 'default';
 
@@ -2017,12 +2095,26 @@
         }
     }
 
-    function parseTableUrlDefaults(surface) {
+    function parseTableUrlData(surface, attribute) {
+        var value = surface.getAttribute(attribute) || '{}';
+
         try {
-            return JSON.parse(surface.getAttribute('data-evo-table-url-defaults') || '{}') || {};
+            return JSON.parse(value) || {};
         } catch (error) {
-            return {};
+            try {
+                return JSON.parse(decodeURIComponent(value)) || {};
+            } catch (decodeError) {
+                return {};
+            }
         }
+    }
+
+    function parseTableUrlDefaults(surface) {
+        return parseTableUrlData(surface, 'data-evo-table-url-defaults');
+    }
+
+    function parseTableUrlState(surface) {
+        return parseTableUrlData(surface, 'data-evo-table-url-state');
     }
 
     function flattenTableFilterDefaults(prefix, value, result) {
@@ -2042,14 +2134,27 @@
     }
 
     function currentHashParams() {
-        var hash = window.location.hash || '';
-        var index = hash.indexOf('?');
+        var targetWindow = window;
+        var hash;
+        var index;
+
+        try {
+            if (window.parent && window.parent !== window && (window.parent.location.hash || '').indexOf('?') !== -1) {
+                targetWindow = window.parent;
+            }
+        } catch (error) {
+            targetWindow = window;
+        }
+
+        hash = targetWindow.location.hash || '';
+        index = hash.indexOf('?');
 
         if (index === -1) {
             return null;
         }
 
         return {
+            targetWindow: targetWindow,
             prefix: hash.slice(0, index + 1),
             params: new URLSearchParams(hash.slice(index + 1))
         };
@@ -2058,19 +2163,27 @@
     function replaceHashParams(parts) {
         var next = parts.prefix + parts.params.toString();
 
-        if (next === window.location.hash) {
+        var targetWindow = parts.targetWindow || window;
+
+        if (next === targetWindow.location.hash) {
             return;
         }
 
-        window.history.replaceState(window.history.state, document.title, window.location.pathname + window.location.search + next);
+        targetWindow.history.replaceState(
+            targetWindow.history.state,
+            targetWindow.document.title,
+            targetWindow.location.pathname + targetWindow.location.search + next
+        );
     }
 
     function cleanDefaultTableUrlState(surface) {
         var parts = currentHashParams();
         var defaults = parseTableUrlDefaults(surface);
+        var current = parseTableUrlState(surface);
         var params;
         var changed = false;
         var filterDefaults;
+        var currentFilters;
 
         if (!parts) {
             return;
@@ -2097,6 +2210,15 @@
             }
         });
 
+        if (
+            params.has('page')
+            && Object.prototype.hasOwnProperty.call(current, 'page')
+            && String(current.page || 1) === String(defaults.page || 1)
+        ) {
+            params.delete('page');
+            changed = true;
+        }
+
         if (params.has('dir')) {
             var currentSort = params.get('sort') || defaults.sort || '';
             var defaultDirection = currentSort === (defaults.sort || '') ? (defaults.dir || 'asc') : 'asc';
@@ -2115,7 +2237,33 @@
             }
         });
 
-        Array.prototype.slice.call(params.keys()).forEach(function (key) {
+        currentFilters = current.f && typeof current.f === 'object' ? current.f : {};
+        Object.keys(defaults.f || {}).forEach(function (state) {
+            var currentValue;
+            var defaultValue;
+            var prefix;
+
+            if (!Object.prototype.hasOwnProperty.call(currentFilters, state)) {
+                return;
+            }
+
+            currentValue = currentFilters[state];
+            defaultValue = defaults.f[state];
+
+            if (JSON.stringify(currentValue) !== JSON.stringify(defaultValue)) {
+                return;
+            }
+
+            prefix = 'f[' + state + ']';
+            Array.from(params.keys()).forEach(function (key) {
+                if (key === prefix || key.indexOf(prefix + '[') === 0) {
+                    params.delete(key);
+                    changed = true;
+                }
+            });
+        });
+
+        Array.from(params.keys()).forEach(function (key) {
             if (key.indexOf('f[') === 0 && String(params.get(key) || '') === '') {
                 params.delete(key);
                 changed = true;
@@ -2125,6 +2273,24 @@
         if (changed) {
             replaceHashParams(parts);
         }
+    }
+
+    function scheduleDefaultTableUrlStateCleanup(surface) {
+        if (!surface) {
+            return;
+        }
+
+        if (surface.__evoTableUrlCleanupTimer) {
+            window.clearTimeout(surface.__evoTableUrlCleanupTimer);
+        }
+
+        surface.__evoTableUrlCleanupTimer = window.setTimeout(function () {
+            surface.__evoTableUrlCleanupTimer = null;
+
+            if (surface.isConnected) {
+                cleanDefaultTableUrlState(surface);
+            }
+        }, 0);
     }
 
     function tableSupportsView(surface, view) {
@@ -2159,7 +2325,11 @@
             }
         }
 
-        Promise.resolve(component.call('switchView', view)).finally(function () {
+        var result = surface.hasAttribute('data-evo-table-view-origin')
+            ? component.call('switchView', view, true)
+            : component.call('switchView', view);
+
+        Promise.resolve(result).finally(function () {
             surface.__evoResponsiveViewPending = '';
         });
     }
@@ -2170,6 +2340,11 @@
         var width = surface.getBoundingClientRect().width || window.innerWidth || 0;
         var storageKey = tableResponsiveStorageKey(surface);
         var autoView = '';
+        var origin = surface.getAttribute('data-evo-table-view-origin') || '';
+
+        if (threshold <= 0 || origin === 'manual' || surface.__evoResponsiveManualChoice) {
+            return;
+        }
 
         if (!tableSupportsView(surface, 'list') || !tableSupportsView(surface, 'table')) {
             return;
@@ -2179,6 +2354,10 @@
             autoView = window.sessionStorage.getItem(storageKey) || '';
         } catch (error) {
             autoView = '';
+        }
+
+        if (origin === 'auto' && current === 'list') {
+            autoView = 'list';
         }
 
         if (width > 0 && width < threshold && current !== 'list') {
@@ -2194,7 +2373,7 @@
     function initResponsiveTableView(surface) {
         if (!surface || surface.__evoResponsiveTableInitialized) {
             syncTablePerPagePreference(surface);
-            cleanDefaultTableUrlState(surface);
+            scheduleDefaultTableUrlStateCleanup(surface);
             syncResponsiveTableView(surface);
             return;
         }
@@ -2203,6 +2382,7 @@
 
         surface.querySelectorAll('[wire\\:click^="switchView("]').forEach(function (button) {
             button.addEventListener('click', function () {
+                surface.__evoResponsiveManualChoice = true;
                 try {
                     window.sessionStorage.removeItem(tableResponsiveStorageKey(surface));
                 } catch (error) {
@@ -2212,7 +2392,7 @@
         });
 
         syncTablePerPagePreference(surface);
-        cleanDefaultTableUrlState(surface);
+        scheduleDefaultTableUrlStateCleanup(surface);
         syncResponsiveTableView(surface);
     }
 
@@ -2222,6 +2402,11 @@
 
     function init(rootElement) {
         var target = rootElement || document;
+        var containingTable = target.closest ? target.closest('[data-evo-table]') : null;
+
+        if (containingTable && containingTable !== target) {
+            initResponsiveTableView(containingTable);
+        }
 
         if (target.matches && target.matches('[data-evo-layout]')) {
             initLayout(target);
@@ -3209,6 +3394,10 @@
     };
     window.EvoUI.manager = {
         open: openManagerLink
+    };
+    window.EvoUI.moduleTabs = {
+        syncUrl: syncModuleTabUrl,
+        tableWidth: moduleTableWidth
     };
 
     window.setParent = function (id, title) {

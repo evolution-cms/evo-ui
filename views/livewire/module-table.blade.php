@@ -18,4 +18,5 @@
     :sort="$sort"
     :direction="$direction"
     :selected-id="$selectedId"
+    :refresh-tab="$controller->context['tab'] ?? ''"
 />

@@ -39,3 +39,21 @@ persistence i business actions.
 - List view i table view maja pokazywac ten sam business state.
 - Nie kopiowac modal/delete/double-click behavior do consumer.
 
+
+## Pierwsze renderowanie responsywne
+
+W bieżącej gałęzi rozwojowej komponent nadrzędny może wysłać szerokość kontenera wraz ze zmianą karty. Zadeklaruj `public int $tableWidth = 0`, dodaj `responsive-width-model="tableWidth"` do `x-evo::module-tab-shell` i przekaż `responsive_width` w kontekście zagnieżdżonej tabeli.
+
+Jawne parametry URL i zapisany ręczny wybór widoku mają pierwszeństwo. Próg `responsive_list` wynosi domyślnie 1200 pikseli CSS; 0 wyłącza automatyczne przełączanie. Bez wskazówki szerokości oraz przy zmianie rozmiaru działa dotychczasowy mechanizm. Początkowe ładowanie dokumentu nadal może wymagać dodatkowego żądania.
+
+```blade
+<x-evo::module-tab-shell model="activeTab" responsive-width-model="tableWidth">
+    <x-evo::table.livewire
+        :preset="$activePreset"
+        :context="['tab' => $activeTab, 'responsive_width' => $tableWidth]"
+        :wire-key="$activePreset"
+    />
+</x-evo::module-tab-shell>
+```
+
+[Responsive first render](../../en/components/module-table-contract.md#responsive-first-render).

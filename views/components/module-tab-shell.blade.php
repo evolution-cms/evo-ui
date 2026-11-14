@@ -2,14 +2,17 @@
     'tabs' => [],
     'label' => null,
     'model' => 'activeTab',
+    'responsiveWidthModel' => '',
     'active' => null,
     'panelClass' => '',
     'surface' => true,
     'id' => null,
+    'urlParameter' => null,
 ])
 
 @php
     $model = (string) $model;
+    $urlParameter = trim((string) $urlParameter);
     $modalTitleId = \Illuminate\Support\Str::slug((string) ($id ?: 'evo-ui-module-tabs-' . $model . '-unsaved-title'));
 @endphp
 
@@ -21,18 +24,73 @@
     x-data="{
         activeTab: @if($model !== '') $wire.entangle(@js($model)).live @else @js($active) @endif,
         pendingTab: null,
+        pendingRefresh: false,
         showUnsavedPrompt: false,
         isDirty() {
             return window.EvoUI?.form?.isDirty
                 ? window.EvoUI.form.isDirty()
                 : document.querySelector('[data-evo-form-dirty=&quot;true&quot;]') !== null;
         },
+        syncModuleTabUrl(tab) {
+            if (@js($urlParameter !== '')) {
+                window.EvoUI?.moduleTabs?.syncUrl(@js($urlParameter), tab);
+            }
+        },
+        captureTableWidth() {
+            if (@js($responsiveWidthModel !== '' && $model !== '')) {
+                const width = window.EvoUI?.moduleTabs?.tableWidth(this.$root) || 0;
+                this.$wire.set(@js($responsiveWidthModel), width, false);
+            }
+        },
         setActiveModuleTab(tab) {
+            this.captureTableWidth();
             this.activeTab = tab;
+            this.syncModuleTabUrl(tab);
 
             if (@js($model !== '')) {
                 this.$wire.set(@js($model), tab);
             }
+        },
+        refreshModuleTab(tab) {
+            this.syncModuleTabUrl(tab);
+            if (@js($urlParameter !== '') && new URLSearchParams(window.location.search).get(@js($urlParameter)) === tab) {
+                window.location.reload();
+                return;
+            }
+
+            this.captureTableWidth();
+            this.activeTab = tab;
+
+            if (@js($model !== '')) {
+                Promise.resolve(this.$wire.set(@js($model), tab)).then(() => {
+                    this.$dispatch('evo-ui:module-tab-refresh', { tab });
+                    this.$wire.$refresh();
+                });
+                return;
+            }
+
+            this.$dispatch('evo-ui:module-tab-refresh', { tab });
+        },
+        requestModuleTabRefresh(tab) {
+            if (!this.isDirty()) {
+                this.refreshModuleTab(tab);
+                return;
+            }
+
+            this.pendingTab = tab;
+            this.pendingRefresh = true;
+            this.showUnsavedPrompt = true;
+        },
+        requestModuleTabClick(event, tab) {
+            if (event.currentTarget.tagName === 'A') {
+                if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                event.preventDefault();
+            }
+
+            this.requestModuleTab(tab);
         },
         requestModuleTab(tab) {
             if (this.activeTab === tab) {
@@ -45,18 +103,30 @@
             }
 
             this.pendingTab = tab;
+            this.pendingRefresh = false;
             this.showUnsavedPrompt = true;
         },
         closeUnsavedPrompt() {
             this.showUnsavedPrompt = false;
             this.pendingTab = null;
+            this.pendingRefresh = false;
         },
         applyPendingNavigation() {
-            if (this.pendingTab) {
-                this.setActiveModuleTab(this.pendingTab);
-            }
+            const tab = this.pendingTab;
+            const refresh = this.pendingRefresh;
 
             this.closeUnsavedPrompt();
+
+            if (!tab) {
+                return;
+            }
+
+            if (refresh) {
+                this.refreshModuleTab(tab);
+                return;
+            }
+
+            this.setActiveModuleTab(tab);
         },
         discardAndSwitch() {
             this.applyPendingNavigation();
@@ -83,26 +153,33 @@
     }"
     x-on:evo-ui:form.saved.window="afterSaved()"
 >
-    <nav class="evo-ui-nav-tabs evo-ui-tab-labels tabs-lift" aria-label="{{ $label }}">
+    <nav class="evo-ui-nav-tabs evo-ui-tab-labels tabs-lift {{ isset($navigationAside) ? 'evo-ui-nav-tabs--with-aside' : '' }}" aria-label="{{ $label }}">
         <div class="evo-ui-nav-tabs__list" role="tablist">
             @foreach($tabs as $tab)
                 @php
                     $key = (string) ($tab['key'] ?? $tab['argument'] ?? '');
                     $data = (array) ($tab['data'] ?? []);
                     $permission = (string) ($tab['permission'] ?? '');
+                    $href = trim((string) ($tab['href'] ?? ''));
+                    $isLink = $href !== '' && $href !== '#';
+                    $tag = $isLink ? 'a' : 'button';
+                    $tabAttributes = new \Illuminate\View\ComponentAttributeBag($isLink
+                        ? ['href' => e($href), 'x-on:keydown.space.prevent' => '$el.click()']
+                        : ['type' => 'button']);
                 @endphp
 
                 @continue($key === '')
                 @continue((bool) ($tab['hidden'] ?? false))
                 @continue($permission !== '' && function_exists('evo') && !evo()->hasPermission($permission, 'mgr'))
 
-                <button
-                    type="button"
+                <{{ $tag }}
+                    {{ $tabAttributes }}
                     role="tab"
                     class="tab evo-ui-nav-tab"
                     x-bind:class="{ 'tab-active is-active': activeTab === @js($key) }"
                     x-bind:aria-selected="activeTab === @js($key) ? 'true' : 'false'"
-                    x-on:click="requestModuleTab(@js($key))"
+                    x-on:click="requestModuleTabClick($event, @js($key))"
+                    x-on:dblclick.stop.prevent="requestModuleTabRefresh(@js($key))"
                     @foreach($data as $name => $value)
                         @if($value === true || $value === '')
                             {{ $name }}
@@ -117,9 +194,14 @@
                         @endif
                         <span>{!! __((string) ($tab['label'] ?? $key)) !!}</span>
                     </span>
-                </button>
+                </{{ $tag }}>
             @endforeach
         </div>
+        @isset($navigationAside)
+            <div class="evo-ui-nav-tabs__aside">
+                {{ $navigationAside }}
+            </div>
+        @endisset
     </nav>
 
     <div class="tab-content {{ $panelClass }}">

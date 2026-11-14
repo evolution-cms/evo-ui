@@ -18,8 +18,9 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "evolution-cms/evolution": "^3.5.7",
+        "league/commonmark": "^2.8",
         "livewire/livewire": "^4.0"
     },
     "support": {
@@ -46,6 +47,8 @@
     },
     "scripts": {
         "test": "php tests/run.php",
+        "test:responsive": ["@php tests/responsive-table-view.php", "node tests/responsive-table-view.js"],
+        "test:module-tabs": "node tests/module-tab-links.js",
         "drift": "php tests/consumer-drift.php",
         "release-gate": "php tests/consumer-drift.php --release-gate"
     },

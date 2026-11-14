@@ -44,7 +44,16 @@
             x-on:submit.prevent
         @endif
     >
-        <div class="evo-ui-modal__body" x-data="{ selectedModalTab: @js($defaultModalTab) }">
+        <div
+            class="evo-ui-modal__body"
+            x-data="{
+                selectedModalTab: @js($defaultModalTab),
+                modalData: $wire.entangle('modalData').live,
+                fieldVisible(field, expected = true) {
+                    return this.modalData?.[field] === expected;
+                },
+            }"
+        >
             @if($modalTabs->isNotEmpty())
                 <nav class="evo-ui-form-tabs evo-ui-modal-tabs" aria-label="{{ $controller->modalTitle() }}">
                     @foreach($modalTabs as $tab)

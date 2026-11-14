@@ -57,3 +57,21 @@ validation, modal save, delete guards, reorder persistence і business actions.
 - Не показувати в list view інший бізнес-стан, ніж у table view.
 - Не копіювати modal/delete/double-click behavior у consumer.
 
+
+## Адаптивний перший рендер
+
+У поточній гілці розробки parent-компонент може передати ширину контейнера в тому самому запиті, що перемикає вкладку. Оголосіть `public int $tableWidth = 0`, додайте `responsive-width-model="tableWidth"` до `x-evo::module-tab-shell` і передайте `responsive_width` у context вкладеної таблиці.
+
+Явний URL та збережений ручний вибір вигляду мають пріоритет. Поріг `responsive_list` — 1200 CSS px; значення 0 вимикає автоматичне перемикання. Без підказки або при зміні ширини працює попередній механізм. Початкове завантаження документа ще може потребувати додаткового запиту.
+
+```blade
+<x-evo::module-tab-shell model="activeTab" responsive-width-model="tableWidth">
+    <x-evo::table.livewire
+        :preset="$activePreset"
+        :context="['tab' => $activeTab, 'responsive_width' => $tableWidth]"
+        :wire-key="$activePreset"
+    />
+</x-evo::module-tab-shell>
+```
+
+[Responsive first render](../../en/components/module-table-contract.md#responsive-first-render).

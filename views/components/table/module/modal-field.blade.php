@@ -7,10 +7,15 @@
     $help = $field['help'] ?? $field['description'] ?? null;
     $helpText = $help ? __((string) $help) : '';
     $placeholder = !empty($field['placeholder']) ? __((string) $field['placeholder']) : '';
+    $addonPrefix = (string) ($field['addon_prefix'] ?? '');
     $fieldIdSuffix = (string) ($field['id_suffix'] ?? '');
     $fieldId = 'evo-modal-' . preg_replace('/[^a-z0-9_-]/i', '-', trim($controller->preset . '-' . $name . '-' . $fieldIdSuffix, '-'));
     $section = preg_replace('/[^a-z0-9_-]/i', '-', (string) ($field['section'] ?? ''));
+    $fieldNameClass = 'evo-ui-field--name-' . preg_replace('/[^a-z0-9_-]/i', '-', $name);
+    $fieldTypeClass = 'evo-ui-field--type-' . preg_replace('/[^a-z0-9_-]/i', '-', $type);
     $fieldClass = trim('evo-ui-field evo-ui-field--modal ' .
+        $fieldNameClass . ' ' .
+        $fieldTypeClass . ' ' .
         (($field['span'] ?? '') === 'full' ? 'evo-ui-field--full ' : '') .
         (!$showLabel ? 'evo-ui-field--no-label ' : '') .
         ($section !== '' ? 'evo-ui-field--section-' . $section : ''));
@@ -18,9 +23,62 @@
     $value = data_get($controller->modalData, $name, '');
     $errorKey = 'modalData.' . $name;
     $hasError = $errors->has($errorKey);
+    $customView = $controller->modalCustomFieldView($field);
     $fieldTab = (string) ($field['tab'] ?? $defaultModalTab);
     $gridRow = trim((string) ($field['grid_row'] ?? ''));
     $fieldStyle = preg_match('/^\d+(?:\s*\/\s*\d+)?$/', $gridRow) ? 'grid-row: ' . $gridRow . ';' : '';
+    $visibleIf = is_array($field['visible_if'] ?? null) ? $field['visible_if'] : [];
+    $visibleIfAll = collect((array) ($field['visible_if_all'] ?? []))
+        ->filter(fn ($condition) => is_array($condition) && !empty($condition['field']))
+        ->values();
+    $visibleIfAny = collect((array) ($field['visible_if_any'] ?? []))
+        ->filter(fn ($condition) => is_array($condition) && !empty($condition['field']))
+        ->values();
+    $visibleIfField = (string) ($visibleIf['field'] ?? '');
+    $visibleIfExpected = $visibleIf['value'] ?? true;
+    $visibilityExpression = '';
+
+    if ($modalTabs->isNotEmpty() && $fieldTab !== '') {
+        $visibilityExpression = 'selectedModalTab === ' . json_encode($fieldTab, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    if ($visibleIfField !== '') {
+        $fieldExpression = 'fieldVisible('
+            . json_encode($visibleIfField, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            . ', '
+            . json_encode($visibleIfExpected, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            . ')';
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && ' . $fieldExpression
+            : $fieldExpression;
+    }
+
+    if ($visibleIfAll->isNotEmpty()) {
+        $fieldExpression = $visibleIfAll
+            ->map(fn ($condition) => 'fieldVisible('
+                . json_encode((string) ($condition['field'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ', '
+                . json_encode($condition['value'] ?? true, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ')')
+            ->implode(' && ');
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && (' . $fieldExpression . ')'
+            : '(' . $fieldExpression . ')';
+    }
+
+    if ($visibleIfAny->isNotEmpty()) {
+        $fieldExpression = $visibleIfAny
+            ->map(fn ($condition) => 'fieldVisible('
+                . json_encode((string) ($condition['field'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ', '
+                . json_encode($condition['value'] ?? true, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                . ')')
+            ->implode(' || ');
+        $visibilityExpression = $visibilityExpression !== ''
+            ? '(' . $visibilityExpression . ') && (' . $fieldExpression . ')'
+            : '(' . $fieldExpression . ')';
+    }
+
     $colorFallback = (string) ($field['default'] ?? '#64748B');
     $colorFallback = preg_match('/^#[0-9a-f]{6}$/i', $colorFallback) ? strtoupper($colorFallback) : '#64748B';
 @endphp
@@ -36,8 +94,8 @@
         @if($fieldStyle !== '')
             style="{{ $fieldStyle }}"
         @endif
-        @if($modalTabs->isNotEmpty() && $fieldTab !== '')
-            x-show="selectedModalTab === @js($fieldTab)"
+        @if($visibilityExpression !== '')
+            x-show="{{ $visibilityExpression }}"
             x-cloak
         @endif
     >
@@ -52,8 +110,8 @@
         @if($fieldStyle !== '')
             style="{{ $fieldStyle }}"
         @endif
-        @if($modalTabs->isNotEmpty() && $fieldTab !== '')
-            x-show="selectedModalTab === @js($fieldTab)"
+        @if($visibilityExpression !== '')
+            x-show="{{ $visibilityExpression }}"
             x-cloak
         @endif
     >
@@ -72,7 +130,15 @@
             @endif
         </label>
 
-        @if($type === 'static')
+        @if($customView)
+            @include($customView, [
+                'controller' => $controller,
+                'field' => $field,
+                'fieldId' => $fieldId,
+                'model' => $model,
+                'value' => $value,
+            ])
+        @elseif($type === 'static')
             @php
                 $staticValue = is_scalar($value) || $value === null
                     ? (string) $value
@@ -86,6 +152,51 @@
                     : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             @endphp
             <pre id="{{ $fieldId }}" class="evo-ui-code-block">{{ $codeValue }}</pre>
+        @elseif($type === 'code-plain')
+            @php
+                $codeValue = is_scalar($value) || $value === null
+                    ? (string) $value
+                    : json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            @endphp
+            <pre id="{{ $fieldId }}" class="evo-ui-code-block evo-ui-code-block--plain">{{ $codeValue }}</pre>
+        @elseif($type === 'meta-line')
+            @php
+                $items = collect((array) $value)
+                    ->map(fn ($item) => is_array($item) ? $item : ['label' => '', 'value' => $item])
+                    ->filter(fn ($item) => array_key_exists('value', $item) && $item['value'] !== null && $item['value'] !== '')
+                    ->values();
+            @endphp
+            <div id="{{ $fieldId }}" class="evo-ui-meta-line">
+                @foreach($items as $item)
+                    <span class="evo-ui-meta-line__item">
+                        @if(!empty($item['label']))
+                            <span class="evo-ui-meta-line__label">{{ __((string) $item['label']) }}</span>
+                        @endif
+                        <span class="evo-ui-meta-line__value">{{ is_scalar($item['value']) ? (string) $item['value'] : json_encode($item['value'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</span>
+                    </span>
+                @endforeach
+            </div>
+        @elseif($type === 'timeline')
+            @php
+                $items = collect((array) $value)
+                    ->map(fn ($item) => is_array($item) ? $item : ['body' => $item])
+                    ->filter(fn ($item) => !empty($item['body']) || !empty($item['text']) || !empty($item['message']))
+                    ->values();
+            @endphp
+            <div id="{{ $fieldId }}" class="evo-ui-timeline-field">
+                @foreach($items as $item)
+                    @php
+                        $itemTime = (string) ($item['time'] ?? $item['date'] ?? $item['created_at'] ?? '');
+                        $itemBody = (string) ($item['body'] ?? $item['text'] ?? $item['message'] ?? '');
+                    @endphp
+                    <article class="evo-ui-timeline-field__item">
+                        @if($itemTime !== '')
+                            <time>{{ $itemTime }}</time>
+                        @endif
+                        <p>{{ $itemBody }}</p>
+                    </article>
+                @endforeach
+            </div>
         @elseif($type === 'badge')
             <div id="{{ $fieldId }}" class="evo-ui-static-field">
                 <x-evo::badge :value="$value" />
@@ -892,10 +1003,19 @@
             @php
                 $inputType = in_array($type, ['email', 'number', 'date', 'datetime-local'], true) ? $type : 'text';
             @endphp
-            @if(!empty($field['live']))
-                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @endif>
+            @if($addonPrefix !== '')
+                <span class="evo-ui-input-group" style="display: flex; width: 100%;">
+                    <span class="evo-ui-input-group__addon" style="display: inline-flex; align-items: center; padding: 0 0.875rem; border: 1px solid var(--evo-ui-border); border-right: 0; border-radius: var(--evo-ui-radius-sm) 0 0 var(--evo-ui-radius-sm); background: color-mix(in oklch, var(--evo-ui-muted) 9%, transparent); color: var(--evo-ui-muted);">{{ $addonPrefix }}</span>
+                    @if(!empty($field['live']))
+                        <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" style="flex: 1; min-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0;" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
+                    @else
+                        <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" style="flex: 1; min-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0;" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
+                    @endif
+                </span>
+            @elseif(!empty($field['live']))
+                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.live.debounce.350ms="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
             @else
-                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @endif>
+                <input id="{{ $fieldId }}" type="{{ $inputType }}" class="evo-ui-input" wire:model.blur="{{ $model }}" autocomplete="off" placeholder="{{ $placeholder }}" @if($inputType === 'number') min="{{ (int) ($field['min'] ?? 0) }}" @if(array_key_exists('max', $field)) max="{{ (int) $field['max'] }}" @endif @endif>
             @endif
         @endif
 

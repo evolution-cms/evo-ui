@@ -3,7 +3,9 @@
 namespace EvoUI\Livewire;
 
 use EvoUI\Contracts\ModuleTableProvider;
+use EvoUI\EvoUI as EvoUIRegistry;
 use EvoUI\Support\RichTextEditor;
+use EvoUI\Support\ResponsiveTableView;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Url;
@@ -35,6 +37,7 @@ class ModuleTable extends Component
 
     #[Url(as: 'view', history: true, except: 'table')]
     public string $viewMode = 'table';
+    public string $viewOrigin = 'default';
 
     public ?int $selectedId = null;
     public bool $modalOpen = false;
@@ -58,10 +61,15 @@ class ModuleTable extends Component
         $this->syncConfigState();
         $this->fillDefaultFilters();
         $this->restoreSessionState();
+        $this->applyInitialResponsiveView();
     }
 
     public function updated(string $name): void
     {
+        if ($name === 'viewMode') {
+            $this->viewOrigin = 'manual';
+        }
+
         if (in_array($name, ['search', 'perPage', 'filterState'], true)) {
             $this->resetPageState();
         }
@@ -99,15 +107,21 @@ class ModuleTable extends Component
         $this->dispatchClientState();
     }
 
-    public function switchView(string $viewMode): void
+    public function switchView(string $viewMode, bool $automatic = false): void
     {
-        $next = in_array($viewMode, $this->tableViews(), true) ? $viewMode : 'table';
+        if ($automatic && $this->viewOrigin === 'manual') {
+            return;
+        }
 
-        if ($this->viewMode === $next) {
+        $next = in_array($viewMode, $this->tableViews(), true) ? $viewMode : 'table';
+        $origin = $automatic ? 'auto' : 'manual';
+
+        if ($this->viewMode === $next && $this->viewOrigin === $origin) {
             return;
         }
 
         $this->viewMode = $next;
+        $this->viewOrigin = $origin;
         $this->dispatchClientState();
     }
 
@@ -262,7 +276,7 @@ class ModuleTable extends Component
             return;
         }
 
-        $this->validate($this->modalRules(), [], $this->modalValidationAttributes());
+        $this->validateModalData();
 
         if (($method = $this->modalConfig('save_provider')) && method_exists($this->provider(), $method)) {
             $savedId = $this->callProvider((string) $method, $this->modalData, $this->modalRecordId, $this->modalMode);
@@ -292,7 +306,7 @@ class ModuleTable extends Component
             data_set($this->modalData, (string) $field, $value);
         }
 
-        $this->validate($this->modalRules(), [], $this->modalValidationAttributes());
+        $this->validateModalData();
         $method = (string) ($action['save_provider'] ?? $this->modalConfig('save_provider', 'saveModal'));
 
         if (!method_exists($this->provider(), $method)) {
@@ -572,7 +586,7 @@ class ModuleTable extends Component
         $allowed = collect($this->optionsFor($state))->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->filterState[$state] = collect($values)
             ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0 && ($allowed === [] || in_array($id, $allowed, true)))
+            ->filter(fn ($id) => $id !== 0 && ($allowed === [] || in_array($id, $allowed, true)))
             ->unique()
             ->sort()
             ->values()
@@ -964,6 +978,7 @@ class ModuleTable extends Component
             'sort' => $this->sort,
             'direction' => $this->direction,
             'view' => $this->viewMode,
+            'view_origin' => $this->viewOrigin,
         ];
     }
 
@@ -1113,6 +1128,21 @@ class ModuleTable extends Component
         }
 
         return $fields;
+    }
+
+    /**
+     * Resolve an optional package-owned Blade view for a module modal field.
+     *
+     * Module providers may select a registered field type or provide a direct view,
+     * matching the extension contract already available to standalone EvoUI forms.
+     *
+     * @param array<string, mixed> $field Modal field descriptor
+     * @return string|null Registered custom view or null for the built-in renderer
+     * @since 1.2.0
+     */
+    public function modalCustomFieldView(array $field): ?string
+    {
+        return app(EvoUIRegistry::class)->formFieldView($field);
     }
 
     /** @param array<string, mixed> $field */
@@ -1435,6 +1465,31 @@ class ModuleTable extends Component
             ->implode(' ');
     }
 
+    /**
+     * Return provider-defined presentation attributes for a rendered row.
+     *
+     * Only inert HTML attributes are accepted. Event handlers, Livewire
+     * directives, and arbitrary element attributes remain owned by EvoUI.
+     *
+     * @param array<string, mixed> $row Provider row payload
+     * @return array<string, bool|int|float|string|null>
+     * @since 1.1.0
+     */
+    public function rowAttributes(array $row): array
+    {
+        return collect((array) data_get($row, 'row_attributes', []))
+            ->filter(function (mixed $value, mixed $key): bool {
+                if (!is_string($key) || (!is_scalar($value) && $value !== null)) {
+                    return false;
+                }
+
+                return in_array($key, ['class', 'style'], true)
+                    || str_starts_with($key, 'data-')
+                    || str_starts_with($key, 'aria-');
+            })
+            ->all();
+    }
+
     /** @return array<int, array<string, mixed>> */
     public function sortableColumns(): array
     {
@@ -1580,6 +1635,17 @@ class ModuleTable extends Component
         }
 
         return $rules;
+    }
+
+    protected function validateModalData(): void
+    {
+        $rules = $this->modalRules();
+
+        if ($rules === []) {
+            return;
+        }
+
+        $this->validate($rules, [], $this->modalValidationAttributes());
     }
 
     /** @return array<string, string> */
@@ -1914,9 +1980,10 @@ class ModuleTable extends Component
             $type = (string) ($filter['type'] ?? '');
 
             if ($type === 'multi-select') {
+                $allowed = collect($this->optionsFor($state))->pluck('id')->map(fn ($id) => (int) $id)->all();
                 $filters[$state] = collect((array) $value)
                     ->map(fn ($item) => (int) $item)
-                    ->filter(fn ($item) => $item > 0)
+                    ->filter(fn ($item) => $item !== 0 && ($allowed === [] || in_array($item, $allowed, true)))
                     ->unique()
                     ->sort()
                     ->values()
@@ -1962,9 +2029,37 @@ class ModuleTable extends Component
         $this->restoreTableState($state);
     }
 
+    protected function applyInitialResponsiveView(): void
+    {
+        if (in_array(request()->query('view'), $this->tableViews(), true)) {
+            $this->viewOrigin = 'manual';
+        }
+
+        if ($this->viewOrigin === 'manual') {
+            return;
+        }
+
+        $view = ResponsiveTableView::initialView(
+            $this->context['responsive_width'] ?? null,
+            $this->tableViews(),
+            (int) $this->tableConfig('responsive_list', 1200)
+        );
+
+        if ($view !== null) {
+            $this->viewMode = $view;
+            $this->viewOrigin = 'auto';
+        }
+    }
+
     protected function persistServerState(): void
     {
         session()->put($this->storageKey(), $this->persistedState());
+
+        if (class_exists(\EvoSessionProxy::class, false)) {
+            // The CMS proxy reconciles Laravel state from the native session at shutdown.
+            $namespace = explode('.', $this->storageKey(), 2)[0];
+            $_SESSION[$namespace] = session()->get($namespace);
+        }
     }
 
     /** @param array<string, mixed> $state */
@@ -1982,6 +2077,9 @@ class ModuleTable extends Component
 
             if (in_array($view, $this->tableViews(), true)) {
                 $this->viewMode = $view;
+                // Older sessions do not distinguish automatic and explicit selections.
+                $this->viewOrigin = in_array($state['view_origin'] ?? '', ['default', 'auto', 'manual'], true)
+                    ? $state['view_origin'] : 'manual';
             }
         }
 
@@ -2237,7 +2335,10 @@ class ModuleTable extends Component
             return range(1, $lastPage);
         }
 
-        $pages = collect([1, 2, $this->page - 1, $this->page, $this->page + 1, $lastPage - 1, $lastPage])
+        $edgePages = [1, 2, $lastPage - 1, $lastPage];
+        $currentPages = [$this->page - 1, $this->page, $this->page + 1];
+
+        $pages = collect(array_merge($edgePages, $currentPages))
             ->filter(fn ($page) => $page >= 1 && $page <= $lastPage)
             ->unique()
             ->sort()

@@ -9,7 +9,7 @@
 ])
 
 @php
-    $allowedSpans = [3, 4, 6, 8, 12];
+    $allowedSpans = [2, 3, 4, 6, 8, 12];
     $span = in_array((int) $span, $allowedSpans, true) ? (int) $span : 12;
     $status = is_scalar($status) || $status === null ? (string) $status : '';
 @endphp

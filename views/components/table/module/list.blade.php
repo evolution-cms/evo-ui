@@ -79,6 +79,12 @@
                     'aria-selected' => $isSelected ? 'true' : 'false',
                     'class' => $itemClass,
                 ]);
+                $providerRowAttributes = method_exists($controller, 'rowAttributes')
+                    ? $controller->rowAttributes($row)
+                    : [];
+                $itemAttributes = $itemAttributes
+                    ->class($providerRowAttributes['class'] ?? '')
+                    ->merge(array_diff_key($providerRowAttributes, ['class' => true]));
 
                 if ($opensModal && $rowId > 0) {
                     $itemAttributes = $itemAttributes->merge(['data-evo-modal-dblclick' => $rowId]);
@@ -199,7 +205,7 @@
                         <dl class="evo-ui-list-item__meta">
                             <?php foreach ($metaItems as $meta): ?>
                                 <?php $metaIcon = $meta['icon']; ?>
-                                <div>
+                                <div data-evo-column-key="{{ $meta['key'] }}">
                                     <?php if ($metaIcon): ?>
                                         <dt title="{{ $meta['label'] }}" aria-label="{{ $meta['label'] }}">
                                             <x-evo::icon :name="$metaIcon" />
@@ -256,6 +262,8 @@
                                                 <x-evo::icon :name="$iconValue" />
                                                 <span class="evo-ui-sr-only">{{ $iconLabel }}</span>
                                             </span>
+                                        <?php elseif ($meta['type'] === 'markdown'): ?>
+                                            <span>{!! \Illuminate\Support\Str::inlineMarkdown((string) $meta['value'], ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</span>
                                         <?php else: ?>
                                             <span>{{ $meta['value'] }}</span>
                                         <?php endif; ?>

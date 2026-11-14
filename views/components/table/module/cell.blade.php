@@ -29,9 +29,12 @@
 
         return is_scalar($displayValue) || $displayValue === null ? (string) $displayValue : '';
     };
+
+    $textColor = is_array($value) ? (string) data_get($value, 'color', '') : '';
+    $textStyle = preg_match('/^#[0-9a-f]{6}$/i', $textColor) ? 'color: ' . strtoupper($textColor) . ';' : '';
 ?>
 
-<td class="{{ $cellClass }}">
+<td class="{{ $cellClass }}" data-evo-column-key="{{ $key }}">
     <?php if (!empty($column['editable']) && $type === 'image'): ?>
         <x-evo::table.module.inline-image :row="$row" :column="$column" :display-value="$value" />
     <?php elseif (!empty($column['editable'])): ?>
@@ -108,7 +111,15 @@
                 <span class="evo-ui-sr-only">{{ $label }}</span>
             <?php endif; ?>
         </span>
+    <?php elseif ($type === 'markdown'): ?>
+        <?php $textValue = $toText($value); ?>
+        <?php if ($textValue !== ''): ?>
+            <span>{!! \Illuminate\Support\Str::inlineMarkdown($textValue, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</span>
+        <?php endif; ?>
     <?php else: ?>
-        {{ $toText($value) }}
+        <?php $textValue = $toText($value); ?>
+        <?php if ($textValue !== ''): ?>
+            <span <?php if ($textStyle !== ''): ?>style="{{ $textStyle }}"<?php endif; ?>>{{ $textValue }}</span>
+        <?php endif; ?>
     <?php endif; ?>
 </td>
