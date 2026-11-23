@@ -22,3 +22,7 @@ i delete uzywaja wspolnych regul ikon i tone evo-ui.
 dDocs celowo uzywa workspace dokumentacji z sidebar tree i viewer. Nie uzywa
 gornych module tabs, ale powinien nadal korzystac z przyciskow, inputs, cards,
 badges, kolorow i typografii evo-ui.
+
+## Rozmiary szerokiego obszaru roboczego
+
+Od szerokości modułu 2048 pikseli CSS Evo UI powiększa razem tekst, kontrolki, ikony, karty, wiersze tabel i odstępy. Przy 2560 pikselach CSS tekst ma 18 px, maksymalnie 20 px; wysokość kontrolek jest ograniczona do 44 px. Full HD (1920 pikseli CSS) zachowuje obecne rozmiary. Skalowanie systemu, powiększenie przeglądarki i iframe określają efektywną szerokość. Klasyczny górny pasek menedżera pozostaje bez zmian.

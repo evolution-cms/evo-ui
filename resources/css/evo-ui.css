@@ -3212,7 +3212,7 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-form-tab.is-active {
-    color: var(--evo-ui-text);
+    color: var(--evo-ui-primary);
 }
 
 .evo-ui-modal-tabs {
@@ -3229,7 +3229,7 @@ select.evo-ui-select--multiple {
 }
 
 .evo-ui-form-tab.is-active::after {
-    background: color-mix(in oklch, var(--evo-ui-text) 78%, transparent);
+    background: color-mix(in oklch, var(--evo-ui-primary) 78%, transparent);
 }
 
 .evo-ui-form-tab-panel {
@@ -7628,12 +7628,21 @@ select.evo-ui-select--multiple {
     display: none !important;
 }
 
-/* Use CSS viewport width, including manager iframes, rather than physical screen pixels. */
+/* Scale shared controls by the module viewport, including manager iframes.
+   Full HD retains its existing rules. Consumers can reuse this length token
+   with a 1px fallback; no zoom/transform changes the viewport or fixed overlays. */
 @media (min-width: 2048px) {
+    .evo-ui-page,
+    .evo-ui {
+        --evo-ui-desktop-unit: clamp(1px, calc(1px + (100vw - 2048px) * 0.000390625), 1.333333px);
+        --evo-ui-control-height: clamp(34px, calc(34 * var(--evo-ui-desktop-unit)), 44px);
+        --evo-ui-desktop-icon: calc(17 * var(--evo-ui-desktop-unit));
+    }
+
     .evo-ui-page,
     .evo-ui-page body,
     .evo-ui {
-        font-size: clamp(15px, calc(15px + (100vw - 2048px) * 0.0015), 17px);
+        font-size: calc(15 * var(--evo-ui-desktop-unit));
     }
 
     .evo-ui .tab,
@@ -7642,48 +7651,102 @@ select.evo-ui-select--multiple {
     .evo-ui-settings-row__label,
     .evo-ui-builder-summary__title,
     .evo-ui-dnd-title {
-        font-size: clamp(14px, calc(14px + (100vw - 2048px) * 0.002), 16px);
+        font-size: calc(14 * var(--evo-ui-desktop-unit));
         line-height: 1.3;
     }
 
     .evo-ui-field__hint,
+    .evo-ui-field__error,
     .evo-ui-settings-row__usage,
     .evo-ui-builder-summary__subtitle,
     .evo-ui-dnd-subtitle,
     .evo-ui-builder-chip,
     .evo-ui-dnd-chip,
     .evo-ui-dnd-key,
-    .evo-ui-dnd-badge {
-        font-size: clamp(12px, calc(12px + (100vw - 2048px) * 0.0015), 13.5px);
+    .evo-ui-dnd-badge,
+    .evo-ui-table th {
+        font-size: calc(12 * var(--evo-ui-desktop-unit));
         line-height: 1.3;
     }
 
-    .evo-ui-settings-row__description {
-        font-size: clamp(13px, calc(13px + (100vw - 2048px) * 0.0015), 14.5px);
-        line-height: 1.4;
+    .evo-ui-settings-row__description,
+    .evo-ui-table-footer,
+    .evo-ui-pager button {
+        font-size: calc(13 * var(--evo-ui-desktop-unit));
     }
 
-    .evo-ui-dnd-badge {
-        height: auto;
-        min-height: 24px;
+    .evo-ui .evo-ui-nav-tabs {
+        --evo-ui-nav-tab-height: calc(40 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui .evo-ui-nav-tab {
+        padding-inline: calc(10 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui .evo-ui-nav-tab__label {
+        gap: calc(6 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui .tab-content,
+    .evo-ui .evo-ui-tabs--module > .tab-content {
+        padding: calc(18 * var(--evo-ui-desktop-unit)) calc(20 * var(--evo-ui-desktop-unit));
     }
 
     .evo-ui-input,
     .evo-ui-textarea,
     .evo-ui-search input,
     .evo-ui-settings-row__control > .evo-ui-input {
-        font-size: clamp(15px, calc(15px + (100vw - 2048px) * 0.0015), 17px);
-        min-height: 34px;
+        font-size: calc(15 * var(--evo-ui-desktop-unit));
+        min-height: var(--evo-ui-control-height);
     }
 
-    select.evo-ui-input:not([multiple]) {
-        height: 34px;
+    .evo-ui-input {
+        padding-inline: calc(8 * var(--evo-ui-desktop-unit));
+    }
+
+    select.evo-ui-input:not([multiple]):not(.evo-ui-select--listbox) {
+        height: var(--evo-ui-control-height);
+        min-height: var(--evo-ui-control-height);
+        padding-right: calc(30 * var(--evo-ui-desktop-unit));
         line-height: normal;
     }
 
-    .evo-ui-btn {
-        font-size: clamp(14px, calc(14px + (100vw - 2048px) * 0.002), 16px);
-        min-height: 34px;
+    select.evo-ui-input option {
+        font-size: calc(14 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-textarea,
+    .evo-ui-settings-row__control > textarea.evo-ui-input {
+        min-height: calc(88 * var(--evo-ui-desktop-unit));
+        padding: calc(6 * var(--evo-ui-desktop-unit)) calc(8 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-field__label {
+        min-height: var(--evo-ui-control-height);
+    }
+
+    .evo-ui-btn,
+    .evo-ui-toggle-filter,
+    .evo-ui-segmented button,
+    .evo-ui-pager button,
+    .evo-ui-form-toolbar > .evo-ui-btn:not(.evo-ui-btn--icon) {
+        font-size: calc(14 * var(--evo-ui-desktop-unit));
+        min-height: var(--evo-ui-control-height);
+        padding-inline: calc(11 * var(--evo-ui-desktop-unit));
+        gap: calc(7 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-btn--icon,
+    .evo-ui-form-toolbar > .evo-ui-btn--icon,
+    .evo-ui-form-toolbar__group > .evo-ui-btn--icon {
+        width: var(--evo-ui-control-height);
+        min-width: var(--evo-ui-control-height);
+        min-height: var(--evo-ui-control-height);
+        padding: 0;
+    }
+
+    .evo-ui-pager button {
+        min-width: var(--evo-ui-control-height);
     }
 
     .evo-ui-row-actions a,
@@ -7695,15 +7758,78 @@ select.evo-ui-select--multiple {
     .evo-ui-reorder-rail__button,
     .evo-ui-drag-handle,
     .evo-ui-dnd-handle {
-        width: 28px;
-        height: 28px;
+        width: calc(28 * var(--evo-ui-desktop-unit));
+        height: calc(28 * var(--evo-ui-desktop-unit));
     }
 
+    .evo-ui-btn__icon,
+    .evo-ui-filter-icon,
+    .evo-ui-search__icon,
     .evo-ui-row-actions svg,
+    .evo-ui-resource-title svg,
+    .evo-ui-sort svg,
+    .evo-ui-order svg,
+    .evo-ui-toggle-filter svg,
+    .evo-ui-segmented svg,
+    .evo-ui-view-toggle svg,
+    .evo-ui .evo-ui-nav-tab__icon,
     .evo-ui-reorder-rail svg,
     .evo-ui-drag-handle svg,
-    .evo-ui-dnd-handle svg {
-        width: 17px;
-        height: 17px;
+    .evo-ui-dnd-handle svg,
+    .evo-ui-pager svg,
+    .evo-ui-input-icon svg {
+        width: var(--evo-ui-desktop-icon);
+        height: var(--evo-ui-desktop-icon);
+        flex-basis: var(--evo-ui-desktop-icon);
+    }
+
+    .evo-ui-search__icon {
+        left: calc(10 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-search input {
+        padding-inline: calc(34 * var(--evo-ui-desktop-unit)) calc(10 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-input--with-icon {
+        padding-left: calc(34 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-table th,
+    .evo-ui-table td {
+        padding: calc(6 * var(--evo-ui-desktop-unit)) calc(9 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-table--compact th,
+    .evo-ui-table--compact td {
+        padding: .55rem .65rem;
+    }
+
+    .evo-ui-table th.is-sortable {
+        padding: 0;
+    }
+
+    .evo-ui-table-toolbar,
+    .evo-ui-table-footer,
+    .evo-ui-table-controls {
+        gap: calc(10 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-dnd-badge {
+        height: auto;
+        min-height: calc(24 * var(--evo-ui-desktop-unit));
+    }
+
+    .evo-ui-checkbox {
+        gap: calc(7 * var(--evo-ui-desktop-unit));
+        min-height: var(--evo-ui-control-height);
+    }
+
+    .evo-ui-checkbox input,
+    .evo-ui-filter-options input[type="checkbox"],
+    .evo-ui-filter-options input[type="radio"] {
+        width: calc(16 * var(--evo-ui-desktop-unit));
+        height: calc(16 * var(--evo-ui-desktop-unit));
+        flex-shrink: 0;
     }
 }
