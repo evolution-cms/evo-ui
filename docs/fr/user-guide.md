@@ -23,3 +23,7 @@ duplicate et delete suivent les memes regles d'icone et de tone evo-ui.
 dDocs utilise volontairement un workspace documentation avec sidebar tree et
 viewer. Il n'utilise pas les tabs superieurs, mais doit reutiliser boutons,
 inputs, cards, badges, couleurs et typographie evo-ui.
+
+## Dimensions des grands espaces de travail
+
+À partir de 2048 pixels CSS de largeur du module, Evo UI agrandit ensemble le texte, les contrôles, les icônes, les onglets, les lignes de tableau et les espacements. Le texte atteint 18 px à 2560 pixels CSS et reste limité à 20 px ; les contrôles sont limités à 44 px de hauteur. Le Full HD (1920 pixels CSS) conserve ses dimensions. La mise à l’échelle du système, le zoom du navigateur et l’iframe déterminent la largeur effective. La barre classique du gestionnaire reste inchangée.

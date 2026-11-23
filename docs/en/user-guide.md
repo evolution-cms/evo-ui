@@ -39,3 +39,7 @@ evo-ui buttons, inputs, cards, badges, colors and typography.
 - Tables keep filters and pagination while you work.
 - Modals keep primary actions at the bottom.
 - Alerts, badges and chips use the shared visual language.
+
+## Wide workspace sizing
+
+Above 2048 CSS pixels of module viewport width, Evo UI scales text, controls, icons, tabs, table rows and spacing together. Body text reaches 18 px at 2560 CSS pixels and is capped at 20 px; controls are capped at 44 px. Full HD (1920 CSS pixels) keeps the existing sizing. OS scaling, browser zoom and the module iframe determine the effective width. This does not change the legacy Manager toolbar.

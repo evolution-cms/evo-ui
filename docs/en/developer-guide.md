@@ -89,3 +89,13 @@ Consumer-specific business behavior stays in the consumer module tests.
 For administrator-authored descriptions, `EvoUI\Support\DescriptionHtml::render($description)` returns sanitized inline HTML. It keeps links with relative, HTTP(S), mailto and tel destinations and basic emphasis, code and line breaks. Scriptable elements and arbitrary attributes are removed. Render the returned string as HTML; do not render the original description unescaped.
 
 Wide desktop typography grows gradually from a module viewport width of 2048 CSS pixels and is capped. The module iframe width, OS display scaling and browser zoom affect the effective viewport; physical 4K resolution is not a detection rule. Narrow layouts retain their existing typography.
+
+## Wide workspace sizing
+
+Above 2048 CSS pixels of module viewport width, Evo UI scales text, controls, icons, tabs, table rows and spacing together. Body text reaches 18 px at 2560 CSS pixels and is capped at 20 px; controls are capped at 44 px. Full HD (1920 CSS pixels) keeps the existing sizing. OS scaling, browser zoom and the module iframe determine the effective width. This does not change the legacy Manager toolbar.
+
+`--evo-ui-desktop-unit` is a shared length token from 1 px to 1.333333 px. Consumers can use `calc(320 * var(--evo-ui-desktop-unit, 1px))` for a 320 px sidebar that grows to about 427 px. Keep breakpoint conditions in CSS pixels; do not use this token in media queries. Do not apply a second zoom/transform to a consuming module.
+
+## Active section
+
+Internal form tabs (`.evo-ui-form-tab.is-active`) use the theme primary accent for their text, icon and underline. Mark the current navigation section with `aria-current="page"`; after navigation, only the selected item should retain that attribute.
