@@ -4,6 +4,8 @@ evo-ui is configured by package service providers. Consumer modules merge their
 own declarative presets into evo-ui namespaces; evo-ui owns rendering and shared
 runtime behavior.
 
+For a complete configured module, see [Declarative packages](packages.md).
+
 ## Namespaces
 
 | Namespace | Purpose |

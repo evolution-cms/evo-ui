@@ -4,6 +4,9 @@ evo-ui wird ueber Package-Service-Provider konfiguriert. Consumer-Module mergen
 deklarative Presets in evo-ui Namespaces; evo-ui besitzt Rendering und shared
 runtime behavior.
 
+Ein vollständiges Modul mit Tabs, Blöcken und verzögerten Daten-Hooks wird mit
+`registerPackage()` deklariert: [Deklarative Pakete](../en/packages.md).
+
 ## Namespaces
 
 | Namespace | Zweck |

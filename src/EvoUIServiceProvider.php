@@ -168,6 +168,7 @@ class EvoUIServiceProvider extends ServiceProvider
         $evoUI->registerComponent('evo-ui.table', \EvoUI\Livewire\Table::class);
         $evoUI->registerComponent('evo-ui.form', \EvoUI\Livewire\Form::class);
         $evoUI->registerComponent('evo-ui.module-table', \EvoUI\Livewire\ModuleTable::class);
+        $evoUI->registerComponent('evo-ui.package', \EvoUI\Livewire\PackagePanel::class);
         $evoUI->registerComponent('evo-ui.issue-workspace', \EvoUI\Livewire\IssueWorkspace::class);
     }
 

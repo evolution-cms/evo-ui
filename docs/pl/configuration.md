@@ -4,6 +4,9 @@ evo-ui jest konfigurowany przez service provider pakietu. Moduly consumer
 dodaja deklaratywne presets do namespace evo-ui, a evo-ui odpowiada za rendering
 i wspolne runtime behavior.
 
+Pełny moduł z kartami, blokami i odroczonym pobieraniem danych można zadeklarować
+przez `registerPackage()`: [pakiety deklaratywne](../en/packages.md).
+
 ## Namespaces
 
 | Namespace | Cel |
