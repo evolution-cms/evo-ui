@@ -4,6 +4,9 @@ evo-ui est configure par les service providers des packages. Les modules
 consommateurs ajoutent des presets declaratifs dans les namespaces evo-ui; evo-ui
 possede le rendering et le shared runtime behavior.
 
+Un module complet avec onglets, blocs et chargement différé des données se déclare
+avec `registerPackage()` : [paquets déclaratifs](../en/packages.md).
+
 ## Namespaces
 
 | Namespace | But |

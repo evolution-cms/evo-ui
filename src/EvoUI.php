@@ -3,9 +3,52 @@
 namespace EvoUI;
 
 use Livewire\Livewire;
+use EvoUI\Support\PackageDefinition;
+use InvalidArgumentException;
 
+/** Shared declarations for native manager widgets and lazily rendered packages. */
 class EvoUI
 {
+    /** @var array<string, PackageDefinition> Server-owned package declarations. */
+    protected array $packages = [];
+
+    /**
+     * Declare a package without instantiating its components or data providers.
+     *
+     * Only trusted PHP configuration belongs here. Existing registration APIs
+     * remain available; packages may declare the same extensions as metadata.
+     * @param string $name Stable package preset used by evo-ui.package.
+     * @param array<string, mixed> $definition Module tabs and extension maps.
+     * @return void
+     * @since 1.4.0
+     */
+    public function registerPackage(string $name, array $definition): void
+    {
+        if (!preg_match('/^[A-Za-z][A-Za-z0-9_.-]*$/D', $name)) {
+            throw new InvalidArgumentException('Invalid EvoUI package name.');
+        }
+        $package = new PackageDefinition($definition);
+        $extensions = ['components' => 'registerComponent', 'form_fields' => 'registerFormField',
+            'table_cells' => 'registerTableCell', 'filters' => 'registerFilter', 'actions' => 'registerAction'];
+        foreach ($extensions as $key => $method) {
+            foreach ($package->extensions($key) as $alias => $value) {
+                $this->{$method}($alias, $value);
+            }
+        }
+        $this->packages[$name] = $package;
+    }
+
+    /**
+     * Read a registered definition; never resolve arbitrary configuration paths.
+     * @param string $name Package preset registered by its service provider.
+     * @return PackageDefinition Immutable, credential-free UI metadata.
+     * @since 1.4.0
+     */
+    public function package(string $name): PackageDefinition
+    {
+        return $this->packages[$name] ?? throw new InvalidArgumentException('Unknown EvoUI package.');
+    }
+
     /** @var array<string, string> */
     protected array $components = [];
     protected bool $componentRuntimeBooted = false;

@@ -57,6 +57,7 @@ workflow decisions in the consuming package.
 - [Developer Guide](developer-guide.md)
 - [Frontend Guide](frontend-guide.md)
 - [Configuration](configuration.md)
+- [Declarative Packages](packages.md)
 - [Reference](reference.md)
 - [Troubleshooting](troubleshooting.md)
 - [Documentation Standards](documentation-standards.md)

@@ -2359,6 +2359,13 @@ evo_ui_group('navigation-aside', function (): void {
     });
 });
 
+evo_ui_group('declarative-packages', function (): void {
+    evo_ui_test('registry, access, active-only data and provider boot order', function (): void {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/packages.php') . ' 2>&1', $output, $exit);
+        evo_ui_assert_same(0, $exit, implode(PHP_EOL, $output));
+    });
+});
+
 evo_ui_group('responsive-table-view', function (): void {
     evo_ui_test('first render and explicit view choices obey responsive context', function (): void {
         exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/responsive-table-view.php') . ' 2>&1', $output, $exit);
