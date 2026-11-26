@@ -14,7 +14,7 @@
                 <p>{{ __($block['text']) }}</p>
             @endif
             @foreach($block['actions'] ?? [] as $action)
-                <x-evo::button :icon="$action['icon'] ?? null" :label="__($action['label'])" x-on:click="requestModuleTab(@js($action['tab']))" />
+                <x-evo::button :icon="$action['icon'] ?? null" :label="__($action['label'])" :x-on:click="'requestModuleTab(' . \Illuminate\Support\Js::from($action['tab'])->toHtml() . ')'" />
             @endforeach
         </x-evo::card>
         @break
