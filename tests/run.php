@@ -2360,6 +2360,10 @@ evo_ui_group('navigation-aside', function (): void {
 });
 
 evo_ui_group('declarative-packages', function (): void {
+    evo_ui_test('card actions compile tab keys inside native button attributes', function (): void {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/package-card-actions.php') . ' 2>&1', $output, $exit);
+        evo_ui_assert_same(0, $exit, implode(PHP_EOL, $output));
+    });
     evo_ui_test('registry, access, active-only data and provider boot order', function (): void {
         exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/packages.php') . ' 2>&1', $output, $exit);
         evo_ui_assert_same(0, $exit, implode(PHP_EOL, $output));
